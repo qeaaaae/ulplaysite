@@ -2,8 +2,8 @@
 @php
     $service = (object) $service;
 @endphp
-<article class="group relative flex flex-col h-full min-h-[240px] sm:min-h-[260px] md:min-h-[280px] rounded-xl overflow-hidden border border-stone-200 hover:border-sky-200 hover:shadow-lg hover:shadow-sky-500/5 transition-all duration-300">
-    <a href="/services/{{ $service->slug }}" class="absolute inset-0 z-10">
+<article class="group relative flex flex-col h-full min-h-[240px] sm:min-h-[260px] md:min-h-[280px] rounded-xl overflow-hidden border border-stone-200 shadow-[0_1px_3px_0_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06)] hover:border-sky-200 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-2px_rgba(0,0,0,0.06)] transition-all duration-300">
+    <a href="{{ route('services.show', $service) }}" class="absolute inset-0 z-10">
         <span class="sr-only">{{ $service->title }}</span>
     </a>
     <div class="relative flex-1 flex flex-col min-h-0">

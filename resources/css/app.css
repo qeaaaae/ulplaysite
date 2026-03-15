@@ -1,4 +1,18 @@
 @import 'tailwindcss';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/latin-700.css';
+@import '@fontsource/manrope/cyrillic-400.css';
+@import '@fontsource/manrope/cyrillic-500.css';
+@import '@fontsource/manrope/cyrillic-600.css';
+@import '@fontsource/manrope/cyrillic-700.css';
+@import '@fontsource/exo-2/latin-500.css';
+@import '@fontsource/exo-2/latin-600.css';
+@import '@fontsource/exo-2/latin-700.css';
+@import '@fontsource/exo-2/cyrillic-500.css';
+@import '@fontsource/exo-2/cyrillic-600.css';
+@import '@fontsource/exo-2/cyrillic-700.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -7,16 +21,66 @@
 
 @theme {
     --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Exo 2', 'Manrope', sans-serif;
+}
+
+:root {
+    --ulplay-accent: #0284c7;
+    --ulplay-accent-hover: #0369a1;
+    --ulplay-card-radius: 0.75rem;
+    --ulplay-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --ulplay-card-shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
 }
 
 body {
-    background-color: #f8fafc;
-    color: #1e293b;
+    background-color: #f4f4f5;
+    color: #18181b;
     min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
+.link-underline {
+    position: relative;
+}
+.link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0;
+    height: 1px;
+    background-color: currentColor;
+    transition: width 0.2s ease-out;
+}
+.link-underline:hover::after {
+    width: 100%;
+}
+
+.section-heading {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #292524;
+}
+
+/* Футер: изоляция слоя, чтобы убрать артефакты (диагональные линии) при рендеринге */
+.site-footer {
+    contain: layout paint;
+    isolation: isolate;
 }
 
 [x-cloak] {
     display: none !important;
+}
+
+.form-field:has(input[required]) label::after,
+.form-field:has(select[required]) label::after,
+.form-field:has(textarea[required]) label::after {
+    content: ' *';
+    color: #e11d48;
 }
 
 @keyframes bannerFadeInUp {
@@ -48,8 +112,92 @@ body {
     animation: bannerFadeInUp 0.5s ease-out 0.2s forwards;
 }
 
+.hero-pagination-item.active .hero-pagination-dot {
+    display: none;
+    pointer-events: none;
+}
+.hero-pagination-item.active .hero-pagination-bar {
+    display: block !important;
+}
+.hero-pagination-bar {
+    transition: width 0.4s ease-out;
+}
+
+/* Tom Select — тема под primary (sky) и stone */
+/* Обёртка без своего вида — только контейнер, чтобы не было «прямоугольник в прямоугольнике» */
+.ts-wrapper {
+    position: relative;
+    overflow: visible;
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    min-height: unset !important;
+}
+.ts-wrapper .ts-control {
+    min-height: 2.75rem; /* 44px — как у инпутов (min-h-11) */
+}
+.ts-wrapper.single .ts-control,
+.ts-dropdown.single {
+    border-color: #d6d3d1;
+}
+.ts-control,
+.ts-dropdown {
+    border-color: #d6d3d1;
+}
+.ts-wrapper.single .ts-control {
+    background-color: #fff;
+    background-image: none;
+    box-shadow: none;
+    padding: 0.625rem 2.25rem 0.625rem 0.75rem !important; /* py-2.5 px-3 как у инпутов */
+    border: 1px solid #d6d3d1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+}
+.focus .ts-control,
+.ts-wrapper.focus .ts-control {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 2px rgb(14 165 233 / 0.2);
+}
+.ts-dropdown {
+    border-color: #d6d3d1;
+    border-radius: 0 0 6px 6px;
+    margin-top: 2px;
+    z-index: 9999;
+}
+.ts-dropdown .active {
+    background-color: #e0f2fe;
+    color: #0c4a6e;
+}
+.ts-dropdown [data-selectable] {
+    padding: 10px 12px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+.ts-dropdown .option,
+.ts-dropdown .optgroup-header,
+.ts-dropdown .no-results,
+.ts-dropdown .create {
+    padding: 10px 12px;
+}
+.ts-wrapper.single .ts-control::after {
+    border-color: #78716c transparent transparent transparent;
+}
+.ts-wrapper.single.dropdown-active .ts-control::after {
+    border-color: transparent transparent #78716c transparent;
+}
+.ts-dropdown-content {
+    max-height: min(280px, 60vh);
+}
+
 /* Design tokens */
 @layer utilities {
+    .font-heading {
+        font-family: var(--font-heading);
+    }
     .btn-base {
         @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#f8fafc] disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl;
     }

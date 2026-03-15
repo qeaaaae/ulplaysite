@@ -1,0 +1,71 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreBannerRequest;
+use App\Http\Requests\Admin\UpdateBannerRequest;
+use App\Models\Banner;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class BannerController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $q = $request->input('q', '');
+        $banners = Banner::when($q !== '', fn ($query) => $query->where('title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%"))
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->paginate(10)
+            ->withQueryString();
+        return view('admin.banners.index', ['banners' => $banners, 'search' => $q]);
+    }
+
+    public function create(): View
+    {
+        return view('admin.banners.form', ['banner' => new Banner()]);
+    }
+
+    public function store(StoreBannerRequest $request): RedirectResponse
+    {
+        $validated = $request->validated();
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('banners', 'public');
+        } else {
+            $validated['image_path'] = $request->input('image_path', '') ?: 'https://picsum.photos/1920/600';
+        }
+        unset($validated['image']);
+        Banner::create($validated);
+        return redirect()->route('admin.banners.index')->with('message', 'Баннер создан');
+    }
+
+    public function edit(Banner $banner): View
+    {
+        return view('admin.banners.form', ['banner' => $banner]);
+    }
+
+    public function update(UpdateBannerRequest $request, Banner $banner): RedirectResponse
+    {
+        $validated = $request->validated();
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('banners', 'public');
+        } elseif ($request->filled('image_path')) {
+            $validated['image_path'] = $request->input('image_path');
+        } else {
+            unset($validated['image_path']);
+        }
+        unset($validated['image']);
+        $banner->update($validated);
+        return redirect()->route('admin.banners.index')->with('message', 'Баннер обновлён');
+    }
+
+    public function destroy(Banner $banner): RedirectResponse
+    {
+        $banner->delete();
+        return redirect()->route('admin.banners.index')->with('message', 'Баннер удалён');
+    }
+}

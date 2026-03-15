@@ -8,7 +8,7 @@
         <input
             type="checkbox"
             {{ $attributes->except('class')->merge([
-                'class' => 'w-4 h-4 rounded border-stone-300 text-sky-600 focus:ring-sky-500/30'
+                'class' => 'w-4 h-4 rounded border-stone-300 text-sky-600 accent-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30'
             ]) }}
         >
         @if($label)

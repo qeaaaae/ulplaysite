@@ -2,8 +2,9 @@
 @php
     $product = (object) $product;
     $hasDiscount = ($discount = $product->discount_percent ?? null) !== null;
+    $inCart = in_array($product->id ?? 0, $cartProductIds ?? []);
 @endphp
-<article class="group flex flex-col h-full bg-white rounded-lg border border-stone-200 overflow-hidden shadow-sm hover:border-stone-300 hover:shadow-md transition-all duration-200">
+<article class="group flex flex-col h-full bg-white rounded-xl border border-stone-200 overflow-hidden shadow-[0_1px_3px_0_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06)] hover:border-stone-300 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-2px_rgba(0,0,0,0.06)] transition-all duration-200">
     <div class="relative aspect-[4/3] overflow-hidden bg-stone-50">
         <a href="/products/{{ $product->slug }}" class="block absolute inset-0 z-0">
             <img src="{{ $product->image }}" alt="{{ $product->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $product->id ?? 0 }}/400/400';">
@@ -13,7 +14,7 @@
                 @endif
             </div>
         </a>
-        <button type="button" class="absolute top-2 right-2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm text-stone-500 hover:text-rose-500 hover:bg-white transition-all duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-sky-500/50 touch-manipulation cursor-pointer" title="Добавить в избранное" onclick="window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Добавлено в избранное' } }));">
+        <button type="button" class="absolute top-2 right-2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm text-stone-500 hover:text-rose-500 hover:bg-white transition-all duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-sky-500/50 touch-manipulation cursor-pointer" title="Добавить в избранное" onclick="notyf.success('Добавлено в избранное')">
             @svg('heroicon-o-heart', 'w-5 h-5')
         </button>
     </div>
@@ -29,12 +30,47 @@
                     <x-ui.badge variant="discount" size="sm">−{{ $discount }}%</x-ui.badge>
                 @endif
             </div>
+            @php
+                $avgRating = isset($product->reviews_avg_rating) ? (float) $product->reviews_avg_rating : 0;
+                $reviewsCount = $product->reviews_count ?? 0;
+            @endphp
+            <div class="flex items-center gap-1.5 mt-3" aria-label="Рейтинг: {{ $avgRating }} из 5">
+                <span class="flex gap-0.5 text-2xl leading-none">
+                    @for($i = 1; $i <= 5; $i++)
+                        @php
+                            $fill = $avgRating >= $i ? 100 : ($avgRating > $i - 1 ? (int) round(($avgRating - ($i - 1)) * 100) : 0);
+                        @endphp
+                        <span class="relative inline-block">
+                            <span class="text-stone-300">★</span>
+                            @if($fill > 0)
+                                <span class="absolute left-0 top-0 h-full overflow-hidden text-sky-600" style="width: {{ $fill }}%">
+                                    <span class="inline-block" style="width: {{ $fill < 100 ? round(10000 / $fill) : 100 }}%">★</span>
+                                </span>
+                            @endif
+                        </span>
+                    @endfor
+                </span>
+                @if($reviewsCount > 0)
+                    <span class="text-stone-500 text-sm">({{ $reviewsCount }})</span>
+                @endif
+            </div>
         </a>
         <div class="mt-5 flex gap-2">
-            <x-ui.button variant="primary" size="sm" class="flex-1 justify-center shadow-sm hover:shadow-md transition-shadow" type="button" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Товар добавлен в корзину' } }));">
-                @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-                В корзину
-            </x-ui.button>
+            @if($inCart)
+                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center">
+                    @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                    В корзине
+                </x-ui.button>
+            @else
+                <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}">
+                    @csrf
+                    <input type="hidden" name="quantity" value="1">
+                    <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn" type="submit">
+                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                        В корзину
+                    </x-ui.button>
+                </form>
+            @endif
             <a href="/products/{{ $product->slug }}" class="flex items-center justify-center w-10 h-9 rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 hover:border-stone-400 shrink-0 transition-colors cursor-pointer" title="Подробнее">
                 @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4')
             </a>

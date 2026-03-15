@@ -4,7 +4,7 @@
     'hint' => null,
 ])
 
-<div {{ $attributes->only('class')->merge(['class' => '']) }}>
+<div {{ $attributes->only('class')->merge(['class' => 'form-field']) }}>
     @if($label)
         <label for="{{ $attributes->get('id') }}" class="block text-sm font-medium text-stone-700 mb-1.5">
             {{ $label }}

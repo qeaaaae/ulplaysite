@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $metaTitle ?? 'Главная' }} — {{ config('app.name', 'UlPlay') }}</title>
+    <title>{{ $metaTitle ?? 'Главная' }} - {{ config('app.name', 'UlPlay') }}</title>
 
-    <link rel="icon" type="image/svg+xml" href="https://api.dicebear.com/7.x/identicon/svg?seed=ulplay&backgroundColor=0ea5e9">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,33 +17,104 @@
 
     @stack('styles')
 </head>
-<body class="bg-stone-50 text-stone-900 font-sans antialiased">
-    <div id="app" x-data="{ mobileMenuOpen: false, searchOpen: false, toastShow: false, toastMessage: '' }"
-         x-on:toast.window="toastMessage = $event.detail?.message || 'Товар добавлен в корзину'; toastShow = true; setTimeout(() => toastShow = false, 2500)">
+<body class="font-sans antialiased min-h-screen overflow-x-hidden @yield('bodyClass')">
+    <div id="app" class="min-h-screen flex flex-col overflow-x-hidden" x-data="{
+        mobileMenuOpen: false,
+        searchOpen: false,
+        authModalOpen: false,
+        authModalType: 'login',
+        authLoading: false,
+        authErrors: {},
+        dialogOpen: false,
+        dialogTitle: 'Сообщение',
+        dialogMessage: '',
+        dialogShowCancel: false,
+        dialogCallback: null,
+        openAuthModal(type) { this.authModalType = type; this.authModalOpen = true; this.authErrors = {}; },
+        closeAuthModal() { this.authModalOpen = false; this.authErrors = {}; },
+        openAlert(message, title) {
+            this.dialogTitle = title || 'Сообщение';
+            this.dialogMessage = message || '';
+            this.dialogShowCancel = false;
+            this.dialogCallback = null;
+            this.dialogOpen = true;
+        },
+        openConfirm(message, callback, title) {
+            this.dialogTitle = title || 'Подтверждение';
+            this.dialogMessage = message || '';
+            this.dialogShowCancel = true;
+            this.dialogCallback = typeof callback === 'function' ? callback : null;
+            this.dialogOpen = true;
+        },
+        closeDialog() {
+            this.dialogOpen = false;
+            this.dialogCallback = null;
+        },
+        confirmDialog() {
+            if (this.dialogCallback) this.dialogCallback(true);
+            this.closeDialog();
+        },
+        cancelDialog() {
+            if (this.dialogCallback) this.dialogCallback(false);
+            this.closeDialog();
+        },
+        init() {
+            window.ulplayAlert = (msg, title) => this.openAlert(msg, title);
+            window.ulplayConfirm = (msg, callback, title) => this.openConfirm(msg, callback, title);
+        },
+        async submitAuthForm(form) {
+            this.authLoading = true;
+            this.authErrors = {};
+            const formData = new FormData(form);
+            const url = this.authModalType === 'login' ? '{{ route('login') }}' : '{{ route('register') }}';
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (res.ok && data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (data.errors) this.authErrors = data.errors;
+                if (data.message) this.authErrors = { email: [data.message] };
+            } catch (e) {
+                this.authErrors = { email: ['Ошибка соединения'] };
+            } finally {
+                this.authLoading = false;
+            }
+        }
+    }"
+         x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')">
         @include('partials.header')
 
-        <main>
+        <main class="flex-1">
             @yield('content')
         </main>
 
         @include('partials.footer')
 
-        <div x-show="toastShow" x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-lg bg-stone-800 text-white text-sm font-medium shadow-lg flex items-center gap-2"
-             role="alert">
-            @svg('heroicon-o-check-circle', 'w-5 h-5 text-emerald-400 shrink-0')
-            <span x-text="toastMessage"></span>
-        </div>
+        @include('partials.auth-modal')
+
+        <x-ui.dialog />
     </div>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <template id="cart-in-button-tpl">
+        <a href="{{ route('cart.index') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
+            @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+            В корзине
+        </a>
+    </template>
+
+    @if (session('message'))
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            notyf.success(@json(session('message')));
+        });
+    </script>
+    @endif
 
     @stack('scripts')
 </body>
