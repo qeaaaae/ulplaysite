@@ -23,8 +23,8 @@ class UpdateNewsRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'content' => ['nullable', 'string'],
             'published_at' => ['nullable', 'date'],
-            'image' => ['nullable', 'image', 'max:2048'],
-            'image_path' => ['nullable', 'string', 'max:500'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*' => ['image', 'max:4096'],
         ];
     }
 

@@ -44,7 +44,6 @@
 
         <x-admin.form-section title="Изображение и порядок" icon="heroicon-o-photo">
             <x-ui.file-input name="image" accept="image/*" label="Файл изображения" label-icon="heroicon-o-photo" />
-            <x-ui.input name="image_path" label="Или URL изображения" label-icon="heroicon-o-link" value="{{ old('image_path', $category->image_path) }}" placeholder="https://..." :error="$errors->first('image_path')" />
             <x-ui.input type="number" name="sort_order" label="Порядок" label-icon="heroicon-o-bars-3" value="{{ old('sort_order', $category->sort_order ?? 1) }}" />
             <label class="flex items-center gap-2 cursor-pointer pt-1 lg:col-span-2">
                 <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $category->is_featured) ? 'checked' : '' }} class="rounded border-stone-300 text-sky-600 accent-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30">

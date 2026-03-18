@@ -36,7 +36,7 @@ class ProductSeeder extends Seeder
         for ($i = 1; $i <= 100; $i++) {
             $title = self::TITLES[($i - 1) % count(self::TITLES)] . " #{$i}";
             $slug = 'product-' . $i;
-            Product::firstOrCreate(
+            $product = Product::firstOrCreate(
                 ['slug' => $slug],
                 [
                     'title' => $title,
@@ -50,6 +50,16 @@ class ProductSeeder extends Seeder
                     'discount_percent' => $i % 4 === 0 ? rand(5, 20) : null,
                 ]
             );
+
+            // Максимум 5 фото на товар
+            $product->images()->delete();
+            for ($pos = 0; $pos < 5; $pos++) {
+                $product->images()->create([
+                    'path' => self::IMAGE,
+                    'is_cover' => $pos === 0,
+                    'position' => $pos,
+                ]);
+            }
         }
     }
 }

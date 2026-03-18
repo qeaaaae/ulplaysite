@@ -32,11 +32,22 @@ class ServiceController extends Controller
     public function store(StoreServiceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['image_path'] = $request->hasFile('image')
-            ? $request->file('image')->store('services', 'public')
-            : ($request->input('image_path') ?: null);
-        unset($validated['image']);
-        Service::create($validated);
+        $images = $request->file('images', []);
+        unset($validated['images']);
+
+        /** @var Service $service */
+        $service = Service::create($validated);
+
+        if (! empty($images)) {
+            $service->images()->delete();
+            foreach (array_slice($images, 0, 5) as $index => $file) {
+                $service->images()->create([
+                    'path' => $file->store('services', 'public'),
+                    'is_cover' => $index === 0,
+                    'position' => $index,
+                ]);
+            }
+        }
         return redirect()->route('admin.services.index')->with('message', 'Услуга создана');
     }
 
@@ -48,15 +59,35 @@ class ServiceController extends Controller
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
         $validated = $request->validated();
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('services', 'public');
-        } elseif ($request->filled('image_path')) {
-            $validated['image_path'] = $request->input('image_path');
-        } else {
-            unset($validated['image_path']);
-        }
-        unset($validated['image']);
+        $images = $request->file('images', []);
+        $deleteIds = $request->input('delete_images', []);
+        unset($validated['images']);
         $service->update($validated);
+
+        if (! empty($deleteIds)) {
+            $service->images()->whereIn('id', $deleteIds)->delete();
+        }
+
+        if (! empty($images)) {
+            $existing = $service->images()->count();
+            if ($existing >= 5) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['images' => 'Максимум 5 изображений. Удалите лишние, чтобы добавить новые.'])
+                    ->withInput();
+            }
+            $maxToAdd = max(0, 5 - $existing);
+            if ($maxToAdd > 0) {
+                $startPosition = (int) $service->images()->max('position') + 1;
+                foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
+                    $service->images()->create([
+                        'path' => $file->store('services', 'public'),
+                        'is_cover' => $existing === 0 && $offset === 0,
+                        'position' => $startPosition + $offset,
+                    ]);
+                }
+            }
+        }
         return redirect()->route('admin.services.index')->with('message', 'Услуга обновлена');
     }
 

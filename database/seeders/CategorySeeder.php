@@ -11,26 +11,71 @@ class CategorySeeder extends Seeder
 {
     private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
-    private const FIRST_NAMES = [
-        'PlayStation 4', 'PlayStation 3', 'Xbox ONE', 'Xbox 360', 'Аксессуары', 'Игры',
-    ];
-
-    private const FIRST_SLUGS = [
-        'playstation-4', 'playstation-3', 'xbox-one', 'xbox-360', 'accessories', 'games',
-    ];
-
     public function run(): void
     {
-        for ($i = 0; $i < 6; $i++) {
-            Category::updateOrCreate(
-                ['slug' => self::FIRST_SLUGS[$i]],
+        $playstation = Category::updateOrCreate(
+            ['slug' => 'playstation'],
+            [
+                'name' => 'PlayStation',
+                'image_path' => self::IMAGE,
+                'parent_id' => null,
+                'sort_order' => 1,
+                'is_featured' => true,
+            ]
+        );
+
+        $playstation->images()->delete();
+        $playstation->images()->create([
+            'path' => self::IMAGE,
+            'is_cover' => true,
+            'position' => 0,
+        ]);
+
+        $xbox = Category::updateOrCreate(
+            ['slug' => 'xbox'],
+            [
+                'name' => 'Xbox',
+                'image_path' => self::IMAGE,
+                'parent_id' => null,
+                'sort_order' => 2,
+                'is_featured' => false,
+            ]
+        );
+
+        $xbox->images()->delete();
+        $xbox->images()->create([
+            'path' => self::IMAGE,
+            'is_cover' => true,
+            'position' => 0,
+        ]);
+
+        $children = [
+            ['slug' => 'playstation-4', 'name' => 'PlayStation 4', 'parent' => $playstation, 'sort_order' => 1],
+            ['slug' => 'playstation-3', 'name' => 'PlayStation 3', 'parent' => $playstation, 'sort_order' => 2],
+            ['slug' => 'xbox-one', 'name' => 'Xbox ONE', 'parent' => $xbox, 'sort_order' => 1],
+            ['slug' => 'xbox-360', 'name' => 'Xbox 360', 'parent' => $xbox, 'sort_order' => 2],
+            ['slug' => 'accessories', 'name' => 'Аксессуары', 'parent' => null, 'sort_order' => 3],
+            ['slug' => 'games', 'name' => 'Игры', 'parent' => null, 'sort_order' => 4],
+        ];
+
+        foreach ($children as $item) {
+            $category = Category::updateOrCreate(
+                ['slug' => $item['slug']],
                 [
-                    'name' => self::FIRST_NAMES[$i],
+                    'name' => $item['name'],
                     'image_path' => self::IMAGE,
-                    'sort_order' => $i + 1,
-                    'is_featured' => $i === 0,
+                    'parent_id' => $item['parent']?->id,
+                    'sort_order' => $item['sort_order'],
+                    'is_featured' => false,
                 ]
             );
+
+            $category->images()->delete();
+            $category->images()->create([
+                'path' => self::IMAGE,
+                'is_cover' => true,
+                'position' => 0,
+            ]);
         }
     }
 }

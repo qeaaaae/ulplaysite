@@ -44,9 +44,87 @@
             </div>
         </x-admin.form-section>
 
-        <x-admin.form-section title="Изображение" icon="heroicon-o-photo">
-            <x-ui.file-input name="image" accept="image/*" label="Файл изображения" label-icon="heroicon-o-photo" />
-            <x-ui.input name="image_path" label="Или URL изображения" label-icon="heroicon-o-link" value="{{ old('image_path', $service->image_path) }}" placeholder="https://..." :error="$errors->first('image_path')" />
+        <x-admin.form-section title="Изображения" icon="heroicon-o-photo">
+            <div
+                class="space-y-3 lg:col-span-2"
+                x-data="{
+                    existing: {{ $service->images->map(fn($img) => ['id' => $img->id, 'url' => $img->url, 'is_cover' => (bool) $img->is_cover])->values()->toJson() }},
+                    deleted: [],
+                    newPreviews: [],
+                    removeExisting(id) {
+                        this.deleted.push(id);
+                        this.existing = this.existing.filter(img => img.id !== id);
+                    },
+                    handleFiles(event) {
+                        const files = Array.from(event.target.files || []).slice(0, 5);
+                        this.newPreviews = files.map(file => ({
+                            name: file.name,
+                            url: URL.createObjectURL(file),
+                        }));
+                    },
+                }"
+            >
+                <x-ui.file-input
+                    name="images[]"
+                    accept="image/*"
+                    label="Загрузить изображения (макс. 5)"
+                    label-icon="heroicon-o-photo"
+                    multiple
+                    :error="$errors->first('images')"
+                    x-on:change="handleFiles"
+                />
+
+                <template x-if="newPreviews.length">
+                    <div class="mt-2">
+                        <p class="text-xs text-stone-500 mb-2">Новые изображения (предпросмотр):</p>
+                        <div class="flex flex-wrap gap-3">
+                            <template x-for="(img, idx) in newPreviews" :key="idx">
+                                <div class="w-28 h-28 rounded-lg overflow-hidden border border-dashed border-sky-300 bg-stone-50">
+                                    <img :src="img.url" alt="" class="w-full h-full object-cover">
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="existing.length">
+                    <div class="mt-4">
+                        <p class="text-xs text-stone-500 mb-2">Текущие изображения услуги (макс. 5):</p>
+                        <div class="flex flex-wrap gap-4">
+                            <template x-for="image in existing" :key="image.id">
+                                <div class="relative group">
+                                    <button
+                                        type="button"
+                                        class="absolute -top-2 -right-2 z-20 w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                                        x-on:click="removeExisting(image.id)"
+                                        title="Удалить"
+                                    >
+                                        @svg('heroicon-o-trash', 'w-4 h-4')
+                                    </button>
+                                    <a
+                                        :href="image.url"
+                                        data-lightbox="image"
+                                        data-lightbox-group="admin-service-{{ $service->id }}"
+                                        class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 relative"
+                                    >
+                                        <img :src="image.url" alt="" class="w-full h-full object-cover">
+                                        <span
+                                            x-show="image.is_cover"
+                                            class="absolute bottom-0 inset-x-0 text-[10px] text-center text-white bg-black/70 px-1.5 py-0.5"
+                                        >
+                                            Обложка
+                                        </span>
+                                    </a>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-for="id in deleted" :key="id">
+                    <input type="hidden" name="delete_images[]" :value="id">
+                </template>
+            </div>
         </x-admin.form-section>
 
         <div class="flex flex-wrap items-center gap-3 pt-2">

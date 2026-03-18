@@ -72,11 +72,21 @@ class ProductController extends Controller
             && $user->hasPurchasedProduct($product)
             && ! $product->reviews->contains('user_id', $user->id);
 
+        $similarProducts = Product::withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->where('in_stock', true)
+            ->where('id', '!=', $product->id)
+            ->when($product->category_id, fn ($q) => $q->where('category_id', $product->category_id))
+            ->latest()
+            ->limit(4)
+            ->get();
+
         return view('products.show', [
             'product' => $product,
             'cartProductIds' => $cartProductIds,
             'reviews' => $product->reviews,
             'canReview' => $canReview,
+            'similarProducts' => $similarProducts,
         ]);
     }
 }

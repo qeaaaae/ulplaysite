@@ -21,7 +21,7 @@
         </div>
         <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-lg bg-emerald-100 text-emerald-600">@svg('heroicon-o-currency-dollar', 'w-6 h-6')</div>
+                <div class="p-2.5 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-currency-dollar', 'w-6 h-6')</div>
                 <div>
                     <p class="text-sm text-stone-500">Выручка</p>
                     <p class="text-2xl font-bold text-stone-900">{{ number_format($totalRevenue, 0, ',', ' ') }} ₽</p>
@@ -31,7 +31,7 @@
         </div>
         <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-lg bg-amber-100 text-amber-600">@svg('heroicon-o-users', 'w-6 h-6')</div>
+                <div class="p-2.5 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-users', 'w-6 h-6')</div>
                 <div>
                     <p class="text-sm text-stone-500">Пользователи</p>
                     <p class="text-2xl font-bold text-stone-900">{{ number_format($usersTotal, 0, ',', ' ') }}</p>
@@ -41,7 +41,7 @@
         </div>
         <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-lg bg-stone-100 text-stone-600">@svg('heroicon-o-cube', 'w-6 h-6')</div>
+                <div class="p-2.5 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-cube', 'w-6 h-6')</div>
                 <div>
                     <p class="text-sm text-stone-500">Товары / Услуги</p>
                     <p class="text-2xl font-bold text-stone-900">{{ $productsCount }} / {{ $servicesCount }}</p>
@@ -51,7 +51,7 @@
         </div>
         <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 rounded-lg bg-violet-100 text-violet-600">@svg('heroicon-o-banknotes', 'w-6 h-6')</div>
+                <div class="p-2.5 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-banknotes', 'w-6 h-6')</div>
                 <div>
                     <p class="text-sm text-stone-500">Средний чек</p>
                     <p class="text-2xl font-bold text-stone-900">{{ number_format($averageOrderValue, 0, ',', ' ') }} ₽</p>
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-stone-200">
                 <h2 class="text-lg font-semibold text-stone-900">Топ товаров по продажам</h2>
@@ -163,6 +163,21 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
+            <h2 class="text-lg font-semibold text-stone-900 mb-4">Активность по дням недели (новости, 30 дней)</h2>
+            <div class="h-64">
+                <canvas id="chartNewsDow"></canvas>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-stone-200 p-5 shadow-sm">
+            <h2 class="text-lg font-semibold text-stone-900 mb-4">Просмотры новостей по времени суток (30 дней)</h2>
+            <div class="h-64">
+                <canvas id="chartNewsHours"></canvas>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <script>
@@ -178,14 +193,20 @@
             var statusLabels = @json($statusLabels);
             var paymentMethods = @json($paymentMethods);
             var paymentLabels = @json($paymentLabels);
+            var newsChartDowLabels = @json($newsChartDowLabels);
+            var newsChartDowViews = @json($newsChartDowViews);
+            var newsChartDowComments = @json($newsChartDowComments);
+            var newsChartHourLabels = @json($newsChartHourLabels);
+            var newsChartHourViews = @json($newsChartHourViews);
 
             var sky = { r: 2, g: 132, b: 199 };
             var colors = [
-                'rgb(2, 132, 199)',
-                'rgb(14, 165, 233)',
-                'rgb(56, 189, 248)',
-                'rgb(125, 211, 252)',
-                'rgb(186, 230, 253)',
+                'rgb(2, 132, 199)',   // sky-600
+                'rgb(37, 99, 235)',   // blue-600, немного темнее
+                'rgb(14, 165, 233)',  // sky-500
+                'rgb(56, 189, 248)',  // sky-400
+                'rgb(125, 211, 252)', // sky-300
+                'rgb(186, 230, 253)', // sky-200
             ];
 
             if (document.getElementById('chartRevenue')) {
@@ -322,8 +343,68 @@
                         datasets: [{
                             label: 'Регистраций',
                             data: chartUsersData,
-                            borderColor: 'rgb(124, 58, 237)',
-                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            borderColor: 'rgb(2, 132, 199)',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            }
+
+            if (document.getElementById('chartNewsDow') && newsChartDowLabels && newsChartDowViews && newsChartDowComments) {
+                new Chart(document.getElementById('chartNewsDow'), {
+                    type: 'bar',
+                    data: {
+                        labels: newsChartDowLabels,
+                        datasets: [
+                            {
+                                label: 'Просмотры',
+                                data: newsChartDowViews,
+                                backgroundColor: 'rgba(2, 132, 199, 0.7)',
+                                borderColor: 'rgb(2, 132, 199)',
+                                borderWidth: 1,
+                            },
+                            {
+                                label: 'Комментарии',
+                                data: newsChartDowComments,
+                                backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                                borderColor: 'rgb(56, 189, 248)',
+                                borderWidth: 1,
+                            },
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            }
+
+            if (document.getElementById('chartNewsHours') && newsChartHourLabels && newsChartHourViews) {
+                new Chart(document.getElementById('chartNewsHours'), {
+                    type: 'line',
+                    data: {
+                        labels: newsChartHourLabels,
+                        datasets: [{
+                            label: 'Просмотры',
+                            data: newsChartHourViews,
+                            borderColor: 'rgb(2, 132, 199)',
+                            backgroundColor: 'rgba(2, 132, 199, 0.15)',
                             fill: true,
                             tension: 0.3,
                         }]

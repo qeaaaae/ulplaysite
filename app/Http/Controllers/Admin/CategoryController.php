@@ -38,7 +38,7 @@ class CategoryController extends Controller
         $validated = $request->validated();
         $validated['image_path'] = $request->hasFile('image')
             ? $request->file('image')->store('categories', 'public')
-            : ($request->input('image_path') ?: null);
+            : null;
         unset($validated['image']);
         Category::create($validated);
         return redirect()->route('admin.categories.index')->with('message', 'Категория создана');
@@ -57,8 +57,6 @@ class CategoryController extends Controller
         $validated = $request->validated();
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')->store('categories', 'public');
-        } elseif ($request->filled('image_path')) {
-            $validated['image_path'] = $request->input('image_path');
         } else {
             unset($validated['image_path']);
         }

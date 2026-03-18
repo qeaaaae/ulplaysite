@@ -37,16 +37,25 @@ class ReviewSeeder extends Seeder
             foreach ($chosen as $productId) {
                 $daysAgo = random_int(0, 45);
                 $createdAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
-                Review::create([
+                $review = Review::create([
                     'reviewable_type' => Product::class,
                     'reviewable_id' => $productId,
                     'user_id' => $user->id,
                     'rating' => (int) fake()->numberBetween(1, 5),
                     'body' => fake()->optional(0.8)->randomElement($texts),
-                    'images' => null,
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ]);
+
+                // До 3 фото у отзыва
+                $imagesCount = random_int(0, 3);
+                for ($pos = 0; $pos < $imagesCount; $pos++) {
+                    $review->imagesRelation()->create([
+                        'path' => 'https://picsum.photos/seed/review-' . $review->id . '-' . $pos . '/400/400',
+                        'is_cover' => $pos === 0,
+                        'position' => $pos,
+                    ]);
+                }
             }
         }
     }

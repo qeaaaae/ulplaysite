@@ -37,7 +37,6 @@
 
         <x-admin.form-section title="Изображение" icon="heroicon-o-photo">
             <x-ui.file-input name="image" accept="image/*" label="Файл изображения" label-icon="heroicon-o-photo" />
-            <x-ui.input name="image_path" label="Или URL изображения" label-icon="heroicon-o-link" value="{{ old('image_path', $banner->image_path) }}" placeholder="https://..." :error="$errors->first('image_path')" />
         </x-admin.form-section>
 
         <div class="flex flex-wrap items-center gap-3 pt-2">

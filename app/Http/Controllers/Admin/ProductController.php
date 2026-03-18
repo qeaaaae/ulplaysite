@@ -39,11 +39,22 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['image_path'] = $request->hasFile('image')
-            ? $request->file('image')->store('products', 'public')
-            : ($request->input('image_path') ?: null);
-        unset($validated['image']);
-        Product::create($validated);
+        $images = $request->file('images', []);
+        unset($validated['images']);
+
+        /** @var Product $product */
+        $product = Product::create($validated);
+
+        if (! empty($images)) {
+            $product->images()->delete();
+            foreach (array_slice($images, 0, 5) as $index => $file) {
+                $product->images()->create([
+                    'path' => $file->store('products', 'public'),
+                    'is_cover' => $index === 0,
+                    'position' => $index,
+                ]);
+            }
+        }
         return redirect()->route('admin.products.index')->with('message', 'Товар создан');
     }
 
@@ -58,15 +69,35 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $validated = $request->validated();
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('products', 'public');
-        } elseif ($request->filled('image_path')) {
-            $validated['image_path'] = $request->input('image_path');
-        } else {
-            unset($validated['image_path']);
-        }
-        unset($validated['image']);
+        $images = $request->file('images', []);
+        $deleteIds = $request->input('delete_images', []);
+        unset($validated['images']);
         $product->update($validated);
+
+        if (! empty($deleteIds)) {
+            $product->images()->whereIn('id', $deleteIds)->delete();
+        }
+
+        if (! empty($images)) {
+            $existing = $product->images()->count();
+            if ($existing >= 5) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['images' => 'Максимум 5 изображений. Удалите лишние, чтобы добавить новые.'])
+                    ->withInput();
+            }
+            $maxToAdd = max(0, 5 - $existing);
+            if ($maxToAdd > 0) {
+                $startPosition = (int) $product->images()->max('position') + 1;
+                foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
+                    $product->images()->create([
+                        'path' => $file->store('products', 'public'),
+                        'is_cover' => $existing === 0 && $offset === 0,
+                        'position' => $startPosition + $offset,
+                    ]);
+                }
+            }
+        }
         return redirect()->route('admin.products.index')->with('message', 'Товар обновлён');
     }
 

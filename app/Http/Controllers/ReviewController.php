@@ -23,19 +23,23 @@ class ReviewController extends Controller
         }
 
         $data = $request->validated();
+        unset($data['images']);
         $data['reviewable_type'] = Product::class;
         $data['reviewable_id'] = $product->id;
         $data['user_id'] = $user->id;
 
-        if ($request->hasFile('images')) {
-            $paths = [];
-            foreach (array_slice($request->file('images'), 0, 3) as $file) {
-                $paths[] = $file->store('reviews', 'public');
-            }
-            $data['images'] = $paths;
-        }
+        $review = Review::create($data);
 
-        Review::create($data);
+        if ($request->hasFile('images')) {
+            $files = array_slice($request->file('images'), 0, 3);
+            foreach (array_values($files) as $index => $file) {
+                $review->imagesRelation()->create([
+                    'path' => $file->store('reviews', 'public'),
+                    'is_cover' => $index === 0,
+                    'position' => $index,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('products.show', $product)
@@ -53,19 +57,23 @@ class ReviewController extends Controller
         }
 
         $data = $request->validated();
+        unset($data['images']);
         $data['reviewable_type'] = Service::class;
         $data['reviewable_id'] = $service->id;
         $data['user_id'] = $user->id;
 
-        if ($request->hasFile('images')) {
-            $paths = [];
-            foreach (array_slice($request->file('images'), 0, 3) as $file) {
-                $paths[] = $file->store('reviews', 'public');
-            }
-            $data['images'] = $paths;
-        }
+        $review = Review::create($data);
 
-        Review::create($data);
+        if ($request->hasFile('images')) {
+            $files = array_slice($request->file('images'), 0, 3);
+            foreach (array_values($files) as $index => $file) {
+                $review->imagesRelation()->create([
+                    'path' => $file->store('reviews', 'public'),
+                    'is_cover' => $index === 0,
+                    'position' => $index,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('services.show', $service)

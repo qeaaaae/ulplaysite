@@ -32,11 +32,12 @@ class HomeController extends Controller
             'newProducts' => Product::new()
                 ->inStock()
                 ->latest()
-                ->take(5)
+                ->take(4)
                 ->get(),
             'recommendedProducts' => $this->getRecommendedProducts(),
-            'services' => Service::latest()->take(2)->get(),
+            'services' => Service::withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(2)->get(),
             'news' => News::with('author')
+                ->withCount(['comments', 'views'])
                 ->whereNotNull('published_at')
                 ->orderByDesc('published_at')
                 ->take(3)

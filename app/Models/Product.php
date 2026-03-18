@@ -41,6 +41,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function images(): MorphMany
+    {
+        return $this->morphMany(Image::class, 'imageable')->orderBy('position');
+    }
+
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable');
@@ -48,6 +53,11 @@ class Product extends Model
 
     public function getImageAttribute(): ?string
     {
+        $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
+        if ($image) {
+            return $image->url;
+        }
+
         if (empty($this->image_path)) {
             return null;
         }

@@ -20,7 +20,7 @@ class NewsSeeder extends Seeder
         for ($i = 1; $i <= 100; $i++) {
             $daysAgo = rand(0, 365);
             $publishedAt = now()->subDays($daysAgo)->format('Y-m-d H:i:s');
-            News::firstOrCreate(
+            $news = News::firstOrCreate(
                 ['slug' => "news-{$i}"],
                 [
                     'title' => "Новость {$i}: обновления и акции",
@@ -31,6 +31,16 @@ class NewsSeeder extends Seeder
                     'published_at' => $publishedAt,
                 ]
             );
+
+            // Максимум 5 фото у новости
+            $news->images()->delete();
+            for ($pos = 0; $pos < 5; $pos++) {
+                $news->images()->create([
+                    'path' => self::IMAGE,
+                    'is_cover' => $pos === 0,
+                    'position' => $pos,
+                ]);
+            }
         }
     }
 }

@@ -3,10 +3,7 @@
 @section('content')
     <div class="py-8 md:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <h1 class="section-heading text-2xl mb-8 flex items-center gap-2.5">
-                <span class="text-sky-600">@svg('heroicon-o-newspaper', 'w-6 h-6 shrink-0')</span>
-                Новости
-            </h1>
+            <x-ui.section-heading tag="h1" icon="heroicon-o-newspaper" class="mb-8">Новости</x-ui.section-heading>
             @if($news->isEmpty())
                 <p class="text-stone-500 py-12 text-center">Новости пока не добавлены</p>
             @else

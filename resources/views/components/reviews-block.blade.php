@@ -9,14 +9,14 @@
 @php
     $reviewableName = $reviewable instanceof \App\Models\Product ? 'товара' : 'услуги';
 @endphp
-<div id="reviews" class="mt-8 pt-6 border-t border-stone-200">
+<div id="reviews" class="mt-8 pt-6 border-t border-stone-200 scroll-mt-24">
     <h2 class="text-lg font-semibold text-stone-900 mb-4 flex items-center gap-2">
         <span class="text-sky-600 text-xl leading-none">★</span>
         <span>Отзывы {{ $reviews->count() ? '(' . $reviews->count() . ')' : '' }}</span>
     </h2>
 
     @if($canReview)
-    <form action="{{ route($storeRoute, $storeRouteParam) }}" method="POST" enctype="multipart/form-data" class="mb-6 p-4 bg-stone-50 rounded-xl border border-stone-200">
+    <form action="{{ route($storeRoute, $storeRouteParam) }}" method="POST" enctype="multipart/form-data" class="mb-6 p-4 sm:p-5 bg-white rounded-xl border border-stone-200 shadow-sm">
         @csrf
         <div class="flex flex-col sm:flex-row gap-3 max-w-2xl items-end">
             <div class="flex gap-0.5 text-xl" x-data="{ rating: {{ old('rating', 0) }}, hover: 0 }">
@@ -41,10 +41,9 @@
         </div>
     </form>
     @else
-        <p class="mb-6 p-4 rounded-xl border border-stone-200 bg-white text-stone-600 text-sm flex items-center gap-2">
-            <span class="shrink-0 text-sky-600" aria-hidden="true">@svg('heroicon-o-information-circle', 'w-5 h-5')</span>
-            <span>@authОтзыв - только на купленный {{ $reviewableName }}.@else<a href="{{ route('login') }}" class="text-sky-600 hover:underline">Войдите</a> и оформите покупку.@endauth</span>
-        </p>
+        <x-ui.info-banner>
+            @authОтзыв - только на купленный {{ $reviewableName }}.@else<a href="{{ route('login') }}" class="text-sky-600 hover:underline">Войдите</a> и оформите покупку.@endauth
+        </x-ui.info-banner>
     @endif
 
     @if($reviews->isEmpty())

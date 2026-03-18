@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Banner extends Model
 {
@@ -24,8 +25,18 @@ class Banner extends Model
         ];
     }
 
+    public function images(): MorphMany
+    {
+        return $this->morphMany(Image::class, 'imageable')->orderBy('position');
+    }
+
     public function getImageAttribute(): ?string
     {
+        $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
+        if ($image) {
+            return $image->url;
+        }
+
         if (empty($this->image_path)) {
             return null;
         }

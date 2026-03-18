@@ -18,7 +18,7 @@ class ServiceSeeder extends Seeder
         $lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
 
         for ($i = 1; $i <= 100; $i++) {
-            Service::firstOrCreate(
+            $service = Service::firstOrCreate(
                 ['slug' => "service-{$i}"],
                 [
                     'title' => $titles[($i - 1) % count($titles)] . " ({$i})",
@@ -28,6 +28,16 @@ class ServiceSeeder extends Seeder
                     'image_path' => self::IMAGE,
                 ]
             );
+
+            // Максимум 5 фото на услугу
+            $service->images()->delete();
+            for ($pos = 0; $pos < 5; $pos++) {
+                $service->images()->create([
+                    'path' => self::IMAGE,
+                    'is_cover' => $pos === 0,
+                    'position' => $pos,
+                ]);
+            }
         }
     }
 }

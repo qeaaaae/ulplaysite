@@ -23,8 +23,8 @@ class StoreServiceRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'type' => ['required', 'in:repair,buy'],
-            'image_path' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*' => ['image', 'max:4096'],
         ];
     }
 

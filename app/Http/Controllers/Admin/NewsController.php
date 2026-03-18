@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreNewsRequest;
 use App\Http\Requests\Admin\UpdateNewsRequest;
 use App\Models\News;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,31 +35,70 @@ class NewsController extends Controller
     {
         $validated = $request->validated();
         $validated['author_id'] = auth()->id();
-        $validated['image_path'] = $request->hasFile('image')
-            ? $request->file('image')->store('news', 'public')
-            : ($request->input('image_path') ?: null);
-        unset($validated['image']);
-        News::create($validated);
+        $images = $request->file('images', []);
+        unset($validated['images']);
+
+        /** @var News $news */
+        $news = News::create($validated);
+
+        if (! empty($images)) {
+            $news->images()->delete();
+            foreach (array_slice($images, 0, 5) as $index => $file) {
+                $news->images()->create([
+                    'path' => $file->store('news', 'public'),
+                    'is_cover' => $index === 0,
+                    'position' => $index,
+                ]);
+            }
+        }
         return redirect()->route('admin.news.index')->with('message', 'Новость создана');
     }
 
     public function edit(News $news): View
     {
-        return view('admin.news.form', ['news' => $news]);
+        $news->load(['author', 'views.user']);
+
+        /** @var Collection<int, \App\Models\NewsView> $views */
+        $views = $news->views()->with('user')->orderByDesc('created_at')->get();
+
+        return view('admin.news.form', [
+            'news' => $news,
+            'views' => $views,
+        ]);
     }
 
     public function update(UpdateNewsRequest $request, News $news): RedirectResponse
     {
         $validated = $request->validated();
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('news', 'public');
-        } elseif ($request->filled('image_path')) {
-            $validated['image_path'] = $request->input('image_path');
-        } else {
-            unset($validated['image_path']);
-        }
-        unset($validated['image']);
+        $images = $request->file('images', []);
+        $deleteIds = $request->input('delete_images', []);
+        unset($validated['images']);
         $news->update($validated);
+
+        if (! empty($deleteIds)) {
+            $news->images()->whereIn('id', $deleteIds)->delete();
+        }
+
+        if (! empty($images)) {
+            $existing = $news->images()->count();
+            if ($existing >= 5) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['images' => 'Максимум 5 изображений. Удалите лишние, чтобы добавить новые.'])
+                    ->withInput();
+            }
+            $maxToAdd = max(0, 5 - $existing);
+            if ($maxToAdd > 0) {
+                $startPosition = (int) $news->images()->max('position') + 1;
+                foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
+                    $news->images()->create([
+                        'path' => $file->store('news', 'public'),
+                        'is_cover' => $existing === 0 && $offset === 0,
+                        'position' => $startPosition + $offset,
+                    ]);
+                }
+            }
+        }
         return redirect()->route('admin.news.index')->with('message', 'Новость обновлена');
     }
 

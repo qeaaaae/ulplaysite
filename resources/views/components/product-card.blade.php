@@ -30,12 +30,13 @@
                     <x-ui.badge variant="discount" size="sm">−{{ $discount }}%</x-ui.badge>
                 @endif
             </div>
+        </a>
             @php
                 $avgRating = isset($product->reviews_avg_rating) ? (float) $product->reviews_avg_rating : 0;
                 $reviewsCount = $product->reviews_count ?? 0;
             @endphp
-            <div class="flex items-center gap-1.5 mt-3" aria-label="Рейтинг: {{ $avgRating }} из 5">
-                <span class="flex gap-0.5 text-2xl leading-none">
+            <div class="flex items-center gap-2 mt-1 flex-wrap" aria-label="Рейтинг: {{ $avgRating }} из 5">
+                <span class="flex gap-0.5 text-3xl leading-none">
                     @for($i = 1; $i <= 5; $i++)
                         @php
                             $fill = $avgRating >= $i ? 100 : ($avgRating > $i - 1 ? (int) round(($avgRating - ($i - 1)) * 100) : 0);
@@ -51,13 +52,14 @@
                     @endfor
                 </span>
                 @if($reviewsCount > 0)
-                    <span class="text-stone-500 text-sm">({{ $reviewsCount }})</span>
+                    <a href="{{ route('products.show', $product) }}#reviews" class="text-stone-500 text-sm hover:text-sky-600 transition-colors">{{ $reviewsCount }} @if($reviewsCount === 1)отзыв@elseif($reviewsCount >= 2 && $reviewsCount <= 4)отзыва@else отзывов @endif</a>
+                @else
+                    <span class="text-stone-400 text-sm">Нет отзывов</span>
                 @endif
             </div>
-        </a>
-        <div class="mt-5 flex gap-2">
+        <div class="mt-4 flex gap-2">
             @if($inCart)
-                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center">
+                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center h-11">
                     @svg('heroicon-o-shopping-cart', 'w-4 h-4')
                     В корзине
                 </x-ui.button>
@@ -65,13 +67,13 @@
                 <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}">
                     @csrf
                     <input type="hidden" name="quantity" value="1">
-                    <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn" type="submit">
+                    <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn h-11" type="submit">
                         @svg('heroicon-o-shopping-cart', 'w-4 h-4')
                         В корзину
                     </x-ui.button>
                 </form>
             @endif
-            <a href="/products/{{ $product->slug }}" class="flex items-center justify-center w-10 h-9 rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 hover:border-stone-400 shrink-0 transition-colors cursor-pointer" title="Подробнее">
+            <a href="/products/{{ $product->slug }}" class="flex items-center justify-center w-11 h-11 rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 hover:border-stone-400 shrink-0 transition-colors cursor-pointer" title="Подробнее">
                 @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4')
             </a>
         </div>

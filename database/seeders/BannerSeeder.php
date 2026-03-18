@@ -18,7 +18,7 @@ class BannerSeeder extends Seeder
     public function run(): void
     {
         for ($i = 1; $i <= 100; $i++) {
-            Banner::firstOrCreate(
+            $banner = Banner::firstOrCreate(
                 ['title' => "Баннер {$i}"],
                 [
                     'description' => "Описание баннера {$i}",
@@ -28,6 +28,14 @@ class BannerSeeder extends Seeder
                     'active' => $i <= 10,
                 ]
             );
+
+            // У баннера только одно фото
+            $banner->images()->delete();
+            $banner->images()->create([
+                'path' => self::IMAGES[($i - 1) % count(self::IMAGES)],
+                'is_cover' => true,
+                'position' => 0,
+            ]);
         }
     }
 }

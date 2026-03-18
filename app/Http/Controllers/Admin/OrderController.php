@@ -22,7 +22,7 @@ class OrderController extends Controller
                         ->orWhere('email', 'like', '%' . $request->q . '%'));
             }))
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.orders.index', ['orders' => $orders]);

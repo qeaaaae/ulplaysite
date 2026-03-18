@@ -5,11 +5,10 @@
 @section('content')
     <div class="min-h-screen py-6 sm:py-8 md:py-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="mb-6 sm:mb-8 text-sm text-stone-500">
-                <a href="{{ route('cart.index') }}" class="hover:text-sky-600 transition-colors">Корзина</a>
-                <span class="mx-2">/</span>
-                <span class="text-stone-800 font-medium">Оформление заказа</span>
-            </nav>
+            <x-ui.breadcrumbs :items="[
+                ['label' => 'Корзина', 'url' => route('cart.index')],
+                ['label' => 'Оформление заказа', 'url' => null],
+            ]" class="sm:mb-8" />
 
             <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 mb-6 sm:mb-8">Оформление заказа</h1>
 

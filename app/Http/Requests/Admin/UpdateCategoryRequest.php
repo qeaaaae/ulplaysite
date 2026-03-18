@@ -22,8 +22,7 @@ class UpdateCategoryRequest extends FormRequest
             'slug' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'exists:categories,id'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
-            'image_path' => ['nullable', 'string', 'max:500'],
+            'image' => ['nullable', 'image', 'max:4096'],
             'is_featured' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
         ];

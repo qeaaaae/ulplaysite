@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\News;
+use App\Models\NewsView;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -142,6 +143,33 @@ class StatisticsController extends Controller
             $usersData30[] = (int) ($usersByDay->get($d)?->c ?? 0);
         }
 
+        // Активность по новостям: просмотры и комментарии
+        $newsViewsLast30 = NewsView::where('created_at', '>=', $last30Days)->get(['created_at']);
+        $commentsLast30 = Comment::where('created_at', '>=', $last30Days)->get(['created_at']);
+
+        $newsByDayOfWeekViews = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0];
+        foreach ($newsViewsLast30 as $view) {
+            $dow = (int) $view->created_at->format('w');
+            $newsByDayOfWeekViews[$dow]++;
+        }
+
+        $newsByDayOfWeekComments = [0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0];
+        foreach ($commentsLast30 as $comment) {
+            $dow = (int) $comment->created_at->format('w');
+            $newsByDayOfWeekComments[$dow]++;
+        }
+
+        $newsViewsByHour = array_fill(0, 24, 0);
+        foreach ($newsViewsLast30 as $view) {
+            $hour = (int) $view->created_at->format('G');
+            $newsViewsByHour[$hour]++;
+        }
+
+        $hourLabels = [];
+        for ($h = 0; $h < 24; $h++) {
+            $hourLabels[] = sprintf('%02d:00', $h);
+        }
+
         return view('admin.statistics.index', [
             'totalOrders' => $totalOrders,
             'totalRevenue' => $totalRevenue,
@@ -171,6 +199,11 @@ class StatisticsController extends Controller
             'chartDowData' => $chartDowData,
             'chartUsersLabels' => $labels30,
             'chartUsersData' => $usersData30,
+            'newsChartDowLabels' => $dowLabels,
+            'newsChartDowViews' => array_values($newsByDayOfWeekViews),
+            'newsChartDowComments' => array_values($newsByDayOfWeekComments),
+            'newsChartHourLabels' => $hourLabels,
+            'newsChartHourViews' => array_values($newsViewsByHour),
         ]);
     }
 }

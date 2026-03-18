@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class News extends Model
 {
@@ -37,8 +38,23 @@ class News extends Model
         return $this->hasMany(Comment::class)->orderByDesc('created_at');
     }
 
+    public function views(): HasMany
+    {
+        return $this->hasMany(NewsView::class);
+    }
+
+    public function images(): MorphMany
+    {
+        return $this->morphMany(Image::class, 'imageable')->orderBy('position');
+    }
+
     public function getImageAttribute(): ?string
     {
+        $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
+        if ($image) {
+            return $image->url;
+        }
+
         if (empty($this->image_path)) {
             return null;
         }

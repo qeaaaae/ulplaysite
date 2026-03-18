@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Review extends Model
 {
@@ -16,13 +17,11 @@ class Review extends Model
         'user_id',
         'rating',
         'body',
-        'images',
     ];
 
     protected function casts(): array
     {
         return [
-            'images' => 'array',
             'rating' => 'integer',
         ];
     }
@@ -37,11 +36,18 @@ class Review extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function imagesRelation(): MorphMany
+    {
+        return $this->morphMany(Image::class, 'imageable')->orderBy('position');
+    }
+
     public function getImageUrlsAttribute(): array
     {
-        $paths = $this->images ?? [];
-        return array_map(fn (string $path): string => str_starts_with($path, 'http')
-            ? $path
-            : asset('storage/' . $path), $paths);
+        return $this->imagesRelation
+            ->take(3)
+            ->map(fn (Image $image): ?string => $image->url)
+            ->filter()
+            ->values()
+            ->all();
     }
 }

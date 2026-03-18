@@ -35,8 +35,6 @@ class BannerController extends Controller
         $validated = $request->validated();
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')->store('banners', 'public');
-        } else {
-            $validated['image_path'] = $request->input('image_path', '') ?: 'https://picsum.photos/1920/600';
         }
         unset($validated['image']);
         Banner::create($validated);
@@ -53,8 +51,6 @@ class BannerController extends Controller
         $validated = $request->validated();
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')->store('banners', 'public');
-        } elseif ($request->filled('image_path')) {
-            $validated['image_path'] = $request->input('image_path');
         } else {
             unset($validated['image_path']);
         }

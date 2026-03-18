@@ -14,15 +14,15 @@
                 <p class="text-stone-400 text-sm mb-3 leading-relaxed">{{ $company['description'] }}</p>
                 <div class="flex flex-col">
                     @if(!empty($company['phone']))
-                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $company['phone']) }}" class="inline-flex items-center gap-2 text-stone-300 hover:text-sky-400 text-sm mb-1 transition-colors duration-150 link-underline">
+                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $company['phone']) }}" class="inline-flex items-center gap-2 text-stone-300 hover:text-sky-400 text-sm mb-1 transition-colors duration-150">
                             <span class="text-sky-500 shrink-0">@svg('heroicon-o-phone', 'w-4 h-4')</span>
-                            {{ $company['phone'] }}
+                            <span class="link-underline">{{ $company['phone'] }}</span>
                         </a>
                     @endif
                     @if(!empty($company['email']))
-                        <a href="mailto:{{ $company['email'] }}" class="inline-flex items-center gap-2 text-stone-300 hover:text-sky-400 text-sm transition-colors duration-150 link-underline">
+                        <a href="mailto:{{ $company['email'] }}" class="inline-flex items-center gap-2 text-stone-300 hover:text-sky-400 text-sm transition-colors duration-150">
                             <span class="text-sky-500 shrink-0">@svg('heroicon-o-envelope', 'w-4 h-4')</span>
-                            {{ $company['email'] }}
+                            <span class="link-underline">{{ $company['email'] }}</span>
                         </a>
                     @endif
                 </div>

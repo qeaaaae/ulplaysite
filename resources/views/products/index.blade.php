@@ -5,13 +5,13 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
                 <div>
-                    <h1 class="section-heading text-2xl">
+                    <x-ui.section-heading tag="h1" icon="heroicon-o-squares-2x2" class="mb-0">
                         @if($currentCategory)
                             {{ $currentCategory->name }}
                         @else
                             Каталог товаров
                         @endif
-                    </h1>
+                    </x-ui.section-heading>
                     <p class="text-stone-500 text-sm mt-1">
                         {{ $products->total() }} товаров
                     </p>

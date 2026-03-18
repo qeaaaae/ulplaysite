@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="pt-5 md:pt-6 mb-7 md:mb-10">
+    <section class="pt-4 md:pt-5 mb-3 md:mb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
             <div class="swiper hero-swiper rounded-2xl overflow-hidden shadow-[0_4px_14px_0_rgba(0,0,0,0.08)]" data-banner-count="{{ $banners->count() }}">
             <div class="swiper-wrapper">
@@ -38,19 +38,16 @@
     </section>
 
     {{-- News --}}
-    <section class="pt-4 md:pt-5 pb-5 md:pb-6 mb-7 md:mb-9">
+    <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <h2 class="section-heading text-2xl mb-6 md:mb-8 flex items-center gap-2.5">
-                <span class="text-sky-600">@svg('heroicon-o-newspaper', 'w-6 h-6 shrink-0')</span>
-                Последние новости
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+            <x-ui.section-heading icon="heroicon-o-newspaper">Последние новости</x-ui.section-heading>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-4 md:gap-5">
                 @foreach($news as $item)
                     @include('components.news-card', ['item' => $item])
                 @endforeach
             </div>
-            <div class="mt-8 text-center">
-                <x-ui.button href="/news" variant="subtle" size="md" class="group">
+            <div class="mt-6 text-center">
+                <x-ui.button href="/news" variant="outline" size="md" class="group">
                     Все новости
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
                 </x-ui.button>
@@ -59,14 +56,11 @@
     </section>
 
     {{-- Categories --}}
-    <section class="pt-5 md:pt-6 pb-6 md:pb-7 mb-6 md:mb-8">
+    <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 md:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-3 md:mb-4">
                 <div>
-                    <h2 class="section-heading text-2xl flex items-center gap-2.5">
-                        <span class="text-sky-600">@svg('heroicon-o-squares-2x2', 'w-6 h-6 shrink-0')</span>
-                        Категории
-                    </h2>
+                    <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-0">Категории</x-ui.section-heading>
                     <p class="text-stone-500 text-sm mt-1">Выберите раздел каталога</p>
                 </div>
                 <a href="/products" class="group text-sky-600 hover:text-sky-700 font-medium text-sm inline-flex items-center gap-1.5 shrink-0 transition-colors link-underline">
@@ -74,7 +68,7 @@
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
                 </a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 md:auto-rows-[minmax(140px,1fr)]">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 md:auto-rows-[minmax(140px,1fr)]">
                 @foreach($categories as $index => $category)
                     @php
                         $isFeatured = ($category->is_featured ?? $category['is_featured'] ?? false) || $index === 0;
@@ -92,18 +86,15 @@
     </section>
 
     {{-- New Products --}}
-    <section class="pt-5 md:pt-6 pb-6 md:pb-7 mb-7 md:mb-8">
+    <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <h2 class="section-heading text-2xl mb-6 md:mb-8 flex items-center gap-2.5">
-                <span class="text-sky-600">@svg('heroicon-o-sparkles', 'w-6 h-6 shrink-0')</span>
-                Новые поступления
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
+            <x-ui.section-heading icon="heroicon-o-sparkles">Новые поступления</x-ui.section-heading>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-5">
                 @foreach($newProducts as $product)
                     @include('components.product-card', ['product' => $product, 'cartProductIds' => $cartProductIds ?? []])
                 @endforeach
             </div>
-            <div class="mt-8 text-center">
+            <div class="mt-6 text-center">
                 <x-ui.button href="/products" variant="outline" size="md" class="group">
                     Все товары
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
@@ -113,18 +104,15 @@
     </section>
 
     {{-- Recommended --}}
-    <section class="pt-7 md:pt-8 pb-7 md:pb-8 mb-6 md:mb-8 bg-stone-100/80">
+    <section class="pt-3 md:pt-4 pb-4 md:pb-5 mb-3 md:mb-4 bg-stone-100/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <h2 class="section-heading text-2xl mb-6 md:mb-8 flex items-center gap-2.5">
-                <span class="text-sky-600">@svg('heroicon-o-star', 'w-6 h-6 shrink-0')</span>
-                Рекомендуемые
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+            <x-ui.section-heading icon="heroicon-o-star">Рекомендуемые</x-ui.section-heading>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-5">
                 @foreach($recommendedProducts as $product)
                     @include('components.product-card', ['product' => $product, 'cartProductIds' => $cartProductIds ?? []])
                 @endforeach
             </div>
-            <div class="mt-8 text-center">
+            <div class="mt-6 text-center">
                 <x-ui.button href="/products" variant="outline" size="md" class="group">
                     Смотреть каталог
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
@@ -134,18 +122,15 @@
     </section>
 
     {{-- Services --}}
-    <section class="pt-6 md:pt-8 pb-8 md:pb-10">
+    <section class="pt-3 md:pt-4 pb-3 md:pb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <h2 class="section-heading text-2xl mb-6 md:mb-8 flex items-center gap-2.5">
-                <span class="text-sky-600">@svg('heroicon-o-wrench-screwdriver', 'w-6 h-6 shrink-0')</span>
-                Наши услуги
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+            <x-ui.section-heading icon="heroicon-o-wrench-screwdriver">Наши услуги</x-ui.section-heading>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                 @foreach($services as $service)
                     @include('components.service-card', ['service' => $service])
                 @endforeach
             </div>
-            <div class="mt-8 text-center">
+            <div class="mt-6 text-center">
                 <x-ui.button href="/services" variant="outline" size="md" class="group">
                     Все услуги
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>

@@ -32,6 +32,10 @@
     --ulplay-card-shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: #f4f4f5;
     color: #18181b;
@@ -49,7 +53,7 @@ h1, h2, h3, h4, h5, h6 {
     content: '';
     position: absolute;
     left: 0;
-    bottom: -2px;
+    bottom: 0;
     width: 0;
     height: 1px;
     background-color: currentColor;
