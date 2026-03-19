@@ -37,18 +37,33 @@ html {
 }
 
 body {
-    background-color: #f4f4f5;
+    background-color: #ffffff;
     color: #18181b;
     min-height: 100vh;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/*
+ * UlPlay — чуть увеличиваем ширину основного контейнера.
+ * Это заполняет “пустоту” справа/слева на больших экранах,
+ * не переписывая десятки Blade-шаблонов.
+ */
+.max-w-7xl {
+    max-width: 100rem; /* tailwind max-w-9xl */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: var(--font-heading);
 }
 
 .link-underline {
     position: relative;
 }
+
 .link-underline::after {
     content: '';
     position: absolute;
@@ -59,6 +74,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: currentColor;
     transition: width 0.2s ease-out;
 }
+
 .link-underline:hover::after {
     width: 100%;
 }
@@ -80,6 +96,137 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
 }
 
+/* UlPlay — общий лоадер на старте страницы */
+.ulplay-loader {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Адаптивные размеры лоадера */
+    --ulplay-loader-icon: clamp(56px, 8vw, 92px);
+    --ulplay-loader-gap: clamp(12px, 2vw, 20px);
+    --ulplay-loader-shadow: rgba(2, 132, 199, 0.18);
+}
+
+.ulplay-loader__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ulplay-loader__brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.12em;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-size: clamp(3rem, 7vw, 4.2rem); /* в 2 раза крупнее */
+    line-height: 1;
+    user-select: none;
+    transform: translateY(-16px); /* чуть выше */
+}
+
+.ulplay-loader__brand-letter {
+    color: #0284c7; /* sky-600 */
+}
+
+/* анимация отключена: надпись должна быть статичной */
+
+.ulplay-loader__icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ulplay-loader-gap);
+}
+
+.ulplay-loader__logo {
+    width: var(--ulplay-loader-icon);
+    height: var(--ulplay-loader-icon);
+    color: var(--ulplay-accent, #0284c7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+    animation: ulplay-icon-hop 1s ease-in-out infinite;
+}
+
+.ulplay-loader__logo svg {
+    display: block;
+    width: calc(var(--ulplay-loader-icon) - 12px);
+    height: calc(var(--ulplay-loader-icon) - 12px);
+}
+
+.ulplay-loader__logo--ps {
+    animation-delay: 0s;
+}
+
+.ulplay-loader__logo--xbox {
+    animation-delay: 0.12s;
+}
+
+.ulplay-loader__logo--nintendo {
+    animation-delay: 0.24s;
+}
+
+@keyframes ulplay-icon-hop {
+    0% {
+        transform: scale(0.82) translateY(0) rotate(-6deg);
+    }
+    28% {
+        transform: scale(1.28) translateY(-12px) rotate(10deg);
+    }
+    52% {
+        transform: scale(1.02) translateY(-5px) rotate(-4deg);
+    }
+    72% {
+        transform: scale(1.10) translateY(-9px) rotate(6deg);
+    }
+    100% {
+        transform: scale(0.82) translateY(0) rotate(0deg);
+    }
+}
+
+/*
+ * Home — адаптивные количества карточек без переноса
+ * Требования:
+ * - ~1024px (lg): новости 4, товары 4, услуги 2
+ * - ~820px (md): новости 3, товары 3, услуги 2
+ */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+    .ulplay-home-grid--news > :nth-child(n + 4) {
+        display: none;
+    }
+    .ulplay-home-grid--new-products > :nth-child(n + 4) {
+        display: none;
+    }
+    .ulplay-home-grid--recommended > :nth-child(n + 4) {
+        display: none;
+    }
+    .ulplay-home-grid--services > :nth-child(n + 3) {
+        display: none;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+    .ulplay-home-grid--new-products > :nth-child(n + 5) {
+        display: none;
+    }
+    .ulplay-home-grid--recommended > :nth-child(n + 5) {
+        display: none;
+    }
+    .ulplay-home-grid--services > :nth-child(n + 3) {
+        display: none;
+    }
+}
+
 .form-field:has(input[required]) label::after,
 .form-field:has(select[required]) label::after,
 .form-field:has(textarea[required]) label::after {
@@ -92,6 +239,7 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
         transform: translateY(12px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -120,9 +268,11 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
     pointer-events: none;
 }
+
 .hero-pagination-item.active .hero-pagination-bar {
     display: block !important;
 }
+
 .hero-pagination-bar {
     transition: width 0.4s ease-out;
 }
@@ -139,60 +289,74 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 0 !important;
     min-height: unset !important;
 }
+
 .ts-wrapper .ts-control {
-    min-height: 2.75rem; /* 44px — как у инпутов (min-h-11) */
+    min-height: 2.75rem;
+    /* 44px — как у инпутов (min-h-11) */
 }
+
 .ts-wrapper.single .ts-control,
 .ts-dropdown.single {
     border-color: #d6d3d1;
 }
+
 .ts-control,
 .ts-dropdown {
     border-color: #d6d3d1;
 }
+
 .ts-wrapper.single .ts-control {
     background-color: #fff;
     background-image: none;
     box-shadow: none;
-    padding: 0.625rem 2.25rem 0.625rem 0.75rem !important; /* py-2.5 px-3 как у инпутов */
+    padding: 0.625rem 2.25rem 0.625rem 0.75rem !important;
+    /* py-2.5 px-3 как у инпутов */
     border: 1px solid #d6d3d1;
     border-radius: 6px;
     display: flex;
     align-items: center;
 }
+
 .focus .ts-control,
 .ts-wrapper.focus .ts-control {
     border-color: #0ea5e9;
     box-shadow: 0 0 0 2px rgb(14 165 233 / 0.2);
 }
+
 .ts-dropdown {
     border-color: #d6d3d1;
     border-radius: 0 0 6px 6px;
     margin-top: 2px;
     z-index: 9999;
 }
+
 .ts-dropdown .active {
     background-color: #e0f2fe;
     color: #0c4a6e;
 }
+
 .ts-dropdown [data-selectable] {
     padding: 10px 12px;
     min-height: 44px;
     display: flex;
     align-items: center;
 }
+
 .ts-dropdown .option,
 .ts-dropdown .optgroup-header,
 .ts-dropdown .no-results,
 .ts-dropdown .create {
     padding: 10px 12px;
 }
+
 .ts-wrapper.single .ts-control::after {
     border-color: #78716c transparent transparent transparent;
 }
+
 .ts-wrapper.single.dropdown-active .ts-control::after {
     border-color: transparent transparent #78716c transparent;
 }
+
 .ts-dropdown-content {
     max-height: min(280px, 60vh);
 }
@@ -202,9 +366,11 @@ h1, h2, h3, h4, h5, h6 {
     .font-heading {
         font-family: var(--font-heading);
     }
+
     .btn-base {
         @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#f8fafc] disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl;
     }
+
     .card-base {
         @apply rounded-2xl bg-white overflow-hidden transition-all duration-250 ease-out;
     }

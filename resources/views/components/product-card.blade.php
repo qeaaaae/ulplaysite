@@ -59,10 +59,17 @@
             </div>
         <div class="mt-4 flex gap-2">
             @if($inCart)
-                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center h-11">
-                    @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-                    В корзине
-                </x-ui.button>
+                @if(auth()->check())
+                    <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center h-11">
+                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                        В корзине
+                    </x-ui.button>
+                @else
+                    <x-ui.button type="button" variant="outline" size="sm" class="flex-1 justify-center h-11" @click="openAuthModal('login')">
+                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                        В корзине
+                    </x-ui.button>
+                @endif
             @else
                 <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}">
                     @csrf

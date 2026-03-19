@@ -8,7 +8,7 @@
     <h2 class="text-lg font-semibold text-stone-900 mb-4">Комментарии {{ $comments->count() ? '(' . $comments->count() . ')' : '' }}</h2>
 
     @if($canComment)
-    <form action="{{ route('comments.store', $news) }}" method="POST" class="mb-6 p-4 sm:p-5 bg-white rounded-xl border border-stone-200 shadow-sm" x-data="{
+    <form action="{{ route('comments.store', $news) }}" method="POST" data-ajax-comments-store class="mb-6 p-4 sm:p-5 bg-white rounded-xl border border-stone-200 shadow-sm" x-data="{
         emojiOpen: false,
         insertEmoji(em) {
             const ta = document.getElementById('comment-body');
@@ -24,7 +24,8 @@
         <div class="flex flex-col gap-3 sm:gap-4 w-full">
             <div class="min-w-0 w-full">
                 <label for="comment-body" class="sr-only">Комментарий</label>
-                <textarea name="body" id="comment-body" rows="3" maxlength="500" required class="w-full min-h-[88px] sm:min-h-[80px] px-3 py-2.5 text-sm bg-stone-50/80 border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:bg-white resize-y transition-colors" placeholder="Комментарий...">{{ old('body') }}</textarea>
+                <textarea name="body" id="comment-body" rows="3" maxlength="500" required class="w-full min-h-[88px] sm:min-h-[80px] px-3 py-2.5 text-sm bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y transition-colors" placeholder="Комментарий...">{{ old('body') }}</textarea>
+                <div class="mt-1.5 text-xs text-rose-600 hidden" data-ajax-comments-error="body"></div>
                 @error('body')<p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
             <div class="flex flex-nowrap sm:flex-wrap items-center gap-2 sm:gap-3">
@@ -61,6 +62,44 @@
                         <span class="text-xs text-stone-400">{{ $comment->created_at->format(config('app.datetime_format')) }}</span>
                     </div>
                     <p class="text-stone-600 text-sm leading-snug line-clamp-4">{{ $comment->body }}</p>
+
+                    @php
+                        $helpfulCount = $comment->helpfulVotes->count();
+                        $hasHelpful = auth()->check() && $comment->helpfulVotes->contains('user_id', auth()->id());
+                    @endphp
+
+                    <div class="mt-2 flex items-center gap-3">
+                        @if($canComment)
+                            <form
+                                method="POST"
+                                action="{{ route('comments.helpful', $comment) }}"
+                                class="inline"
+                                data-ajax-comment-helpful
+                                data-comment-helpful-comment-id="{{ $comment->id }}"
+                            >
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="text-xs font-medium transition-colors cursor-pointer {{ $hasHelpful ? 'text-sky-600 opacity-50 cursor-not-allowed' : 'text-sky-600 hover:text-sky-700' }}"
+                                    {{ $hasHelpful ? 'disabled' : '' }}
+                                    aria-label="{{ $hasHelpful ? 'Отмечено полезным' : 'Отметить комментарий как полезный' }}"
+                                >
+                                <span class="comment-helpful-icon-outline {{ $hasHelpful ? 'hidden' : '' }}" aria-hidden="true">
+                                    @svg('heroicon-o-hand-thumb-up', 'w-4 h-4')
+                                </span>
+                                <span class="comment-helpful-icon-filled {{ $hasHelpful ? '' : 'hidden' }}" aria-hidden="true">
+                                    @svg('heroicon-s-hand-thumb-up', 'w-4 h-4')
+                                </span>
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">Войдите</a>
+                        @endif
+
+                        <span class="text-xs text-stone-500" data-comment-helpful-count="{{ $comment->id }}">
+                            {{ $helpfulCount }}
+                        </span>
+                    </div>
                 </li>
             @endforeach
         </ul>

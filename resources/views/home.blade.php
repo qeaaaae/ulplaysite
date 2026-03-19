@@ -2,7 +2,7 @@
 
 @section('content')
     <section class="pt-4 md:pt-5 mb-3 md:mb-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <div class="swiper hero-swiper rounded-2xl overflow-hidden shadow-[0_4px_14px_0_rgba(0,0,0,0.08)]" data-banner-count="{{ $banners->count() }}">
             <div class="swiper-wrapper">
                 @foreach($banners as $banner)
@@ -10,7 +10,7 @@
                         <a href="{{ $banner->link }}" class="group/banner block relative h-[300px] sm:h-72 md:h-[22rem] lg:h-[26rem] xl:h-[28rem] overflow-hidden">
                             <img src="{{ $banner->image ?: $banner->image_path }}" alt="{{ $banner->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $banner->id }}/1920/600';">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex items-end">
-                                <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
+                                <div class="w-full max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
                                     <h2 class="banner-title text-xl sm:text-2xl md:text-3xl font-semibold text-white mb-1">{{ $banner->title }}</h2>
                                     <p class="banner-desc text-white/90 text-sm mb-4 max-w-md line-clamp-2 sm:line-clamp-none">{{ $banner->description }}</p>
                                     <span class="banner-btn hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 text-white font-semibold text-sm shadow-lg shadow-sky-900/20 transition-all duration-200 group-hover/banner:bg-sky-700 group-hover/banner:shadow-sky-900/30">
@@ -39,9 +39,9 @@
 
     {{-- News --}}
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-newspaper">Последние новости</x-ui.section-heading>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-4 md:gap-5">
+            <div class="ulplay-home-grid ulplay-home-grid--news grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-5">
                 @foreach($news as $item)
                     @include('components.news-card', ['item' => $item])
                 @endforeach
@@ -57,7 +57,7 @@
 
     {{-- Categories --}}
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-3 md:mb-4">
                 <div>
                     <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-0">Категории</x-ui.section-heading>
@@ -87,9 +87,9 @@
 
     {{-- New Products --}}
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-sparkles">Новые поступления</x-ui.section-heading>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-5">
+            <div class="ulplay-home-grid ulplay-home-grid--new-products grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-4 md:gap-5">
                 @foreach($newProducts as $product)
                     @include('components.product-card', ['product' => $product, 'cartProductIds' => $cartProductIds ?? []])
                 @endforeach
@@ -104,10 +104,10 @@
     </section>
 
     {{-- Recommended --}}
-    <section class="pt-3 md:pt-4 pb-4 md:pb-5 mb-3 md:mb-4 bg-stone-100/80">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+    <section class="pt-3 md:pt-4 pb-4 md:pb-5 mb-3 md:mb-4 bg-white">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-star">Рекомендуемые</x-ui.section-heading>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-4 md:gap-5">
+            <div class="ulplay-home-grid ulplay-home-grid--recommended grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-4 md:gap-5">
                 @foreach($recommendedProducts as $product)
                     @include('components.product-card', ['product' => $product, 'cartProductIds' => $cartProductIds ?? []])
                 @endforeach
@@ -123,9 +123,9 @@
 
     {{-- Services --}}
     <section class="pt-3 md:pt-4 pb-3 md:pb-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-wrench-screwdriver">Наши услуги</x-ui.section-heading>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <div class="ulplay-home-grid ulplay-home-grid--services grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
                 @foreach($services as $service)
                     @include('components.service-card', ['service' => $service])
                 @endforeach

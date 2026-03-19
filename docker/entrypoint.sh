@@ -3,14 +3,13 @@ set -e
 
 cd /var/www/html
 
-if [ -f docker/env.docker ]; then
-    echo "Applying Docker .env..."
-    cp docker/env.docker .env
-fi
 if [ ! -f .env ]; then
-    cp .env.example .env 2>/dev/null || true
-    sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env 2>/dev/null || true
-    sed -i 's/# DB_HOST=127.0.0.1/DB_HOST=mysql/' .env 2>/dev/null || true
+    if [ -f docker/env.docker ]; then
+        echo "Creating .env from docker/env.docker..."
+        cp docker/env.docker .env
+    else
+        cp .env.example .env 2>/dev/null || true
+    fi
 fi
 
 if ! grep -q 'APP_KEY=base64:' .env 2>/dev/null; then
@@ -22,11 +21,7 @@ chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
 if [ ! -d vendor ] || [ ! -f vendor/autoload.php ]; then
     echo "Installing Composer dependencies..."
-    composer install --no-interaction --prefer-dist --ignore-platform-reqs
-fi
-if [ -f vendor/composer/platform_check.php ]; then
-    rm -f vendor/composer/platform_check.php
-    sed -i '/platform_check/d' vendor/composer/autoload_real.php
+    composer install --no-interaction --prefer-dist
 fi
 
 if [ ! -d node_modules ]; then

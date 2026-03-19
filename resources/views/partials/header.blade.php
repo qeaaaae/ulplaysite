@@ -2,7 +2,7 @@
     $company = ($footerData ?? [])['company'] ?? config('site.footer.company', []);
 @endphp
 <div class="bg-stone-800 text-white border-b border-stone-700 overflow-x-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 min-w-0">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 min-w-0">
         <div class="flex flex-wrap items-center justify-center sm:justify-between gap-x-4 gap-y-1.5 py-2 text-xs min-w-0">
             @if(!empty($company['address']))
                 <a href="{{ route('contacts') }}" class="order-1 basis-full sm:basis-auto flex items-center justify-center sm:justify-start gap-1.5 hover:text-sky-400 transition-colors">
@@ -33,40 +33,49 @@
     </div>
 </div>
 <header class="sticky top-0 z-40 bg-white/98 backdrop-blur-sm border-b border-stone-200 shadow-[0_1px_0_0_rgba(0,0,0,0.04)]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+    <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
         <div class="flex justify-between items-center h-14 sm:h-16">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 text-stone-900 hover:text-sky-600 transition-colors duration-200">
-                <span class="font-heading text-xl font-semibold">UlPlay</span>
-            </a>
+            <div class="flex items-center gap-4 min-w-0">
+                <a href="{{ route('home') }}" class="flex items-center gap-2 text-stone-900 hover:text-sky-600 transition-colors duration-200 shrink-0">
+                    <span class="font-heading text-xl font-semibold">UlPlay</span>
+                </a>
 
-            <nav class="hidden lg:flex items-center gap-0.5">
-                <a href="/products?category=playstation" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
-                    <x-icons.playstation class="w-4 h-4 shrink-0" />
-                    PlayStation
-                </a>
-                <a href="/products?category=xbox" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
-                    <x-icons.xbox class="w-4 h-4 shrink-0" />
-                    Xbox
-                </a>
-                <a href="/services/repair" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
-                    @svg('heroicon-o-wrench-screwdriver', 'w-4 h-4')
-                    Услуги
-                </a>
-                <a href="/news" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
-                    @svg('heroicon-o-newspaper', 'w-4 h-4')
-                    Новости
-                </a>
-            </nav>
-
-            <div class="hidden lg:flex flex-1 max-w-sm mx-4">
-                <x-ui.search-form action="{{ route('products.index') }}" placeholder="Поиск товаров..." :value="request('q', '')" />
+                <nav class="hidden lg:flex items-center gap-0.5">
+                    <a href="/products?category=playstation" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        <x-icons.playstation class="w-4 h-4 shrink-0" />
+                        PlayStation
+                    </a>
+                    <a href="/products?category=xbox" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        <x-icons.xbox class="w-4 h-4 shrink-0" />
+                        Xbox
+                    </a>
+                    <a href="/services/repair" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        @svg('heroicon-o-wrench-screwdriver', 'w-4 h-4')
+                        Услуги
+                    </a>
+                    <a href="/news" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        @svg('heroicon-o-newspaper', 'w-4 h-4')
+                        Новости
+                    </a>
+                </nav>
             </div>
 
             <div class="flex items-center gap-2 sm:gap-4">
-                <a href="{{ route('cart.index') }}" class="hidden lg:flex relative items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer">
-                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                    <span data-cart-count class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-600 text-white text-[10px] font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
-                </a>
+                <div class="hidden lg:flex max-w-md">
+                    <x-ui.search-form action="{{ route('products.index') }}" placeholder="Поиск товаров..." :value="request('q', '')" />
+                </div>
+
+                @if($isAuthenticated ?? false)
+                    <a href="{{ route('cart.index') }}" class="hidden lg:flex relative items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer">
+                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                        <span data-cart-count class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-600 text-white text-[10px] font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
+                    </a>
+                @else
+                    <button type="button" @click="openAuthModal('login')" class="hidden lg:flex relative items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer">
+                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                        <span data-cart-count class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-600 text-white text-[10px] font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
+                    </button>
+                @endif
                 @if($isAuthenticated ?? false)
                     <form method="POST" action="{{ route('logout') }}" class="lg:hidden inline">
                         @csrf
@@ -129,11 +138,19 @@
                 </a>
             </nav>
             <div class="px-4 sm:px-6 pt-4 mt-2 border-t border-stone-200">
-                <a href="{{ route('cart.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-colors cursor-pointer">
-                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                    Корзина
-                    <span data-cart-count class="min-w-[20px] h-5 px-1 rounded-full bg-sky-600 text-white text-xs font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
-                </a>
+                @if($isAuthenticated ?? false)
+                    <a href="{{ route('cart.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-colors cursor-pointer">
+                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                        Корзина
+                        <span data-cart-count class="min-w-[20px] h-5 px-1 rounded-full bg-sky-600 text-white text-xs font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
+                    </a>
+                @else
+                    <button type="button" @click="openAuthModal('login')" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-colors cursor-pointer">
+                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                        Корзина
+                        <span data-cart-count class="min-w-[20px] h-5 px-1 rounded-full bg-sky-600 text-white text-xs font-semibold flex items-center justify-center {{ ($cartCount ?? 0) > 0 ? '' : '!hidden' }}">{{ $cartCount ?? 0 }}</span>
+                    </button>
+                @endif
                 @if($isAuthenticated ?? false)
                     <div class="mt-2 space-y-2">
                         @if(auth()->user()?->is_admin)

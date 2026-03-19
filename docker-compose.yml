@@ -2,13 +2,22 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: docker/php/Dockerfile.prod
     container_name: ulplay_app
+    working_dir: /var/www/html
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ulplay
+      DB_USERNAME: ulplay
+      DB_PASSWORD: password
     volumes:
-      - .:/var/www/html
-      - ulplay_vendor:/var/www/html/vendor
-      - ulplay_node_modules:/var/www/html/node_modules
       - ulplay_storage:/var/www/html/storage
+      - ulplay_public:/var/www/html/public:ro
     networks:
       - ulplay_network
     depends_on:
@@ -18,20 +27,39 @@ services:
   nginx:
     image: nginx:alpine
     container_name: ulplay_nginx
+    restart: unless-stopped
     ports:
       - "80:80"
-      - "8080:80"
+      - "443:443"
     volumes:
-      - .:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ulplay_public:/var/www/html/public:ro
+      - ulplay_storage:/var/www/html/storage:ro
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+      - ./docker/nginx/ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
+      - ./docker/nginx/prod-http.conf:/etc/nginx/conf.d/prod-http.conf:ro
+      - ./docker/nginx/prod-https.conf:/etc/nginx/conf.d/prod-https.conf:ro
     depends_on:
       - app
+    networks:
+      - ulplay_network
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: ulplay_certbot
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: ["sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h; done"]
+    depends_on:
+      - nginx
     networks:
       - ulplay_network
 
   mysql:
     image: mysql:8.0
     container_name: ulplay_mysql
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: ulplay
       MYSQL_ROOT_PASSWORD: root
@@ -51,9 +79,10 @@ services:
 
 volumes:
   mysql_data:
-  ulplay_vendor:
-  ulplay_node_modules:
   ulplay_storage:
+  ulplay_public:
+  letsencrypt:
+  certbot_www:
 
 networks:
   ulplay_network:

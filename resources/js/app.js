@@ -366,4 +366,296 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
         }
     });
+
+    // AJAX submit for cart update/remove/clear
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-cart-update],[data-ajax-cart-remove],[data-ajax-cart-clear]')) return;
+
+        e.preventDefault();
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+        const confirmMessage = form.dataset.confirmMessage;
+
+        if (btn) btn.disabled = true;
+
+        const doAjax = async () => {
+            try {
+                const formData = new FormData(form);
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                    },
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.status === 429) {
+                    window.notyf.error('Слишком много запросов. Подождите минуту.');
+                    return;
+                }
+
+                if (res.ok && data?.result && data?.html) {
+                    const container = document.getElementById('cart-root');
+                    if (container) {
+                        container.outerHTML = data.html;
+                    } else {
+                        document.body.insertAdjacentHTML('beforeend', data.html);
+                    }
+
+                    document.querySelectorAll('[data-cart-count]').forEach((el) => {
+                        el.textContent = data.cartCount ?? 0;
+                        el.classList.toggle('!hidden', !(data.cartCount > 0));
+                    });
+
+                    if (data?.message) window.notyf.success(data.message);
+                } else {
+                    window.notyf.error(data?.message || 'Ошибка обновления корзины');
+                }
+            } catch (err) {
+                window.notyf.error('Ошибка соединения');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        if (confirmMessage && typeof window.ulplayConfirm === 'function' && (form.matches('[data-ajax-cart-remove],[data-ajax-cart-clear]'))) {
+            window.ulplayConfirm(confirmMessage, (ok) => {
+                if (!ok) {
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+                doAjax();
+            });
+            return;
+        }
+
+        await doAjax();
+    });
+
+    // AJAX submit for comments on news page
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-comments-store]')) return;
+
+        e.preventDefault();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+
+        // Clear previous inline errors
+        form.querySelectorAll('[data-ajax-comments-error]').forEach((el) => {
+            el.textContent = '';
+            el.classList.add('hidden');
+        });
+
+        if (btn) btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data?.result && data?.html) {
+                const container = document.getElementById('comments');
+                if (container) {
+                    container.outerHTML = data.html;
+                } else {
+                    document.body.insertAdjacentHTML('beforeend', data.html);
+                }
+
+                const newContainer = document.getElementById('comments');
+                if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                if (btn) btn.disabled = false;
+                return;
+            }
+
+            if (res.status === 422 && data?.errors) {
+                const errBody = data.errors?.body?.[0] || '';
+                const errEl = form.querySelector('[data-ajax-comments-error="body"]');
+                if (errEl) {
+                    errEl.textContent = errBody;
+                    errEl.classList.remove('hidden');
+                }
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отправки комментария');
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    });
+
+    // AJAX submit for marking comments as helpful
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-comment-helpful]')) return;
+
+        e.preventDefault();
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+        const commentId = form.dataset.commentHelpfulCommentId;
+
+        if (btn) btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data?.result) {
+                const countEl = commentId
+                    ? document.querySelector(`[data-comment-helpful-count="${commentId}"]`)
+                    : null;
+
+                if (countEl && typeof data.count !== 'undefined') {
+                    countEl.textContent = data.count ?? 0;
+                }
+
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    const outlineIcon = btn.querySelector('.comment-helpful-icon-outline');
+                    const filledIcon = btn.querySelector('.comment-helpful-icon-filled');
+                    outlineIcon && outlineIcon.classList.add('hidden');
+                    filledIcon && filledIcon.classList.remove('hidden');
+                }
+                window.notyf.success(data?.message || 'Отмечено как полезное');
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отметки');
+                if (btn) btn.disabled = false;
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения');
+            if (btn) btn.disabled = false;
+        }
+    });
+
+    // AJAX submit for reviews (product/service pages)
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-review-store]')) return;
+
+        e.preventDefault();
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+
+        // Clear previous inline errors
+        form.querySelectorAll('[data-ajax-review-error]').forEach((el) => {
+            el.textContent = '';
+            el.classList.add('hidden');
+        });
+
+        if (btn) btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data?.result && data?.html) {
+                const container = document.getElementById('reviews');
+                if (container) {
+                    container.outerHTML = data.html;
+                } else {
+                    document.body.insertAdjacentHTML('beforeend', data.html);
+                }
+
+                const newContainer = document.getElementById('reviews');
+                if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                window.notyf.success(data?.message || 'Отзыв добавлен');
+                if (btn) btn.disabled = false;
+                return;
+            }
+
+            if (res.status === 422 && data?.errors) {
+                const fieldToKey = {
+                    rating: 'rating',
+                    body: 'body',
+                    images: 'images',
+                };
+
+                Object.keys(fieldToKey).forEach((field) => {
+                    const errEl = form.querySelector(`[data-ajax-review-error="${field}"]`);
+                    const errMsg = data.errors?.[field]?.[0] || '';
+                    if (errEl) {
+                        if (errMsg) {
+                            errEl.textContent = errMsg;
+                            errEl.classList.remove('hidden');
+                        } else {
+                            errEl.textContent = '';
+                            errEl.classList.add('hidden');
+                        }
+                    }
+                });
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отправки отзыва');
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    });
+});
+
+// Global loader: скрываем после полной загрузки страницы
+window.addEventListener('load', () => {
+    const loader = document.querySelector('.ulplay-loader');
+    if (!loader) return;
+    setTimeout(() => {
+        loader.style.display = 'none';
+    }, 700);
+});
+
+// Fix dynamic "star fill" widths without inline Blade in `style=""` (to avoid IDE CSS parser errors)
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-star-fill]').forEach((el) => {
+        if (!(el instanceof HTMLElement)) return;
+        const fill = el.getAttribute('data-star-fill');
+        if (!fill) return;
+
+        el.style.width = `${fill}%`;
+
+        const inner = el.querySelector('[data-inner-star-fill]');
+        if (inner instanceof HTMLElement) {
+            const innerFill = el.getAttribute('data-inner-star-fill')
+                ?? inner.getAttribute('data-inner-star-fill');
+            if (innerFill) inner.style.width = `${innerFill}%`;
+        }
+    });
 });

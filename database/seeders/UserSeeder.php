@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
                 'name' => 'Администратор',
                 'password' => Hash::make('password'),
                 'is_admin' => true,
+                'email_verified_at' => Carbon::now(),
             ]
         );
 

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class ServiceController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $services = Service::withAvg('reviews', 'rating')
             ->withCount('reviews')
@@ -17,13 +20,23 @@ class ServiceController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'result' => true,
+                'html' => view('services._results', [
+                    'services' => $services,
+                ])->render(),
+            ]);
+        }
+
         return view('services.index', ['services' => $services]);
     }
 
     public function show(Service $service): View
     {
         $service->load(['reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
-        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
         $canReview = $user
             && $user->hasPurchasedService($service)
             && ! $service->reviews->contains('user_id', $user->id);

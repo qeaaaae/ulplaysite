@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="min-h-screen py-6 sm:py-8 md:py-10">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 lg:px-8">
             <x-ui.breadcrumbs :items="[
                 ['label' => 'Корзина', 'url' => route('cart.index')],
                 ['label' => 'Оформление заказа', 'url' => null],
@@ -16,7 +16,7 @@
                 @csrf
                 <div class="lg:col-span-7 space-y-6">
                     <section class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50">
                             <h2 class="text-base sm:text-lg font-semibold text-stone-900 flex items-center gap-2">
                                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-user', 'w-4 h-4')</span>
                                 Контактные данные
@@ -32,7 +32,7 @@
                     </section>
 
                     <section class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50">
                             <h2 class="text-base sm:text-lg font-semibold text-stone-900 flex items-center gap-2">
                                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-truck', 'w-4 h-4')</span>
                                 Доставка
@@ -48,7 +48,7 @@
                     </section>
 
                     <section class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50">
                             <h2 class="text-base sm:text-lg font-semibold text-stone-900 flex items-center gap-2">
                                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-100 text-sky-600">@svg('heroicon-o-credit-card', 'w-4 h-4')</span>
                                 Оплата
@@ -71,7 +71,7 @@
                     </section>
 
                     <section class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+                        <div class="px-4 sm:px-6 py-4 border-b border-stone-100 bg-stone-50">
                             <h2 class="text-base sm:text-lg font-semibold text-stone-900 flex items-center gap-2">
                                 <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-stone-100 text-stone-600">@svg('heroicon-o-chat-bubble-left-ellipsis', 'w-4 h-4')</span>
                                 Комментарий к заказу

@@ -20,6 +20,11 @@ class HomeController extends Controller
 
     public function index()
     {
+        $newProductsCount = 5;
+        $recommendedProductsCount = 5;
+        $servicesCount = 3;
+        $newsCount = 4;
+
         $categories = Category::withCount('products')
             ->orderBy('sort_order')
             ->take(6)
@@ -32,29 +37,33 @@ class HomeController extends Controller
             'newProducts' => Product::new()
                 ->inStock()
                 ->latest()
-                ->take(4)
+                ->take($newProductsCount)
                 ->get(),
-            'recommendedProducts' => $this->getRecommendedProducts(),
-            'services' => Service::withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(2)->get(),
+            'recommendedProducts' => $this->getRecommendedProducts($recommendedProductsCount),
+            'services' => Service::withAvg('reviews', 'rating')->withCount('reviews')->latest()->take($servicesCount)->get(),
             'news' => News::with('author')
                 ->withCount(['comments', 'views'])
                 ->whereNotNull('published_at')
                 ->orderByDesc('published_at')
-                ->take(3)
+                ->take($newsCount)
                 ->get(),
             'cartProductIds' => $cartProductIds,
         ]);
     }
 
     /** @return Collection<int, Product> */
-    private function getRecommendedProducts(): Collection
+    private function getRecommendedProducts(int $count): Collection
     {
-        $recommended = Product::inStock()->recommended()->inRandomOrder()->take(4)->get();
-        if ($recommended->count() >= 4) {
+        $recommended = Product::inStock()->recommended()->inRandomOrder()->take($count)->get();
+        if ($recommended->count() >= $count) {
             return $recommended;
         }
         $ids = $recommended->pluck('id')->all();
-        $extra = Product::inStock()->when($ids !== [], fn ($q) => $q->whereNotIn('id', $ids))->inRandomOrder()->take(4 - $recommended->count())->get();
+        $extra = Product::inStock()
+            ->when($ids !== [], fn ($q) => $q->whereNotIn('id', $ids))
+            ->inRandomOrder()
+            ->take($count - $recommended->count())
+            ->get();
         return $recommended->merge($extra);
     }
 }

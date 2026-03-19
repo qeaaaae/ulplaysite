@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="py-8 md:py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             @php
                 $categoryTrail = [];
                 $category = $product->category;
@@ -72,8 +72,8 @@
                                     <span class="relative inline-block">
                                         <span class="text-stone-200">★</span>
                                         @if($fill > 0)
-                                            <span class="absolute left-0 top-0 h-full overflow-hidden text-sky-600" style="width: {{ $fill }}%">
-                                                <span class="inline-block" style="width: {{ $fill < 100 ? round(10000 / $fill) : 100 }}%">★</span>
+                                            <span class="absolute left-0 top-0 h-full overflow-hidden text-sky-600" data-star-fill="{{ $fill }}">
+                                                <span class="inline-block" data-inner-star-fill="{{ $fill < 100 ? round(10000 / $fill) : 100 }}">★</span>
                                             </span>
                                         @endif
                                     </span>
@@ -104,10 +104,17 @@
                     </div>
                     @if($product->in_stock)
                         @if(in_array($product->id, $cartProductIds ?? []))
-                            <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="lg">
-                                @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                В корзине
-                            </x-ui.button>
+                            @if(auth()->check())
+                                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="lg">
+                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                    В корзине
+                                </x-ui.button>
+                            @else
+                                <x-ui.button type="button" variant="outline" size="lg" @click="openAuthModal('login')">
+                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                    В корзине
+                                </x-ui.button>
+                            @endif
                         @else
                             <form action="{{ route('cart.add-product', $product) }}" method="POST">
                                 @csrf

@@ -6,26 +6,39 @@ namespace App\Http\Controllers;
 
 use App\Models\News;
 use App\Models\NewsView;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class NewsController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $news = News::with('author')
             ->withCount(['comments', 'views'])
             ->whereNotNull('published_at')
             ->orderByDesc('published_at')
-            ->paginate(9);
+            ->paginate(10)
+            ->withQueryString();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'result' => true,
+                'html' => view('news._results', [
+                    'news' => $news,
+                ])->render(),
+            ]);
+        }
 
         return view('news.index', ['news' => $news]);
     }
 
     public function show(News $news): View
     {
-        $news->load(['author', 'comments.user']);
+        $news->load(['author', 'comments.user', 'comments.helpfulVotes']);
 
-        if ($user = auth()->user()) {
+        if ($user = Auth::user()) {
             NewsView::firstOrCreate([
                 'news_id' => $news->id,
                 'user_id' => $user->id,

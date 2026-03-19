@@ -32,9 +32,48 @@ MVP использует моковые данные, БД не требуетс
 
 ---
 
-### Docker (опционально)
+### Docker (production)
 
-Если нужен Docker — `docker-compose up -d`. См. `docker/` и `docker-compose.yml`.
+В репозитории настроен production-разворот через `docker-compose.yml`:
+
+- **nginx + php-fpm**
+- **mysql 8** (обязательная)
+- **сборка внутрь образа** (Composer + `npm run build`), без `node_modules` на проде
+- **HTTPS (Let's Encrypt) + защита от clickjacking** в Nginx (`Content-Security-Policy frame-ancestors`, `X-Frame-Options`, `HSTS`, `nosniff` и т.д.)
+- **rate limiting** в Nginx (ограничение запросов/соединений на IP)
+
+Запуск:
+
+```bash
+docker compose up -d --build
+```
+
+Открыть: `https://www.ulplay.com` (после выпуска сертификата)
+
+Первичная выдача сертификата (один раз на сервере, DNS уже должен указывать на этот сервер):
+
+```bash
+docker compose up -d nginx
+docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d www.ulplay.com -d ulplay.com --email admin@ulplay.com --agree-tos --no-eff-email
+docker compose up -d
+```
+
+Миграции/сидеры (по необходимости):
+
+```bash
+docker compose exec app php artisan migrate --force
+docker compose exec app php artisan db:seed --force
+```
+
+Переменные окружения:
+
+- В `docker-compose.yml` сейчас заданы базовые `DB_*` для MySQL.
+- Для реального продакшена **вынеси секреты** (APP_KEY, пароли) в окружение/секреты и не коммить их в репозиторий.
+
+Тюнинг rate limit:
+
+- Настройки зон лежат в `docker/nginx/ratelimit.conf`
+- Применение лимитов — в `docker/nginx/prod-https.conf` (директивы `limit_req`/`limit_conn`)
 
 ---
 

@@ -15,8 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
-        $middleware->alias(['admin' => \App\Http\Middleware\AdminMiddleware::class]);
+        // Если приложение разворачивается за одним nginx без внешних балансировщиков,
+        // доверять всем прокси не нужно — используем стандартное поведение Laravel.
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'verified_if_auth' => \App\Http\Middleware\VerifiedIfAuthenticated::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

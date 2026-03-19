@@ -17,7 +17,8 @@
 
     @stack('styles')
 </head>
-<body class="font-sans antialiased min-h-screen overflow-x-hidden @yield('bodyClass')">
+<body class="font-sans antialiased min-h-screen overflow-x-hidden @yield('bodyClass')" data-notyf-message="{{ session('message') }}">
+    @include('partials.loader')
     <div id="app" class="min-h-screen flex flex-col overflow-x-hidden" x-data="{
         mobileMenuOpen: false,
         searchOpen: false,
@@ -68,12 +69,29 @@
             const formData = new FormData(form);
             const url = this.authModalType === 'login' ? '{{ route('login') }}' : '{{ route('register') }}';
             try {
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), 15000);
                 const res = await fetch(url, {
                     method: 'POST',
                     body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    signal: controller.signal
                 });
-                const data = await res.json();
+
+                let data = {};
+                const contentType = res.headers.get('content-type') || '';
+                try {
+                    if (contentType.includes('application/json')) {
+                        data = await res.json();
+                    } else {
+                        // На случай редиректа/HTML-ответа вместо JSON
+                        data = {};
+                    }
+                } catch (e) {
+                    data = {};
+                }
+
+                if (!res.ok && !data) data = {};
                 if (res.ok && data.redirect) {
                     window.location.href = data.redirect;
                     return;
@@ -81,13 +99,42 @@
                 if (data.errors) this.authErrors = data.errors;
                 if (data.message) this.authErrors = { email: [data.message] };
             } catch (e) {
-                this.authErrors = { email: ['Ошибка соединения'] };
+                const msg = e?.name === 'AbortError' ? 'Превышено время ожидания.' : 'Ошибка соединения';
+                this.authErrors = { email: [msg] };
             } finally {
+                clearTimeout(timeoutId);
                 this.authLoading = false;
             }
         }
     }"
          x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')">
+        @php
+            $needsEmailVerify = auth()->check()
+                && !auth()->user()->hasVerifiedEmail();
+        @endphp
+
+        @if($needsEmailVerify)
+            <div class="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-6 sm:p-8 ring-1 ring-black/5 text-center">
+                    <h2 class="text-xl font-semibold text-stone-900 mb-2">Подтвердите адрес электронной почты</h2>
+                    <p class="text-stone-500 text-sm mb-6">
+                        Мы отправили письмо с ссылкой подтверждения. Пожалуйста, перейдите по ней.
+                    </p>
+
+                    <form method="POST" action="{{ route('verification.send') }}">
+                        @csrf
+                        <x-ui.button type="submit" variant="primary" class="w-full">
+                            Отправить повторно
+                        </x-ui.button>
+                    </form>
+
+                    <p class="mt-3 text-xs text-stone-400">
+                        Повторная отправка ограничена (rate limit).
+                    </p>
+                </div>
+            </div>
+        @endif
+
         @include('partials.header')
 
         <main class="flex-1">
@@ -102,19 +149,25 @@
     </div>
 
     <template id="cart-in-button-tpl">
-        <a href="{{ route('cart.index') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
-            @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-            В корзине
-        </a>
+        @if(auth()->check())
+            <a href="{{ route('cart.index') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
+                @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                В корзине
+            </a>
+        @else
+            <button type="button" @click="openAuthModal('login')" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
+                @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                В корзине
+            </button>
+        @endif
     </template>
 
-    @if (session('message'))
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            notyf.success(@json(session('message')));
+            const msg = document.body?.dataset?.notyfMessage;
+            if (msg) notyf.success(msg);
         });
     </script>
-    @endif
 
     @stack('scripts')
 </body>

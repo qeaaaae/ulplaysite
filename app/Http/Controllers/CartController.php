@@ -56,7 +56,7 @@ class CartController extends Controller
         return redirect()->back()->with('message', 'Услуга добавлена в корзину');
     }
 
-    public function update(Request $request, CartItem $cartItem): RedirectResponse
+    public function update(Request $request, CartItem $cartItem): RedirectResponse|JsonResponse
     {
         $this->authorizeCartItem($cartItem);
         $max = $cartItem->product_id && $cartItem->product
@@ -64,19 +64,67 @@ class CartController extends Controller
             : 99;
         $request->validate(['quantity' => ['required', 'integer', 'min:0', 'max:' . $max]]);
         $this->cart->updateQuantity($cartItem, (int) $request->quantity);
+
+        if ($request->wantsJson()) {
+            $items = $this->cart->getItems();
+            $total = $this->cart->total();
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Корзина обновлена.',
+                'cartCount' => $this->cart->count(),
+                'html' => view('cart._cart-content', [
+                    'items' => $items,
+                    'total' => $total,
+                ])->render(),
+            ]);
+        }
+
         return redirect()->route('cart.index');
     }
 
-    public function remove(CartItem $cartItem): RedirectResponse
+    public function remove(Request $request, CartItem $cartItem): RedirectResponse|JsonResponse
     {
         $this->authorizeCartItem($cartItem);
         $this->cart->remove($cartItem);
+
+        if ($request->wantsJson()) {
+            $items = $this->cart->getItems();
+            $total = $this->cart->total();
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Товар удален из корзины.',
+                'cartCount' => $this->cart->count(),
+                'html' => view('cart._cart-content', [
+                    'items' => $items,
+                    'total' => $total,
+                ])->render(),
+            ]);
+        }
+
         return redirect()->route('cart.index');
     }
 
-    public function clear(): RedirectResponse
+    public function clear(Request $request): RedirectResponse|JsonResponse
     {
         $this->cart->clear();
+
+        if ($request->wantsJson()) {
+            $items = $this->cart->getItems();
+            $total = $this->cart->total();
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Корзина очищена',
+                'cartCount' => $this->cart->count(),
+                'html' => view('cart._cart-content', [
+                    'items' => $items,
+                    'total' => $total,
+                ])->render(),
+            ]);
+        }
+
         return redirect()->route('cart.index')->with('message', 'Корзина очищена');
     }
 

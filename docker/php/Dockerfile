@@ -6,10 +6,11 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
     gnupg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd opcache
+    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd opcache zip
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \

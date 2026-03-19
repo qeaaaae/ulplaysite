@@ -64,10 +64,19 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        if (! $user->hasVerifiedEmail()) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable) {
+                // Не ломаем регистрацию, если письмо не удалось отправить.
+                // Пользователь сможет отправить ссылку повторно со страницы верификации.
+            }
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['redirect' => route('home')]);
         }
-        return redirect()->route('home');
+        return redirect()->route('home')->with('message', 'Мы отправили письмо для подтверждения email.');
     }
 
     public function logout(Request $request): RedirectResponse

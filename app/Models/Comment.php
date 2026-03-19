@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Comment extends Model
 {
@@ -14,6 +15,11 @@ class Comment extends Model
         'user_id',
         'body',
     ];
+
+    public function helpfulVotes(): HasMany
+    {
+        return $this->hasMany(CommentHelpfulVote::class, 'comment_id');
+    }
 
     public function news(): BelongsTo
     {
