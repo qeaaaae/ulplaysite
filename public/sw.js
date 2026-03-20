@@ -20,7 +20,16 @@ self.addEventListener('push', function (event) {
     var soundUrl = data.sound || '/sounds/notification.mp3';
     event.waitUntil(
         self.registration.showNotification(title, options).catch(function () {
-            return self.registration.showNotification(title, { body: options.body, data: options.data });
+            return self.registration.showNotification(title, {
+                body: options.body,
+                icon: options.icon,
+                badge: options.badge,
+                sound: soundUrl,
+                data: options.data,
+                tag: options.tag,
+                requireInteraction: options.requireInteraction,
+                silent: options.silent,
+            });
         }).then(function () {
             return self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         }).then(function (clientList) {
