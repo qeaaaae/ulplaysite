@@ -85,6 +85,8 @@ class OrderController extends Controller
     public function show(Order $order): View|RedirectResponse
     {
         $canView = (Auth::id() && $order->user_id === Auth::id())
+            // Админ может просматривать любые заказы (например, по ссылке из push-уведомления)
+            || (Auth::check() && Auth::user()?->is_admin)
             || session('order_view_' . $order->id);
 
         if (!$canView) {
