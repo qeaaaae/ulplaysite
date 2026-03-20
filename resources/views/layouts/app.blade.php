@@ -128,6 +128,13 @@
                         </x-ui.button>
                     </form>
 
+                    <form method="POST" action="{{ route('logout') }}" class="mt-3">
+                        @csrf
+                        <x-ui.button type="submit" variant="outline" class="w-full">
+                            Выйти
+                        </x-ui.button>
+                    </form>
+
                     <p class="mt-3 text-xs text-stone-400">
                         Повторная отправка ограничена (rate limit).
                     </p>

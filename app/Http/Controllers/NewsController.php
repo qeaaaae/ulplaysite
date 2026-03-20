@@ -49,6 +49,7 @@ class NewsController extends Controller
         $similarNews = News::with('author')
             ->whereNotNull('published_at')
             ->where('id', '!=', $news->id)
+            ->withCount(['comments', 'views'])
             ->orderByDesc('published_at')
             ->limit(4)
             ->get();
