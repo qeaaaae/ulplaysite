@@ -16,8 +16,10 @@ self.addEventListener('push', function (event) {
         silent: false,
         data: { url: data.url || '/' },
     };
-    if (data.sound) options.sound = data.sound;
-    var soundUrl = data.sound || '/sounds/notification.mp3';
+    var defaultSoundUrl = (new URL('/sounds/notification.mp3', self.location.origin)).toString();
+    var soundUrl = data.sound || defaultSoundUrl;
+    // Всегда задаём sound, даже если пришедший payload не удалось распарсить в JSON.
+    options.sound = soundUrl;
     event.waitUntil(
         self.registration.showNotification(title, options).catch(function () {
             return self.registration.showNotification(title, {
