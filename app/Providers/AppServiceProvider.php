@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Ensure string columns used in indexed constraints (e.g. unique emails) don't exceed
+        // MySQL's maximum index length for utf8mb4.
+        Schema::defaultStringLength(191);
+
         Route::bind('user', fn (string $value) => User::withTrashed()->findOrFail($value));
         $this->configureRateLimiting();
         Paginator::useTailwind();
