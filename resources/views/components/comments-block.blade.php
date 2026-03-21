@@ -56,17 +56,54 @@
     @else
         <ul class="space-y-3">
             @foreach($comments as $comment)
-                <li class="p-3 bg-white rounded-lg border border-stone-200">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                        <span class="text-sm font-medium text-stone-700">{{ $comment->user->name ?? 'Гость' }}</span>
-                        <span class="text-xs text-stone-400">{{ $comment->created_at->format(config('app.datetime_format')) }}</span>
+                @php
+                    $canEdit = auth()->check() && $comment->isEditableBy(auth()->user());
+                    $canDelete = auth()->check() && $comment->isDeletableBy(auth()->user());
+                    $helpfulCount = $comment->helpfulVotes->count();
+                    $hasHelpful = auth()->check() && $comment->helpfulVotes->contains('user_id', auth()->id());
+                @endphp
+                <li class="p-3 bg-white rounded-lg border border-stone-200" data-comment-id="{{ $comment->id }}" x-data="{ editing: false }" @comment-edit-done.window="if ($event.detail.commentId == $el.dataset.commentId) editing = false">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-1">
+                        <div class="flex flex-wrap items-center gap-2 min-w-0" data-comment-header="{{ $comment->id }}">
+                            <span class="text-sm font-medium text-stone-700">{{ $comment->user->name ?? 'Гость' }}</span>
+                            <span class="text-xs text-stone-400">{{ $comment->created_at->format(config('app.datetime_format')) }}</span>
+                            @if($comment->edited_at)
+                                <span class="text-xs text-stone-400 italic" data-comment-edited-label="{{ $comment->id }}">(изменено)</span>
+                            @endif
+                        </div>
+                        @if($canEdit || $canDelete)
+                            <div class="flex items-center gap-1 shrink-0">
+                                @if($canEdit)
+                                    <button type="button" @click="editing = true" x-show="!editing" class="p-1.5 text-stone-400 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors" title="Изменить" aria-label="Изменить комментарий">
+                                        @svg('heroicon-o-pencil-square', 'w-4 h-4')
+                                    </button>
+                                @endif
+                                @if($canDelete)
+                                    <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="inline" data-ajax-comment-delete data-comment-delete-id="{{ $comment->id }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Удалить" aria-label="Удалить комментарий">
+                                            @svg('heroicon-o-trash', 'w-4 h-4')
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
                     </div>
-                    <p class="text-stone-600 text-sm leading-snug line-clamp-4">{{ $comment->body }}</p>
-
-                    @php
-                        $helpfulCount = $comment->helpfulVotes->count();
-                        $hasHelpful = auth()->check() && $comment->helpfulVotes->contains('user_id', auth()->id());
-                    @endphp
+                    <div x-show="!editing">
+                        <p class="text-stone-600 text-sm leading-snug line-clamp-4" data-comment-body="{{ $comment->id }}">{{ $comment->body }}</p>
+                    </div>
+                    @if($canEdit)
+                        <form x-show="editing" x-cloak method="POST" action="{{ route('comments.update', $comment) }}" class="mt-1" data-ajax-comment-edit data-comment-edit-id="{{ $comment->id }}">
+                            @csrf
+                            @method('PATCH')
+                            <textarea name="body" rows="3" maxlength="500" required class="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y">{{ $comment->body }}</textarea>
+                            <div class="mt-1.5 flex gap-2">
+                                <button type="submit" class="text-sm font-medium text-sky-600 hover:text-sky-700">Сохранить</button>
+                                <button type="button" @click="editing = false" class="text-sm font-medium text-stone-500 hover:text-stone-700">Отмена</button>
+                            </div>
+                        </form>
+                    @endif
 
                     <div class="mt-2 flex items-center gap-3">
                         @if($canComment)

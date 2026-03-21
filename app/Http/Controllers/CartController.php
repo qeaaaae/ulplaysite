@@ -11,6 +11,7 @@ use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -130,9 +131,14 @@ class CartController extends Controller
 
     private function authorizeCartItem(CartItem $cartItem): void
     {
-        $cart = $this->cart->getItems();
-        if (!$cart->contains('id', $cartItem->id)) {
-            abort(403, 'Этот товар не в вашей корзине.');
+        if (Auth::check()) {
+            if ($cartItem->user_id !== Auth::id()) {
+                abort(403, 'Этот товар не в вашей корзине.');
+            }
+        } else {
+            if ($cartItem->user_id !== null || $cartItem->session_id !== $this->cart->getSessionId()) {
+                abort(403, 'Этот товар не в вашей корзине.');
+            }
         }
     }
 }

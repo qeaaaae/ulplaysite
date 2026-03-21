@@ -47,13 +47,31 @@ class CategorySeeder extends Seeder
             'position' => 0,
         ]);
 
+        $nintendo = Category::updateOrCreate(
+            ['slug' => 'nintendo'],
+            [
+                'name' => 'Nintendo',
+                'parent_id' => null,
+                'sort_order' => 3,
+                'is_featured' => false,
+            ]
+        );
+
+        $nintendo->images()->delete();
+        $nintendo->images()->create([
+            'path' => self::IMAGE,
+            'is_cover' => true,
+            'position' => 0,
+        ]);
+
         $children = [
             ['slug' => 'playstation-4', 'name' => 'PlayStation 4', 'parent' => $playstation, 'sort_order' => 1],
             ['slug' => 'playstation-3', 'name' => 'PlayStation 3', 'parent' => $playstation, 'sort_order' => 2],
             ['slug' => 'xbox-one', 'name' => 'Xbox ONE', 'parent' => $xbox, 'sort_order' => 1],
             ['slug' => 'xbox-360', 'name' => 'Xbox 360', 'parent' => $xbox, 'sort_order' => 2],
-            ['slug' => 'accessories', 'name' => 'Аксессуары', 'parent' => null, 'sort_order' => 3],
-            ['slug' => 'games', 'name' => 'Игры', 'parent' => null, 'sort_order' => 4],
+            ['slug' => 'nintendo-switch', 'name' => 'Nintendo Switch', 'parent' => $nintendo, 'sort_order' => 1],
+            ['slug' => 'accessories', 'name' => 'Аксессуары', 'parent' => null, 'sort_order' => 4],
+            ['slug' => 'games', 'name' => 'Игры', 'parent' => null, 'sort_order' => 5],
         ];
 
         foreach ($children as $item) {

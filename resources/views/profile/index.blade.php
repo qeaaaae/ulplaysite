@@ -12,7 +12,7 @@
                     @method('PATCH')
                     <x-ui.input name="name" label="Имя" value="{{ old('name', $user->name) }}" required :error="$errors->first('name')" />
                     <x-ui.input type="email" name="email" label="Email" value="{{ old('email', $user->email) }}" required :error="$errors->first('email')" />
-                    <x-ui.input type="tel" name="phone" label="Телефон" value="{{ old('phone', $user->phone) }}" :error="$errors->first('phone')" />
+                    <x-ui.phone-input name="phone" label="Телефон" :value="old('phone', $user->phone)" :error="$errors->first('phone')" />
                     <x-ui.button type="submit" variant="primary">Сохранить</x-ui.button>
                 </form>
             </div>

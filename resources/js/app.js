@@ -22,6 +22,65 @@ window.notyf = new Notyf({
         },
     ],
 });
+
+Alpine.data('phoneInput', (initial) => ({
+    displayValue: initial || '',
+    isValid: false,
+
+    init() {
+        this.updateValidity();
+    },
+
+    get digits() {
+        return (this.displayValue || '').replace(/\D/g, '');
+    },
+
+    updateValidity() {
+        const d = this.digits;
+        if (d.startsWith('8')) {
+            this.isValid = d.length === 11;
+        } else if (d.startsWith('7')) {
+            this.isValid = d.length === 11;
+        } else {
+            this.isValid = d.length === 10;
+        }
+    },
+
+    format(d) {
+        let nums = d.replace(/\D/g, '');
+        if (nums.startsWith('8')) nums = nums.slice(1);
+        if (nums.startsWith('7')) nums = nums.slice(1);
+        nums = nums.slice(0, 10);
+        if (nums.length === 0) return '';
+        let out = '+7';
+        if (nums.length >= 1) out += ' (' + nums.slice(0, 3);
+        if (nums.length >= 4) out += ') ' + nums.slice(3, 6);
+        if (nums.length >= 7) out += '-' + nums.slice(6, 8);
+        if (nums.length >= 9) out += '-' + nums.slice(8, 10);
+        return out;
+    },
+
+    onInput(e) {
+        const raw = e.target.value.replace(/\D/g, '');
+        this.displayValue = this.format(raw);
+        this.updateValidity();
+    },
+
+    onKeydown(e) {
+        if (/^[a-zA-Zа-яА-ЯёЁ]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+        }
+    },
+
+    onPaste(e) {
+        setTimeout(() => {
+            const raw = this.displayValue.replace(/\D/g, '');
+            this.displayValue = this.format(raw);
+            this.updateValidity();
+        }, 0);
+    },
+}));
+
 Alpine.start();
 
 function smoothScrollTo(targetY, duration = 400) {
@@ -53,6 +112,8 @@ function initTomSelects() {
         const opts = {
             allowEmptyOption: !!el.querySelector('option[value=""]'),
             dropdownParent: 'body',
+            controlInput: null,
+            searchField: [],
             onChange(value) {
                 if (el.dataset.redirectOnChange !== undefined && value) {
                     window.location.href = value;
@@ -313,12 +374,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!form.matches('[data-ajax-cart-add]')) return;
 
         e.preventDefault();
+        if (form.dataset.cartAddSubmitting === '1') return;
+        form.dataset.cartAddSubmitting = '1';
+
         const btn = form.querySelector('.cart-add-btn') || form.querySelector('button[type="submit"]');
         const cartUrl = form.dataset.cartUrl || '/cart';
         const originalText = btn?.innerHTML;
 
         if (btn) {
             btn.disabled = true;
+            btn.setAttribute('disabled', 'disabled');
             if (btn.innerHTML.includes('В корзину')) btn.innerHTML = '<span class="animate-pulse">...</span>';
         }
 
@@ -339,7 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.status === 429) {
                 window.notyf.error('Слишком много запросов. Подождите минуту.');
-                if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+                delete form.dataset.cartAddSubmitting;
                 return;
             }
 
@@ -348,22 +414,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.textContent = data.cartCount ?? 0;
                     el.classList.toggle('!hidden', !(data.cartCount > 0));
                 });
-                window.notyf.success(data.message || 'Товар добавлен в корзину');
 
                 const tpl = document.getElementById('cart-in-button-tpl');
+                let replacement = null;
                 if (tpl?.content) {
-                    const link = tpl.content.cloneNode(true);
-                    link.querySelector('a').href = cartUrl;
-                    form.replaceWith(link);
+                    const frag = tpl.content.cloneNode(true);
+                    const anchor = frag.querySelector('a');
+                    const button = frag.querySelector('button');
+                    if (anchor) {
+                        anchor.href = cartUrl;
+                        replacement = anchor;
+                    } else if (button) {
+                        button.addEventListener('click', () => {
+                            window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { type: 'login' } }));
+                        });
+                        replacement = button;
+                    }
+                }
+                if (replacement) {
+                    try {
+                        form.replaceWith(replacement);
+                    } catch (err) {
+                        form.parentNode?.replaceChild(replacement, form);
+                    }
                 }
             } else {
                 const msg = (data.errors && data.errors.quantity && data.errors.quantity[0]) || data.message || 'Ошибка добавления в корзину';
                 window.notyf.error(msg);
-                if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+                delete form.dataset.cartAddSubmitting;
             }
         } catch (err) {
             window.notyf.error('Ошибка соединения');
-            if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+            if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+            delete form.dataset.cartAddSubmitting;
         }
     });
 
@@ -412,8 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         el.textContent = data.cartCount ?? 0;
                         el.classList.toggle('!hidden', !(data.cartCount > 0));
                     });
-
-                    if (data?.message) window.notyf.success(data.message);
                 } else {
                     window.notyf.error(data?.message || 'Ошибка обновления корзины');
                 }
@@ -544,13 +626,120 @@ document.addEventListener('DOMContentLoaded', () => {
                     outlineIcon && outlineIcon.classList.add('hidden');
                     filledIcon && filledIcon.classList.remove('hidden');
                 }
-                window.notyf.success(data?.message || 'Отмечено как полезное');
             } else {
                 window.notyf.error(data?.message || 'Ошибка отметки');
                 if (btn) btn.disabled = false;
             }
         } catch (err) {
             window.notyf.error('Ошибка соединения');
+            if (btn) btn.disabled = false;
+        }
+    });
+
+    // AJAX submit for editing comments
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-comment-edit]')) return;
+
+        e.preventDefault();
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const commentId = form.dataset.commentEditId;
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            formData.append('_method', 'PATCH');
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data?.result) {
+                const li = form.closest('li[data-comment-id]');
+                const bodyEl = li?.querySelector(`[data-comment-body="${commentId}"]`);
+                if (bodyEl) bodyEl.textContent = data.body ?? bodyEl.textContent;
+
+                const headerWrap = li?.querySelector(`[data-comment-header="${commentId}"]`);
+                if (data.edited_at && headerWrap) {
+                    let label = headerWrap.querySelector(`[data-comment-edited-label="${commentId}"]`);
+                    if (!label) {
+                        label = document.createElement('span');
+                        label.className = 'text-xs text-stone-400 italic';
+                        label.dataset.commentEditedLabel = commentId;
+                        label.textContent = '(изменено)';
+                        headerWrap.appendChild(label);
+                    }
+                }
+
+                window.dispatchEvent(
+                    new CustomEvent('comment-edit-done', { detail: { commentId } })
+                );
+            } else {
+                window.notyf?.error?.(data?.message || 'Ошибка обновления');
+            }
+        } catch (err) {
+            window.notyf?.error?.('Ошибка соединения');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    });
+
+    // AJAX submit for deleting comments
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-comment-delete]')) return;
+
+        e.preventDefault();
+
+        if (!confirm('Удалить комментарий?')) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const commentId = form.dataset.commentDeleteId;
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) btn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('_method', 'DELETE');
+            formData.append('_token', csrfToken || '');
+
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data?.result) {
+                if (data?.html) {
+                    const container = document.getElementById('comments');
+                    if (container) container.outerHTML = data.html;
+                    const newContainer = document.getElementById('comments');
+                    if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                } else {
+                    const li = document.querySelector(`li[data-comment-id="${commentId}"]`);
+                    if (li) li.remove();
+                }
+            } else {
+                window.notyf?.error?.(data?.message || 'Ошибка удаления');
+            }
+        } catch (err) {
+            window.notyf?.error?.('Ошибка соединения');
+        } finally {
             if (btn) btn.disabled = false;
         }
     });
@@ -597,7 +786,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const newContainer = document.getElementById('reviews');
                 if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
-                window.notyf.success(data?.message || 'Отзыв добавлен');
                 if (btn) btn.disabled = false;
                 return;
             }

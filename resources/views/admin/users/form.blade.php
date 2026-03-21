@@ -21,7 +21,7 @@
         <x-admin.form-section title="Контакты" icon="heroicon-o-user-circle">
             <x-ui.input name="name" label="Имя" label-icon="heroicon-o-user" value="{{ old('name', $user->name) }}" required :error="$errors->first('name')" />
             <x-ui.input name="email" label="Email" label-icon="heroicon-o-envelope" type="email" value="{{ old('email', $user->email) }}" required :error="$errors->first('email')" />
-            <x-ui.input name="phone" label="Телефон" label-icon="heroicon-o-phone" value="{{ old('phone', $user->phone) }}" placeholder="+7 ..." :error="$errors->first('phone')" />
+            <x-ui.phone-input name="phone" label="Телефон" label-icon="heroicon-o-phone" :value="old('phone', $user->phone)" :error="$errors->first('phone')" />
         </x-admin.form-section>
 
         <x-admin.form-section title="Пароль" icon="heroicon-o-key">

@@ -27,7 +27,12 @@ class OrderController extends Controller
         }
 
         $subtotal = $items->sum(fn($i) => $i->subtotal);
-        $deliveryCost = $subtotal >= 3000 ? 0 : 300;
+        $user = Auth::user();
+        $lastOrder = $user?->orders()->latest()->first();
+        $deliveryCost = 300;
+        if ($subtotal >= 3000) {
+            $deliveryCost = 0;
+        }
         $total = $subtotal + $deliveryCost;
 
         return view('orders.checkout', [
@@ -35,7 +40,8 @@ class OrderController extends Controller
             'subtotal' => $subtotal,
             'deliveryCost' => $deliveryCost,
             'total' => $total,
-            'user' => Auth::user(),
+            'user' => $user,
+            'lastOrder' => $lastOrder,
         ]);
     }
 
@@ -56,7 +62,8 @@ class OrderController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email'],
-            'address' => ['required', 'string'],
+            'delivery_type' => ['required', 'in:delivery,pickup'],
+            'address' => ['required_if:delivery_type,delivery', 'nullable', 'string', 'max:500'],
             'payment' => ['required', 'in:cash,card'],
             'comment' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -68,7 +75,10 @@ class OrderController extends Controller
                     'phone' => $validated['phone'],
                     'email' => $validated['email'],
                 ],
-                deliveryInfo: ['address' => $validated['address']],
+                deliveryInfo: [
+                    'type' => $validated['delivery_type'],
+                    'address' => $validated['address'] ?? null,
+                ],
                 paymentInfo: ['method' => $validated['payment']],
                 comment: $validated['comment'] ?? null
             );

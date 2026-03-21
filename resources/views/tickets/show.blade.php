@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-6 sm:py-8 md:py-12">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl font-semibold text-stone-900">Обращение #{{ $ticket->id }} — {{ $ticket->title }}</h1>
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 sm:gap-4">
+                <div class="min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-semibold text-stone-900 break-words">Обращение #{{ $ticket->id }} — {{ $ticket->title }}</h1>
                     <p class="text-sm text-stone-500 mt-1">{{ $ticket->created_at->format(config('app.datetime_format')) }}</p>
                 </div>
                 <a href="{{ route('tickets.my.index') }}" class="text-sm text-sky-600 hover:underline">К списку</a>
@@ -38,39 +38,53 @@
             </div>
 
             @if($ticket->images->isEmpty())
-                <p class="text-stone-500">Фото не приложены</p>
+                <p class="text-sm text-stone-500">Фото не приложены</p>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     @foreach($ticket->images as $image)
-                        <a href="{{ $image->url }}" target="_blank" class="block rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
-                            <img src="{{ $image->url }}" alt="Фото обращения" class="w-full h-48 object-cover">
+                        <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="ticket-{{ $ticket->id }}" class="block rounded-xl overflow-hidden border border-stone-200 bg-stone-50 hover:border-sky-300 transition-colors group cursor-zoom-in">
+                            <img src="{{ $image->url }}" alt="Фото обращения" class="w-full h-32 sm:h-40 md:h-48 object-cover group-hover:scale-[1.02] transition-transform duration-200">
                         </a>
                     @endforeach
                 </div>
             @endif
 
-            <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
-                <div class="px-4 sm:px-6 py-4 border-b border-stone-200 bg-stone-50">
-                    <h2 class="font-medium text-stone-900">Диалог</h2>
+            <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+                <div class="px-5 sm:px-6 py-4 border-b border-stone-200 bg-stone-50/80">
+                    <h2 class="font-semibold text-stone-900 flex items-center gap-2">
+                        @svg('heroicon-o-chat-bubble-left-right', 'w-5 h-5 text-sky-500')
+                        Диалог
+                    </h2>
+                    <p class="text-sm text-stone-500 mt-0.5">Сообщений: {{ $ticket->messages->count() }}</p>
                 </div>
 
-                <div class="p-4 sm:p-6 space-y-3">
-                    <div class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                <div class="p-4 sm:p-6">
+                    <div class="space-y-4 max-h-[360px] sm:max-h-[440px] md:max-h-[520px] overflow-y-auto pr-1 -mr-1 scroll-smooth">
                         @forelse($ticket->messages as $message)
                             @php($isAdmin = $message->sender_role === 'admin')
                             <div class="flex {{ $isAdmin ? 'justify-start' : 'justify-end' }}">
-                                <div class="max-w-[80%] rounded-lg border px-3 py-2 {{ $isAdmin ? 'bg-stone-50 border-stone-200' : 'bg-sky-50 border-sky-200' }}">
-                                    <div class="text-xs font-medium mb-1 {{ $isAdmin ? 'text-stone-700' : 'text-sky-800' }}">
-                                        {{ $isAdmin ? 'Администратор' : 'Вы' }}
+                                <div class="flex flex-col max-w-[95%] sm:max-w-[85%] md:max-w-[75%] {{ $isAdmin ? 'items-start' : 'items-end' }}">
+                                    <div class="flex items-center gap-2 mb-1 {{ $isAdmin ? '' : 'flex-row-reverse' }}">
+                                        <span class="text-xs font-medium {{ $isAdmin ? 'text-stone-500' : 'text-sky-600' }}">
+                                            {{ $isAdmin ? 'Администратор' : 'Вы' }}
+                                        </span>
+                                        <span class="text-[11px] text-stone-400">
+                                            {{ $message->created_at->format(config('app.datetime_format')) }}
+                                        </span>
                                     </div>
-                                    <div class="text-sm text-stone-800 whitespace-pre-wrap">{{ $message->content }}</div>
-                                    <div class="text-[11px] text-stone-500 mt-2">
-                                        {{ $message->created_at->format(config('app.datetime_format')) }}
+                                    <div class="rounded-xl px-4 py-3 {{ $isAdmin ? 'bg-stone-100 border border-stone-200 rounded-tl-sm' : 'bg-sky-50 border border-sky-200 rounded-tr-sm' }}">
+                                        <div class="text-sm leading-relaxed whitespace-pre-wrap {{ $isAdmin ? 'text-stone-800' : 'text-stone-800' }}">{{ $message->content }}</div>
                                     </div>
                                 </div>
                             </div>
                         @empty
-                            <p class="text-stone-500">Сообщений пока нет</p>
+                            <div class="py-12 text-center">
+                                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 text-stone-400 mb-3">
+                                    @svg('heroicon-o-chat-bubble-left-right', 'w-6 h-6')
+                                </div>
+                                <p class="text-stone-500 text-sm">Сообщений пока нет</p>
+                                <p class="text-stone-400 text-xs mt-1">Ответ специалиста появится здесь</p>
+                            </div>
                         @endforelse
                     </div>
                 </div>

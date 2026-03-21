@@ -30,6 +30,14 @@ php artisan serve
 
 MVP использует моковые данные, БД не требуется (по умолчанию SQLite).
 
+### Тесты
+
+```bash
+php artisan test
+```
+
+Используется MySQL (БД `ulplay_test`). Создайте её перед запуском: `CREATE DATABASE ulplay_test;`
+
 ---
 
 ### Docker (production)

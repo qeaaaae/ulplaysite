@@ -58,6 +58,8 @@ Route::middleware(['auth', 'verified_if_auth'])->group(function () {
     Route::post('/products/{product}/reviews', [\App\Http\Controllers\ReviewController::class, 'storeProduct'])->name('reviews.store.product')->middleware('throttle:reviews');
     Route::post('/services/{service}/reviews', [\App\Http\Controllers\ReviewController::class, 'storeService'])->name('reviews.store.service')->middleware('throttle:reviews');
     Route::post('/news/{news:slug}/comments', [\App\Http\Controllers\CommentController::class, 'store'])->name('comments.store')->middleware('throttle:reviews');
+    Route::patch('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'update'])->name('comments.update')->middleware('throttle:reviews');
+    Route::delete('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy')->middleware('throttle:reviews');
     Route::post('/comments/{comment}/helpful', [\App\Http\Controllers\CommentController::class, 'helpful'])->name('comments.helpful')->middleware('throttle:reviews');
 });
 

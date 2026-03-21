@@ -116,9 +116,9 @@
                                 </x-ui.button>
                             @endif
                         @else
-                            <form action="{{ route('cart.add-product', $product) }}" method="POST">
+                            <form action="{{ route('cart.add-product', $product) }}" method="POST" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}">
                                 @csrf
-                                <x-ui.button variant="primary" size="lg" type="submit">
+                                <x-ui.button variant="primary" size="lg" type="submit" class="cart-add-btn">
                                     @svg('heroicon-o-shopping-cart', 'w-5 h-5')
                                     В корзину
                                 </x-ui.button>

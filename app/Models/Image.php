@@ -6,7 +6,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Facades\Storage;
 
 class Image extends Model
 {
@@ -37,9 +36,11 @@ class Image extends Model
             return null;
         }
 
-        return str_starts_with($this->path, 'http')
-            ? $this->path
-            : Storage::disk('public')->url($this->path);
+        if (str_starts_with($this->path, 'http')) {
+            return $this->path;
+        }
+
+        return '/storage/' . ltrim($this->path, '/');
     }
 }
 

@@ -9,22 +9,22 @@
     </div>
 
     <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="p-5 sm:p-6 border-b border-stone-200 bg-gradient-to-r from-stone-50/80 to-white">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 rounded-xl bg-sky-100 text-sky-600">
-                        @svg('heroicon-o-lifebuoy', 'w-7 h-7')
+        <div class="p-4 sm:p-6 border-b border-stone-200 bg-gradient-to-r from-stone-50/80 to-white">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-4">
+                <div class="flex items-start gap-3 min-w-0">
+                    <div class="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-sky-100 text-sky-600 shrink-0">
+                        @svg('heroicon-o-lifebuoy', 'w-6 h-6 sm:w-7 sm:h-7')
                     </div>
-                    <div>
-                        <h1 class="text-xl font-semibold text-stone-900">Тикет #{{ $ticket->id }} — {{ $ticket->title }}</h1>
+                    <div class="min-w-0">
+                        <h1 class="text-lg sm:text-xl font-semibold text-stone-900 break-words">Тикет #{{ $ticket->id }} — {{ $ticket->title }}</h1>
                         <p class="text-stone-500 text-sm mt-0.5">{{ $ticket->created_at->format(config('app.datetime_format')) }}</p>
                     </div>
                 </div>
-                <form action="{{ route('admin.tickets.update-status', $ticket) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                <form action="{{ route('admin.tickets.update-status', $ticket) }}" method="POST" class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                     @csrf
                     @method('PATCH')
                     <label class="text-sm font-medium text-stone-600">Статус</label>
-                    <select name="status" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-lg text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[170px]">
+                    <select name="status" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-lg text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px] sm:min-w-[170px] w-full sm:w-auto">
                         <option value="new" {{ $ticket->status === 'new' ? 'selected' : '' }}>Новый</option>
                         <option value="in_progress" {{ $ticket->status === 'in_progress' ? 'selected' : '' }}>В работе</option>
                         <option value="resolved" {{ $ticket->status === 'resolved' ? 'selected' : '' }}>Решён</option>
@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <div class="p-5 sm:p-6 border-b border-stone-200">
+        <div class="p-4 sm:p-6 border-b border-stone-200">
             <h2 class="font-medium text-stone-800 mb-3">Отправитель</h2>
             <div class="text-sm text-stone-700 space-y-1">
                 @if($ticket->user)
@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        <div class="p-5 sm:p-6 border-b border-stone-200">
+        <div class="p-4 sm:p-6 border-b border-stone-200">
             <h2 class="font-medium text-stone-800 mb-3">Описание</h2>
             @if($ticket->messages->isEmpty())
                 <div class="text-stone-700 whitespace-pre-wrap">{{ $ticket->description }}</div>
@@ -62,14 +62,14 @@
             @endif
         </div>
 
-        <div class="p-5 sm:p-6">
+        <div class="p-4 sm:p-6">
             <h2 class="font-medium text-stone-800 mb-4">Вложения</h2>
             @if($ticket->images->isEmpty())
                 <p class="text-stone-500">Фотографии не приложены</p>
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @foreach($ticket->images as $image)
-                        <a href="{{ $image->url }}" target="_blank" class="block rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
+                        <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="admin-ticket-{{ $ticket->id }}" class="block rounded-lg overflow-hidden border border-stone-200 bg-stone-50 cursor-zoom-in hover:border-sky-300 transition-colors">
                             <img src="{{ $image->url }}" alt="Фото тикета" class="w-full h-48 object-cover">
                         </a>
                     @endforeach
@@ -77,7 +77,7 @@
             @endif
         </div>
 
-        <div class="p-5 sm:p-6 border-t border-stone-200">
+        <div class="p-4 sm:p-6 border-t border-stone-200">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <h2 class="font-medium text-stone-800">Диалог</h2>
                 <div class="text-xs text-stone-500">
@@ -85,11 +85,11 @@
                 </div>
             </div>
 
-            <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+            <div class="space-y-3 max-h-[280px] sm:max-h-[350px] md:max-h-[380px] overflow-y-auto pr-1">
                 @forelse($ticket->messages as $message)
                     @php($isAdmin = $message->sender_role === 'admin')
                     <div class="flex {{ $isAdmin ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[80%] rounded-lg border px-3 py-2 {{ $isAdmin ? 'bg-sky-50 border-sky-200' : 'bg-stone-50 border-stone-200' }}">
+                        <div class="max-w-[95%] sm:max-w-[85%] md:max-w-[80%] rounded-lg border px-3 py-2 {{ $isAdmin ? 'bg-sky-50 border-sky-200' : 'bg-stone-50 border-stone-200' }}">
                             <div class="text-xs font-medium mb-1 {{ $isAdmin ? 'text-sky-800' : 'text-stone-800' }}">
                                 {{ $isAdmin ? 'Администратор' : ($message->senderUser?->name ?? 'Пользователь') }}
                             </div>

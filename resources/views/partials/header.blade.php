@@ -49,7 +49,11 @@
                         <x-icons.xbox class="w-4 h-4 shrink-0" />
                         Xbox
                     </a>
-                    <a href="/services/repair" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                    <a href="/products?category=nintendo" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        <x-icons.nintendo class="w-4 h-4 shrink-0" />
+                        Nintendo
+                    </a>
+                    <a href="{{ route('services.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
                         @svg('heroicon-o-wrench-screwdriver', 'w-4 h-4')
                         Услуги
                     </a>
@@ -140,7 +144,11 @@
                     <x-icons.xbox class="w-5 h-5 shrink-0" />
                     Xbox
                 </a>
-                <a href="/services/repair" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                <a href="/products?category=nintendo" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                    <x-icons.nintendo class="w-5 h-5 shrink-0" />
+                    Nintendo
+                </a>
+                <a href="{{ route('services.index') }}" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
                     @svg('heroicon-o-wrench-screwdriver', 'w-5 h-5')
                     Услуги
                 </a>

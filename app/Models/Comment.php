@@ -14,7 +14,29 @@ class Comment extends Model
         'news_id',
         'user_id',
         'body',
+        'edited_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'edited_at' => 'datetime',
+        ];
+    }
+
+    public function isEditableBy(?\App\Models\User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $user->is_admin || $this->user_id === $user->id;
+    }
+
+    public function isDeletableBy(?\App\Models\User $user): bool
+    {
+        return $this->isEditableBy($user);
+    }
 
     public function helpfulVotes(): HasMany
     {

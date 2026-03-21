@@ -40,7 +40,8 @@ class OrderService
                 ];
             }
 
-            $deliveryCost = $total >= 3000 ? 0 : 300;
+            $deliveryType = $deliveryInfo['type'] ?? 'delivery';
+            $deliveryCost = $deliveryType === 'pickup' ? 0 : ($total >= 3000 ? 0 : 300);
             $total += $deliveryCost;
 
             $order = Order::create([
@@ -49,7 +50,7 @@ class OrderService
                 'status' => 'new',
                 'total' => $total,
                 'contact_info' => $contactInfo,
-                'delivery_info' => array_merge($deliveryInfo, ['delivery_cost' => $deliveryCost]),
+                'delivery_info' => array_merge($deliveryInfo, ['delivery_cost' => $deliveryCost, 'type' => $deliveryType]),
                 'payment_info' => $paymentInfo,
                 'comment' => $comment,
             ]);

@@ -35,12 +35,21 @@ class OrderSeeder extends Seeder
             if ($items === []) {
                 continue;
             }
-            $total = array_sum(array_column($items, 'subtotal'));
-            $deliveryCost = $total >= 3000 ? 0 : 300;
-            $total += $deliveryCost;
+            $subtotal = array_sum(array_column($items, 'subtotal'));
+            $deliveryType = fake()->randomElement(['delivery', 'pickup']);
+            $deliveryCost = $deliveryType === 'pickup' ? 0 : ($subtotal >= 3000 ? 0 : 300);
+            $total = $subtotal + $deliveryCost;
 
             $daysAgo = random_int(0, 60);
             $orderDate = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23))->subMinutes(random_int(0, 59));
+
+            $deliveryInfo = [
+                'type' => $deliveryType,
+                'delivery_cost' => $deliveryCost,
+            ];
+            if ($deliveryType === 'delivery') {
+                $deliveryInfo['address'] = 'г. Ульяновск, ул. Примерная, д. ' . random_int(1, 50);
+            }
 
             $order = Order::create([
                 'order_number' => $this->uniqueOrderNumber(),
@@ -48,7 +57,7 @@ class OrderSeeder extends Seeder
                 'status' => (string) fake()->randomElement(self::STATUSES),
                 'total' => $total,
                 'contact_info' => ['name' => $user->name, 'email' => $user->email, 'phone' => $user->phone ?? '+79001234567'],
-                'delivery_info' => ['address' => 'г. Ульяновск, ул. Примерная, д. ' . random_int(1, 50), 'delivery_cost' => $deliveryCost],
+                'delivery_info' => $deliveryInfo,
                 'payment_info' => ['method' => fake()->randomElement(['cash', 'card'])],
                 'comment' => fake()->optional(0.3)->sentence(6),
                 'created_at' => $orderDate,

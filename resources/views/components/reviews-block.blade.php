@@ -10,39 +10,54 @@
     $reviewableName = $reviewable instanceof \App\Models\Product ? 'товара' : 'услуги';
 @endphp
 <div id="reviews" class="mt-8 pt-6 border-t border-stone-200 scroll-mt-24">
-    <h2 class="text-lg font-semibold text-stone-900 mb-4 flex items-center gap-2">
-        <span class="text-sky-600 text-xl leading-none">★</span>
+    <h2 class="text-lg font-semibold text-stone-900 mb-5 flex items-center gap-2">
+        @svg('heroicon-o-star', 'w-5 h-5 text-sky-500')
         <span>Отзывы {{ $reviews->count() ? '(' . $reviews->count() . ')' : '' }}</span>
     </h2>
 
     @if($canReview)
-    <form action="{{ route($storeRoute, $storeRouteParam) }}" method="POST" enctype="multipart/form-data" data-ajax-review-store class="mb-6 p-4 sm:p-5 bg-white rounded-xl border border-stone-200 shadow-sm">
+    <form action="{{ route($storeRoute, $storeRouteParam) }}" method="POST" enctype="multipart/form-data" data-ajax-review-store class="mb-6 p-5 sm:p-6 bg-stone-50/60 rounded-xl border border-stone-200 shadow-sm space-y-5">
         @csrf
-        <div class="flex flex-col sm:flex-row gap-3 max-w-2xl items-end">
-            <div class="flex flex-col gap-1" x-data="{ rating: {{ old('rating', 0) }}, hover: 0 }">
-                <div class="flex gap-0.5 text-xl">
+        <div class="space-y-4">
+            <div class="form-field" x-data="{ rating: {{ old('rating', 0) }}, hover: 0 }">
+                <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-2">
+                    @svg('heroicon-o-star', 'w-4 h-4 text-sky-500')
+                    Оценка
+                </label>
+                <div class="flex gap-1">
                     <input type="hidden" name="rating" :value="rating" required>
                     @for($i = 1; $i <= 5; $i++)
-                        <button type="button" class="p-0.5 leading-none transition-colors focus:outline-none rounded" @click="rating = {{ $i }}" @mouseenter="hover = {{ $i }}" @mouseleave="hover = 0" aria-label="Оценка {{ $i }}">
-                            <span class="block" :class="(hover || rating) >= {{ $i }} ? 'text-sky-600' : 'text-stone-300'">★</span>
+                        <button type="button" class="p-1 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/30" @click="rating = {{ $i }}" @mouseenter="hover = {{ $i }}" @mouseleave="hover = 0" aria-label="Оценка {{ $i }}">
+                            <span class="block text-2xl leading-none" :class="(hover || rating) >= {{ $i }} ? 'text-amber-500' : 'text-stone-300'">★</span>
                         </button>
                     @endfor
                 </div>
-                <div class="text-xs text-rose-600 hidden" data-ajax-review-error="rating"></div>
+                <div class="text-xs text-rose-600 hidden mt-1" data-ajax-review-error="rating"></div>
             </div>
-            <div class="flex-1 w-full">
-                <label for="review-body" class="sr-only">Текст</label>
-                <textarea name="body" id="review-body" rows="2" maxlength="500" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y" placeholder="Текст отзыва...">{{ old('body') }}</textarea>
-                <div class="mt-1.5 text-xs text-rose-600 hidden" data-ajax-review-error="body"></div>
+            <div class="form-field">
+                <label for="review-body" class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
+                    @svg('heroicon-o-chat-bubble-left-ellipsis', 'w-4 h-4 text-sky-500')
+                    Текст отзыва
+                </label>
+                <textarea name="body" id="review-body" rows="3" maxlength="500" class="w-full px-3 py-2.5 bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 focus:bg-white transition-colors resize-y" placeholder="Поделитесь впечатлениями о товаре...">{{ old('body') }}</textarea>
+                <div class="mt-1 text-xs text-rose-600 hidden" data-ajax-review-error="body"></div>
                 @error('body')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
-            <div class="shrink-0 w-full sm:w-auto">
-                <label class="block text-xs text-stone-500 mb-1">Фото (макс. 3)</label>
-                <input type="file" name="images[]" accept="image/*" multiple class="block w-full text-sm text-stone-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:bg-sky-50 file:text-sky-700 border border-stone-300 rounded-lg bg-white px-0 py-1 focus:outline-none focus:ring-2 focus:ring-sky-500/30">
+            <div class="form-field">
+                <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
+                    @svg('heroicon-o-photo', 'w-4 h-4 text-sky-500')
+                    Фото (макс. 3)
+                </label>
+                <input type="file" name="images[]" accept="image/*" multiple class="block w-full text-sm text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-sky-50 file:text-sky-700 file:hover:bg-sky-100 file:transition-colors border border-stone-200 rounded-lg bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400">
                 <div class="mt-1.5 text-xs text-rose-600 hidden" data-ajax-review-error="images"></div>
                 @error('images')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
-            <x-ui.button type="submit" variant="primary" class="shrink-0">Отправить</x-ui.button>
+        </div>
+        <div class="pt-1">
+            <x-ui.button type="submit" variant="primary" size="lg">
+                @svg('heroicon-o-paper-airplane', 'w-4 h-4')
+                Отправить отзыв
+            </x-ui.button>
         </div>
     </form>
     @else
@@ -54,9 +69,9 @@
     @if($reviews->isEmpty())
         <p class="text-stone-500 text-sm">Пока ничего нет.</p>
     @else
-        <ul class="space-y-3">
+        <ul class="space-y-4">
             @foreach($reviews as $review)
-                <li class="p-3 bg-white rounded-lg border border-stone-200">
+                <li class="p-4 bg-white rounded-xl border border-stone-200 shadow-sm hover:border-stone-300 transition-colors">
                     <div class="flex flex-wrap items-center gap-2 mb-1">
                         <span class="flex gap-0.5 text-amber-500 text-sm" aria-hidden="true">@for($i = 0; $i < 5; $i++)<span class="{{ $i < $review->rating ? 'opacity-100' : 'opacity-30' }}">★</span>@endfor</span>
                         <span class="text-sm font-medium text-stone-700">{{ $review->user->name ?? 'Гость' }}</span>
@@ -66,9 +81,9 @@
                         <p class="text-stone-600 text-sm leading-snug line-clamp-4">{{ $review->body }}</p>
                     @endif
                     @if($review->image_urls && count($review->image_urls) > 0)
-                        <div class="flex flex-wrap gap-1.5 mt-2">
+                        <div class="flex flex-wrap gap-2 mt-3">
                             @foreach($review->image_urls as $url)
-                                <a href="{{ $url }}" target="_blank" rel="noopener" class="block w-14 h-14 rounded overflow-hidden border border-stone-200"><img src="{{ $url }}" alt="" class="w-full h-full object-cover"></a>
+                                <a href="{{ $url }}" data-lightbox="image" data-lightbox-group="review-{{ $review->id }}" class="block w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-sky-300 transition-colors cursor-zoom-in"><img src="{{ $url }}" alt="" class="w-full h-full object-cover"></a>
                             @endforeach
                         </div>
                     @endif

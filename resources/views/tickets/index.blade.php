@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-6 sm:py-8 md:py-12">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
-            <div class="flex items-center justify-between gap-4 mb-8">
-                <h1 class="text-2xl font-semibold text-stone-900">Мои обращения</h1>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <h1 class="text-xl sm:text-2xl font-semibold text-stone-900">Мои обращения</h1>
                 <a href="{{ route('home') }}" class="text-sm text-sky-600 hover:underline">На главную</a>
             </div>
 
@@ -28,8 +28,8 @@
                             default => 'bg-amber-100 text-amber-800'
                         })
 
-                        <a href="{{ route('tickets.my.show', $ticket) }}" class="block p-6 bg-white rounded-xl border border-stone-200 hover:border-sky-200 transition-colors">
-                            <div class="flex justify-between gap-4 items-start">
+                        <a href="{{ route('tickets.my.show', $ticket) }}" class="block p-4 sm:p-6 bg-white rounded-xl border border-stone-200 hover:border-sky-200 transition-colors">
+                            <div class="flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-4 items-stretch sm:items-start">
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2 mb-2">
                                         <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
@@ -41,13 +41,13 @@
                                         Обновлено: {{ $ticket->updated_at->format(config('app.datetime_format')) }}
                                     </p>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    <div class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $statusClass }}">
+                                <div class="text-left sm:text-right shrink-0 flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+                                    <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $statusClass }}">
                                         {{ $statusLabel }}
-                                    </div>
-                                    <p class="text-sm text-stone-500 mt-2">
+                                    </span>
+                                    <span class="text-sm text-stone-500 sm:mt-2">
                                         Сообщений: {{ $ticket->messages_count }}
-                                    </p>
+                                    </span>
                                 </div>
                             </div>
                         </a>

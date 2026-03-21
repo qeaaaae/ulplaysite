@@ -61,8 +61,10 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        $oldSessionId = session()->getId();
         Auth::login($user);
         $request->session()->regenerate();
+        app(CartService::class)->mergeSessionToUser($user->id, $oldSessionId);
 
         if (! $user->hasVerifiedEmail()) {
             try {
