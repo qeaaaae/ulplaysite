@@ -88,6 +88,18 @@
                         @if(auth()->user()?->is_admin)
                             <a href="{{ route('admin.index') }}" class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Админка">@svg('heroicon-o-cog-6-tooth', 'w-5 h-5')</a>
                         @endif
+                        @if(($notificationsUnreadCount ?? 0) > 0)
+                            <a href="{{ route('notifications.index') }}" class="flex items-center justify-center w-10 h-10 relative rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Уведомления">
+                                @svg('heroicon-o-bell', 'w-5 h-5')
+                                <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-semibold flex items-center justify-center">
+                                    {{ $notificationsUnreadCount }}
+                                </span>
+                            </a>
+                        @else
+                            <a href="{{ route('notifications.index') }}" class="flex items-center justify-center w-10 h-10 relative rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Уведомления">
+                                @svg('heroicon-o-bell', 'w-5 h-5')
+                            </a>
+                        @endif
                         <a href="{{ route('profile') }}" class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Профиль">
                             @svg('heroicon-o-user-circle', 'w-5 h-5')
                         </a>
@@ -153,6 +165,15 @@
                 @endif
                 @if($isAuthenticated ?? false)
                     <div class="mt-2 space-y-2">
+                        <a href="{{ route('notifications.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer relative">
+                            @svg('heroicon-o-bell', 'w-5 h-5 shrink-0')
+                            <span>Уведомления</span>
+                            @if(($notificationsUnreadCount ?? 0) > 0)
+                                <span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-semibold flex items-center justify-center">
+                                    {{ $notificationsUnreadCount }}
+                                </span>
+                            @endif
+                        </a>
                         @if(auth()->user()?->is_admin)
                             <a href="{{ route('admin.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
                                 @svg('heroicon-o-cog-6-tooth', 'w-5 h-5 shrink-0')

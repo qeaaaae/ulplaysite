@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             CommentSeeder::class,
             NewsViewSeeder::class,
+            SupportTicketSeeder::class,
         ]);
     }
 }

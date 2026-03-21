@@ -148,6 +148,98 @@
             @yield('content')
         </main>
 
+        <div x-data="{ open: false, filesCount: 0, selectedType: '{{ old('type', \App\Enums\SupportTicketTypeEnum::TECHNICAL_ISSUE->value) }}', typeClasses: { technical_issue: 'text-rose-700', order_issue: 'text-amber-700', delivery: 'text-cyan-700', service_repair: 'text-violet-700', return_exchange: 'text-orange-700', suggestion: 'text-emerald-700' }, onFilesChange(event) { this.filesCount = event.target.files ? event.target.files.length : 0; } }">
+            <button
+                type="button"
+                @click="open = true"
+                aria-label="Техническая поддержка"
+                class="fixed right-4 bottom-4 z-[9997] inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 transition-colors"
+            >
+                @svg('heroicon-o-lifebuoy', 'w-5 h-5')
+            </button>
+
+            <div
+                x-show="open"
+                x-cloak
+                class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                @click.self="open = false"
+            >
+                <div class="w-full max-w-xl bg-white rounded-xl shadow-2xl p-5 sm:p-6 ring-1 ring-black/5">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold text-stone-900">Техническая поддержка</h2>
+                        <button type="button" @click="open = false" class="inline-flex items-center justify-center w-8 h-8 rounded-md text-stone-500 hover:bg-stone-100 hover:text-stone-700">
+                            @svg('heroicon-o-x-mark', 'w-5 h-5')
+                        </button>
+                    </div>
+
+                    <form method="POST" action="{{ route('support-tickets.store') }}" enctype="multipart/form-data" class="space-y-4">
+                        @csrf
+                        <div>
+                            <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
+                                @svg('heroicon-o-tag', 'w-4 h-4 text-stone-400')
+                                Тип обращения
+                            </label>
+                            <select
+                                name="type"
+                                x-model="selectedType"
+                                :class="typeClasses[selectedType] || 'text-stone-900'"
+                                class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150"
+                            >
+                                @foreach(\App\Enums\SupportTicketTypeEnum::cases() as $type)
+                                    <option value="{{ $type->value }}">{{ $type->label() }}</option>
+                                @endforeach
+                            </select>
+                            @if($errors->has('type'))
+                                <p class="mt-1 text-sm text-rose-600">{{ $errors->first('type') }}</p>
+                            @endif
+                        </div>
+
+                        <x-ui.input
+                            name="title"
+                            label="Заголовок"
+                            value="{{ old('title') }}"
+                            required
+                            maxlength="255"
+                            :error="$errors->first('title')"
+                        />
+
+                        <x-ui.textarea
+                            name="description"
+                            label="Описание проблемы"
+                            rows="4"
+                            required
+                            maxlength="3000"
+                            :error="$errors->first('description')"
+                        >{{ old('description') }}</x-ui.textarea>
+
+                        <div>
+                            <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
+                                @svg('heroicon-o-photo', 'w-4 h-4 text-stone-400')
+                                Фото (до 3 шт)
+                            </label>
+                            <input
+                                type="file"
+                                name="images[]"
+                                accept="image/*"
+                                multiple
+                                @change="onFilesChange($event)"
+                                class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-sm text-stone-900 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-sky-50 file:text-sky-700 file:cursor-pointer"
+                            >
+                            <p class="mt-1 text-xs text-stone-500">Выбрано файлов: <span x-text="filesCount"></span> / 3</p>
+                            @if($errors->has('images') || $errors->has('images.*'))
+                                <p class="mt-1 text-sm text-rose-600">{{ $errors->first('images') ?: $errors->first('images.*') }}</p>
+                            @endif
+                        </div>
+
+                        <div class="pt-1 flex flex-wrap gap-2 justify-end">
+                            <x-ui.button type="button" variant="outline" @click="open = false">Отмена</x-ui.button>
+                            <x-ui.button type="submit" variant="primary">Отправить</x-ui.button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         @include('partials.footer')
 
         @include('partials.auth-modal')

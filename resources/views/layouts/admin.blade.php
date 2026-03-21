@@ -85,6 +85,10 @@
                     @svg('heroicon-o-shopping-cart', 'w-5 h-5 shrink-0')
                     Заказы
                 </a>
+                <a href="{{ route('admin.tickets.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sky-800/80 {{ request()->routeIs('admin.tickets.*') ? 'bg-sky-800' : '' }}" @click="sidebarOpen = false">
+                    @svg('heroicon-o-lifebuoy', 'w-5 h-5 shrink-0')
+                    Тикеты
+                </a>
                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sky-800/80 {{ request()->routeIs('admin.users.*') ? 'bg-sky-800' : '' }}" @click="sidebarOpen = false">
                     @svg('heroicon-o-users', 'w-5 h-5 shrink-0')
                     Пользователи

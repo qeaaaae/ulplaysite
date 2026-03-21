@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Hosting compatibility:
+    # If `/storage/...` isn't publicly reachable but `/media/...` is,
+    # this rule falls back to `/media/...` only when the requested file
+    # doesn't exist under the `/storage` path in filesystem.
+    RewriteCond %{REQUEST_URI} ^/storage/(.+)$
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^storage/(.+)$ /media/$1 [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

@@ -15,6 +15,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Models\UserNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -50,6 +51,14 @@ class AppServiceProvider extends ServiceProvider
                 'cartCount' => $view->getData()['cartCount'] ?? $cartService->count(),
                 'cartProductIds' => $view->getData()['cartProductIds'] ?? $cartProductIds,
                 'isAuthenticated' => $view->getData()['isAuthenticated'] ?? Auth::check(),
+                'notificationsUnreadCount' => $view->getData()['notificationsUnreadCount'] ?? (Auth::check()
+                    ? (Schema::hasTable('user_notifications')
+                        ? UserNotification::query()
+                            ->where('user_id', Auth::id())
+                            ->whereNull('read_at')
+                            ->count()
+                        : 0)
+                    : 0),
                 'footerData' => $view->getData()['footerData'] ?? config('site.footer', [
                     'company' => ['name' => 'UlPlay', 'description' => 'Интернет-магазин игровых консолей и аксессуаров в Ульяновске', 'phone' => '+7(927)988-88-70', 'email' => 'info@ulplay.com'],
                     'categories' => [
@@ -82,6 +91,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
         RateLimiter::for('cart', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('orders', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('support', fn (Request $request) => Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('profile', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('admin', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('reviews', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));

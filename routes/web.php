@@ -7,6 +7,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\NotificationsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +24,7 @@ Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.sho
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/delivery', [\App\Http\Controllers\PageController::class, 'delivery'])->name('delivery');
 Route::get('/contacts', [\App\Http\Controllers\PageController::class, 'contacts'])->name('contacts');
+Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support-tickets.store')->middleware('throttle:support');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => redirect()->route('home'))->name('login');
@@ -78,6 +81,10 @@ Route::middleware('auth')->group(function () {
 
         return back()->with('message', 'Ссылка для подтверждения email отправлена повторно.');
     })->middleware('throttle:6,1')->name('verification.send');
+
+    Route::get('/notifications', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::get('/my-tickets', [SupportTicketController::class, 'myIndex'])->name('tickets.my.index');
+    Route::get('/my-tickets/{ticket}', [SupportTicketController::class, 'myShow'])->name('tickets.my.show');
 });
 
 Route::fallback(function () {
