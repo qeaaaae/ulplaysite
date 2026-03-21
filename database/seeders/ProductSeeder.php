@@ -43,7 +43,6 @@ class ProductSeeder extends Seeder
                     'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
                     'price' => rand(500, 15000),
                     'category_id' => $categoryIds[($i - 1) % $count],
-                    'image_path' => self::IMAGE,
                     'in_stock' => $i % 10 !== 0,
                     'is_new' => $i <= 30,
                     'is_recommended' => $i <= 15,

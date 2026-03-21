@@ -36,11 +36,17 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['image_path'] = $request->hasFile('image')
-            ? $request->file('image')->store('categories', 'public')
-            : null;
         unset($validated['image']);
-        Category::create($validated);
+        $category = Category::create($validated);
+
+        if ($request->hasFile('image')) {
+            $category->images()->create([
+                'path' => $request->file('image')->store('categories', 'public'),
+                'is_cover' => true,
+                'position' => 0,
+            ]);
+        }
+
         return redirect()->route('admin.categories.index')->with('message', 'Категория создана');
     }
 
@@ -56,9 +62,12 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('categories', 'public');
-        } else {
-            unset($validated['image_path']);
+            $category->images()->delete();
+            $category->images()->create([
+                'path' => $request->file('image')->store('categories', 'public'),
+                'is_cover' => true,
+                'position' => 0,
+            ]);
         }
         unset($validated['image']);
         $category->update($validated);

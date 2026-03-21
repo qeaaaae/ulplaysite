@@ -25,7 +25,6 @@ class ServiceSeeder extends Seeder
                     'description' => $lorem,
                     'price' => $i % 3 === 0 ? rand(500, 5000) : null,
                     'type' => $types[($i - 1) % 2],
-                    'image_path' => self::IMAGE,
                 ]
             );
 

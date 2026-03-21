@@ -17,7 +17,6 @@ class CategorySeeder extends Seeder
             ['slug' => 'playstation'],
             [
                 'name' => 'PlayStation',
-                'image_path' => self::IMAGE,
                 'parent_id' => null,
                 'sort_order' => 1,
                 'is_featured' => true,
@@ -35,7 +34,6 @@ class CategorySeeder extends Seeder
             ['slug' => 'xbox'],
             [
                 'name' => 'Xbox',
-                'image_path' => self::IMAGE,
                 'parent_id' => null,
                 'sort_order' => 2,
                 'is_featured' => false,
@@ -63,7 +61,6 @@ class CategorySeeder extends Seeder
                 ['slug' => $item['slug']],
                 [
                     'name' => $item['name'],
-                    'image_path' => self::IMAGE,
                     'parent_id' => $item['parent']?->id,
                     'sort_order' => $item['sort_order'],
                     'is_featured' => false,

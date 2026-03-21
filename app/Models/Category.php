@@ -15,7 +15,6 @@ class Category extends Model
         'name',
         'slug',
         'parent_id',
-        'image_path',
         'description',
         'is_featured',
         'sort_order',
@@ -51,17 +50,7 @@ class Category extends Model
     public function getImageAttribute(): ?string
     {
         $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
-        if ($image) {
-            return $image->url;
-        }
-
-        if (empty($this->image_path)) {
-            return null;
-        }
-
-        return str_starts_with($this->image_path, 'http')
-            ? $this->image_path
-            : asset('storage/' . $this->image_path);
+        return $image?->url;
     }
 
     public function getCountAttribute(): int

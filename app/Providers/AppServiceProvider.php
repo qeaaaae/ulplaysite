@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\VerifyEmail;
 use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -10,6 +11,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +28,16 @@ class AppServiceProvider extends ServiceProvider
         // Ensure string columns used in indexed constraints (e.g. unique emails) don't exceed
         // MySQL's maximum index length for utf8mb4.
         Schema::defaultStringLength(191);
+
+        // Custom design for "Verify email" mail.
+        VerifyEmail::toMailUsing(function ($notifiable, string $verificationUrl) {
+            return (new MailMessage)
+                ->subject('Подтвердите адрес электронной почты')
+                ->view('emails.verify-email', [
+                    'verificationUrl' => $verificationUrl,
+                    'user' => $notifiable,
+                ]);
+        });
 
         Route::bind('user', fn (string $value) => User::withTrashed()->findOrFail($value));
         $this->configureRateLimiting();

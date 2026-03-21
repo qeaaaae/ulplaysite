@@ -33,11 +33,17 @@ class BannerController extends Controller
     public function store(StoreBannerRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('banners', 'public');
-        }
         unset($validated['image']);
-        Banner::create($validated);
+        $banner = Banner::create($validated);
+
+        if ($request->hasFile('image')) {
+            $banner->images()->create([
+                'path' => $request->file('image')->store('banners', 'public'),
+                'is_cover' => true,
+                'position' => 0,
+            ]);
+        }
+
         return redirect()->route('admin.banners.index')->with('message', 'Баннер создан');
     }
 
@@ -50,9 +56,12 @@ class BannerController extends Controller
     {
         $validated = $request->validated();
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('banners', 'public');
-        } else {
-            unset($validated['image_path']);
+            $banner->images()->delete();
+            $banner->images()->create([
+                'path' => $request->file('image')->store('banners', 'public'),
+                'is_cover' => true,
+                'position' => 0,
+            ]);
         }
         unset($validated['image']);
         $banner->update($validated);

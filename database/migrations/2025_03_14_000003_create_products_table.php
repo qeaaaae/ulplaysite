@@ -15,7 +15,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->string('image_path')->nullable();
             $table->boolean('in_stock')->default(true);
             $table->unsignedTinyInteger('discount_percent')->nullable();
             $table->boolean('is_new')->default(false);

@@ -22,7 +22,6 @@ class BannerSeeder extends Seeder
                 ['title' => "Баннер {$i}"],
                 [
                     'description' => "Описание баннера {$i}",
-                    'image_path' => self::IMAGES[($i - 1) % count(self::IMAGES)],
                     'link' => $i % 2 === 0 ? '/products' : '/services/repair',
                     'sort_order' => $i,
                     'active' => $i <= 10,

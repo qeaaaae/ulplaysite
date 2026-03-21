@@ -16,9 +16,9 @@
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-stone-200 shadow-sm">
                         <div class="w-full sm:w-24 h-40 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
                             @if($item->product)
-                                <img src="{{ $item->product->image ?: $item->product->image_path }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover" onerror="this.src='https://picsum.photos/seed/{{ $item->product->id }}/200'">
+                                <img src="{{ $item->product->image }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover" onerror="this.src='https://picsum.photos/seed/{{ $item->product->id }}/200'">
                             @else
-                                <img src="{{ $item->service->image ?: $item->service->image_path }}" alt="{{ $item->service->title }}" class="w-full h-full object-cover" onerror="this.src='https://picsum.photos/seed/{{ $item->service->id }}/200'">
+                                <img src="{{ $item->service->image }}" alt="{{ $item->service->title }}" class="w-full h-full object-cover" onerror="this.src='https://picsum.photos/seed/{{ $item->service->id }}/200'">
                             @endif
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">

@@ -16,7 +16,6 @@ class News extends Model
         'slug',
         'description',
         'content',
-        'image_path',
         'author_id',
         'published_at',
     ];
@@ -51,16 +50,6 @@ class News extends Model
     public function getImageAttribute(): ?string
     {
         $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
-        if ($image) {
-            return $image->url;
-        }
-
-        if (empty($this->image_path)) {
-            return null;
-        }
-
-        return str_starts_with($this->image_path, 'http')
-            ? $this->image_path
-            : asset('storage/' . $this->image_path);
+        return $image?->url;
     }
 }

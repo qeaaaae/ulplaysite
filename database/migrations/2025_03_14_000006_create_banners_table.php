@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('image_path');
             $table->string('link')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('active')->default(true);
