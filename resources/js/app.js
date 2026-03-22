@@ -106,8 +106,8 @@ function smoothScrollTo(targetY, duration = 400) {
     requestAnimationFrame(step);
 }
 
-function initTomSelects() {
-    document.querySelectorAll('select[data-enhance="tom-select"]').forEach((el) => {
+function initTomSelects(root = document) {
+    root.querySelectorAll('select[data-enhance="tom-select"]').forEach((el) => {
         if (el.tomselect) return;
         const opts = {
             allowEmptyOption: !!el.querySelector('option[value=""]'),
@@ -125,6 +125,8 @@ function initTomSelects() {
         el.tomselect = new TomSelect(el, opts);
     });
 }
+
+window.initTomSelects = initTomSelects;
 
 function initLightbox() {
     let overlay = null;

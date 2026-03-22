@@ -29,7 +29,7 @@ class TicketController extends Controller
                 });
             })
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.tickets.index', ['tickets' => $tickets]);

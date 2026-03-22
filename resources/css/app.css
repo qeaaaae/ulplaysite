@@ -386,7 +386,7 @@ h6 {
     border-color: #d6d3d1;
     border-radius: 0 0 6px 6px;
     margin-top: 2px;
-    z-index: 9999;
+    z-index: 100001;
 }
 
 .ts-dropdown .active {

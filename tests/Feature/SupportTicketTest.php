@@ -12,9 +12,22 @@ use Tests\TestCase;
 
 class SupportTicketTest extends TestCase
 {
-    public function test_store_creates_ticket_without_auth(): void
+    public function test_store_requires_auth(): void
+    {
+        $response = $this->post(route('support-tickets.store'), [
+            'type' => SupportTicketTypeEnum::TECHNICAL_ISSUE->value,
+            'title' => 'Test ticket',
+            'description' => 'Test description',
+        ]);
+
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_store_creates_ticket_with_auth(): void
     {
         Storage::fake('public');
+        $user = User::factory()->create();
+        $this->actingAs($user);
 
         $response = $this->post(route('support-tickets.store'), [
             'type' => SupportTicketTypeEnum::TECHNICAL_ISSUE->value,
@@ -23,13 +36,16 @@ class SupportTicketTest extends TestCase
             'images' => [],
         ]);
 
-        $response->assertRedirect();
+        $response->assertRedirect(route('tickets.my.index'));
         $response->assertSessionHas('message');
-        $this->assertDatabaseHas('support_tickets', ['title' => 'Test ticket']);
+        $this->assertDatabaseHas('support_tickets', ['title' => 'Test ticket', 'user_id' => $user->id]);
     }
 
     public function test_store_validates_type(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
         $response = $this->post(route('support-tickets.store'), [
             'type' => 'invalid_type',
             'title' => 'Test',
@@ -41,6 +57,9 @@ class SupportTicketTest extends TestCase
 
     public function test_store_validates_title_and_description(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
         $response = $this->post(route('support-tickets.store'), [
             'type' => SupportTicketTypeEnum::TECHNICAL_ISSUE->value,
         ]);
@@ -50,6 +69,9 @@ class SupportTicketTest extends TestCase
 
     public function test_store_validates_description_max_length(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
         $response = $this->post(route('support-tickets.store'), [
             'type' => SupportTicketTypeEnum::TECHNICAL_ISSUE->value,
             'title' => 'Test',
@@ -57,6 +79,13 @@ class SupportTicketTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('description');
+    }
+
+    public function test_support_create_requires_auth(): void
+    {
+        $response = $this->get(route('support.create'));
+
+        $response->assertRedirect(route('login'));
     }
 
     public function test_my_index_requires_auth(): void
@@ -102,6 +131,8 @@ class SupportTicketTest extends TestCase
     public function test_store_creates_ticket_with_images(): void
     {
         \Illuminate\Support\Facades\Storage::fake('public');
+        $user = User::factory()->create();
+        $this->actingAs($user);
 
         $image = \Illuminate\Http\UploadedFile::fake()->image('screenshot.png', 100, 100);
 
@@ -112,7 +143,7 @@ class SupportTicketTest extends TestCase
             'images' => [$image],
         ]);
 
-        $response->assertRedirect();
+        $response->assertRedirect(route('tickets.my.index'));
         $response->assertSessionHas('message');
         $ticket = \App\Models\SupportTicket::where('title', 'Ticket with image')->first();
         $this->assertNotNull($ticket);

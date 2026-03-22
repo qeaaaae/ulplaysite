@@ -78,9 +78,9 @@
             <table class="min-w-full divide-y divide-stone-200 table-fixed">
                 <colgroup>
                     <col class="w-14">
-                    <col class="w-[min(18%,220px)]">
-                    <col>
-                    <col class="w-32">
+                    <col style="width: 22%">
+                    <col style="width: 18%">
+                    <col class="w-28">
                     <col class="w-14">
                     <col class="w-24">
                     <col class="w-36">
@@ -104,12 +104,12 @@
                             <td class="px-4 py-3 font-medium">{{ $ticket->id }}</td>
                             <td class="px-4 py-3 min-w-0">
                                 <span class="font-medium text-stone-800 block truncate">{{ $ticket->title }}</span>
-                                <p class="text-sm text-stone-500 line-clamp-2 mt-0.5 truncate">{{ $ticket->description }}</p>
+                                <p class="text-sm text-stone-500 truncate mt-0.5">{{ \Illuminate\Support\Str::limit($ticket->description, 50) }}</p>
                             </td>
-                            <td class="px-4 py-3 text-sm">
+                            <td class="px-4 py-3 text-sm min-w-0">
                                 @if($ticket->user)
-                                    <span class="block">{{ $ticket->user->name }}</span>
-                                    <span class="text-stone-500">{{ $ticket->user->email }}</span>
+                                    <span class="block truncate">{{ $ticket->user->name }}</span>
+                                    <span class="text-stone-500 block truncate">{{ $ticket->user->email }}</span>
                                 @else
                                     <span class="text-stone-500">Гость</span>
                                 @endif

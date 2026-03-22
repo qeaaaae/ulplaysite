@@ -17,9 +17,9 @@
 
     @stack('styles')
 </head>
-<body class="font-sans antialiased min-h-screen overflow-x-hidden @yield('bodyClass')" data-notyf-message="{{ session('message') }}">
+<body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden @yield('bodyClass')" data-notyf-message="{{ session('message') }}">
     @include('partials.loader')
-    <div id="app" class="min-h-screen flex flex-col overflow-x-hidden" x-data="{
+    <div id="app" class="flex-1 flex flex-col min-h-0 overflow-x-hidden" x-data="{
         mobileMenuOpen: false,
         searchOpen: false,
         authModalOpen: false,
@@ -145,129 +145,15 @@
             @yield('content')
         </main>
 
-        <div x-data="{ open: false, filesCount: 0, onFilesChange(event) { this.filesCount = event.target.files ? event.target.files.length : 0; } }">
-            <button
-                type="button"
-                @click="open = true"
-                aria-label="Техническая поддержка"
-                class="fixed right-4 bottom-4 z-[9997] inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 transition-colors"
-            >
-                @svg('heroicon-o-lifebuoy', 'w-5 h-5')
-            </button>
-
-            <div
-                x-show="open"
-                x-cloak
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-                @click.self="open = false"
-            >
-                <div
-                    x-show="open"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 scale-95 translate-y-4"
-                    class="relative w-full max-w-xl bg-white rounded-xl shadow-2xl p-6 sm:p-8 ring-1 ring-black/5"
-                >
-                    <div class="flex items-start justify-between gap-3 mb-6">
-                        <div class="flex items-center gap-2">
-                            @svg('heroicon-o-lifebuoy', 'w-6 h-6 text-sky-500')
-                            <h2 class="text-xl font-semibold text-stone-900">Техническая поддержка</h2>
-                        </div>
-                        <button type="button" @click="open = false" class="p-2 rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors" aria-label="Закрыть">
-                            @svg('heroicon-o-x-mark', 'w-5 h-5')
-                        </button>
-                    </div>
-
-                    <form method="POST" action="{{ route('support-tickets.store') }}" enctype="multipart/form-data" class="space-y-5">
-                        @csrf
-                        <div class="form-field {{ $errors->has('type') ? 'is-invalid' : '' }}">
-                            <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                                @svg('heroicon-o-tag', 'w-4 h-4 text-sky-500')
-                                Тип обращения
-                            </label>
-                            <select
-                                name="type"
-                                data-enhance="tom-select"
-                                class="w-full h-11 px-3 py-2.5 bg-stone-50/50 border border-stone-200 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 focus:bg-white transition-colors"
-                            >
-                                @foreach(\App\Enums\SupportTicketTypeEnum::cases() as $type)
-                                    <option value="{{ $type->value }}" {{ old('type', \App\Enums\SupportTicketTypeEnum::TECHNICAL_ISSUE->value) === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('type'))
-                                <p class="mt-1.5 text-sm text-rose-600">{{ $errors->first('type') }}</p>
-                            @endif
-                        </div>
-
-                        <x-ui.input
-                            name="title"
-                            label="Заголовок"
-                            label-icon="heroicon-o-chat-bubble-left-ellipsis"
-                            value="{{ old('title') }}"
-                            required
-                            maxlength="255"
-                            :error="$errors->first('title')"
-                            class="[&_input]:bg-stone-50/50 [&_input]:border-stone-200 [&_input]:rounded-lg [&_input]:focus:border-sky-400 [&_input]:focus:bg-white"
-                        />
-
-                        <div class="form-field {{ $errors->has('description') ? 'is-invalid' : '' }}">
-                            <label for="support-description" class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                                @svg('heroicon-o-document-text', 'w-4 h-4 text-sky-500')
-                                Описание проблемы
-                            </label>
-                            <textarea
-                                name="description"
-                                id="support-description"
-                                rows="4"
-                                required
-                                maxlength="3000"
-                                class="w-full px-3 py-2.5 bg-stone-50/50 border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400 focus:bg-white transition-colors resize-y"
-                                placeholder="Опишите вашу проблему или вопрос..."
-                            >{{ old('description') }}</textarea>
-                            @if($errors->has('description'))
-                                <p class="mt-1.5 text-sm text-rose-600">{{ $errors->first('description') }}</p>
-                            @endif
-                        </div>
-
-                        <div class="form-field {{ $errors->has('images') || $errors->has('images.*') ? 'is-invalid' : '' }}">
-                            <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                                @svg('heroicon-o-photo', 'w-4 h-4 text-sky-500')
-                                Фото (до 3 шт)
-                            </label>
-                            <input
-                                type="file"
-                                name="images[]"
-                                accept="image/*"
-                                multiple
-                                @change="onFilesChange($event)"
-                                class="block w-full text-sm text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-sky-50 file:text-sky-700 file:hover:bg-sky-100 file:transition-colors border border-stone-200 rounded-lg bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400"
-                            >
-                            <p class="mt-1.5 text-xs text-stone-500">Выбрано: <span x-text="filesCount" class="font-medium text-stone-700">0</span> / 3</p>
-                            @if($errors->has('images') || $errors->has('images.*'))
-                                <p class="mt-1.5 text-sm text-rose-600">{{ $errors->first('images') ?: $errors->first('images.*') }}</p>
-                            @endif
-                        </div>
-
-                        <div class="pt-2 flex flex-wrap gap-3 justify-end">
-                            <x-ui.button type="button" variant="outline" @click="open = false">Отмена</x-ui.button>
-                            <x-ui.button type="submit" variant="primary">
-                                @svg('heroicon-o-paper-airplane', 'w-4 h-4')
-                                Отправить
-                            </x-ui.button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        @auth
+        <a
+            href="{{ route('support.create') }}"
+            aria-label="Техническая поддержка"
+            class="fixed right-4 bottom-4 z-[99990] inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 transition-colors"
+        >
+            @svg('heroicon-o-lifebuoy', 'w-5 h-5')
+        </a>
+        @endauth
 
         @include('partials.footer')
 

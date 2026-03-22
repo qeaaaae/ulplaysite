@@ -24,8 +24,6 @@ Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.sho
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/delivery', [\App\Http\Controllers\PageController::class, 'delivery'])->name('delivery');
 Route::get('/contacts', [\App\Http\Controllers\PageController::class, 'contacts'])->name('contacts');
-Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support-tickets.store')->middleware('throttle:support');
-
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => redirect()->route('home'))->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
@@ -85,6 +83,8 @@ Route::middleware('auth')->group(function () {
     })->middleware('throttle:6,1')->name('verification.send');
 
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('notifications.index');
+    Route::get('/support', [SupportTicketController::class, 'create'])->name('support.create');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support-tickets.store')->middleware('throttle:support');
     Route::get('/my-tickets', [SupportTicketController::class, 'myIndex'])->name('tickets.my.index');
     Route::get('/my-tickets/{ticket}', [SupportTicketController::class, 'myShow'])->name('tickets.my.show');
 });

@@ -10,9 +10,15 @@ use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class SupportTicketController extends Controller
 {
+    public function create(): View
+    {
+        return view('tickets.create');
+    }
+
     public function myIndex(Request $request)
     {
         $user = $request->user();
@@ -59,7 +65,7 @@ class SupportTicketController extends Controller
         ]);
 
         $ticket = SupportTicket::create([
-            'user_id' => $request->user()?->id,
+            'user_id' => $request->user()->id,
             'type' => $validated['type'],
             'title' => $validated['title'],
             'description' => $validated['description'],
@@ -71,7 +77,7 @@ class SupportTicketController extends Controller
         // Initial message in the dialog (from the ticket author).
         $ticket->messages()->create([
             'sender_role' => 'user',
-            'sender_user_id' => $request->user()?->id,
+            'sender_user_id' => $request->user()->id,
             'content' => $validated['description'],
         ]);
 
@@ -83,7 +89,7 @@ class SupportTicketController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('message', 'Заявка в техподдержку отправлена');
+        return redirect()->route('tickets.my.index')->with('message', 'Заявка в техподдержку отправлена');
     }
 }
 

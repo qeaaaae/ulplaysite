@@ -9,7 +9,7 @@
     @if($label)
         <label for="{{ $attributes->get('id') }}" class="{{ $labelIcon ? 'flex items-center gap-2' : 'block' }} text-sm font-medium text-stone-700 mb-1.5">
             @if($labelIcon)
-                @svg($labelIcon, 'w-4 h-4 text-stone-400 shrink-0')
+                @svg($labelIcon, 'w-4 h-4 text-sky-500 shrink-0')
             @endif
             {{ $label }}
         </label>

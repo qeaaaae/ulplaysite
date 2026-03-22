@@ -109,7 +109,7 @@
             <form action="{{ route('admin.tickets.reply', $ticket) }}" method="POST" class="mt-6">
                 @csrf
                 <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                    @svg('heroicon-o-chat-bubble-left-ellipsis', 'w-4 h-4 text-stone-400')
+                    @svg('heroicon-o-chat-bubble-left-ellipsis', 'w-4 h-4 text-sky-500')
                     Ответ админа
                 </label>
                 <textarea
