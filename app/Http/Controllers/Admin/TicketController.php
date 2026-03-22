@@ -64,7 +64,7 @@ class TicketController extends Controller
         $ticket->messages()->create([
             'sender_role' => 'admin',
             'sender_user_id' => $request->user()?->id,
-            'content' => $validated['message'],
+            'content' => strip_tags($validated['message']),
         ]);
 
         if ($ticket->status === 'new') {
@@ -76,7 +76,7 @@ class TicketController extends Controller
                 'user_id' => $ticket->user_id,
                 'type' => 'ticket_reply',
                 'title' => 'Ответ по вашему обращению',
-                'body' => $validated['message'],
+                'body' => strip_tags($validated['message']),
                 'support_ticket_id' => $ticket->id,
                 'url' => route('tickets.my.show', $ticket),
                 'read_at' => null,

@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 
 class ServiceSeeder extends Seeder
 {
-    private const IMAGE = 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=400&fit=crop';
+    private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
     public function run(): void
     {

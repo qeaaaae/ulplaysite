@@ -8,7 +8,7 @@
                 @foreach($banners as $banner)
                     <div class="swiper-slide">
                         <a href="{{ $banner->link }}" class="group/banner block relative h-[300px] sm:h-72 md:h-[22rem] lg:h-[26rem] xl:h-[28rem] overflow-hidden">
-                            <img src="{{ $banner->image }}" alt="{{ $banner->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $banner->id }}/1920/600';">
+                            <img src="{{ $banner->image }}" alt="{{ $banner->title }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]" onerror="this.onerror=null;this.style.display='none'">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex items-end">
                                 <div class="w-full max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
                                     <h2 class="banner-title text-xl sm:text-2xl md:text-3xl font-semibold text-white mb-1">{{ $banner->title }}</h2>

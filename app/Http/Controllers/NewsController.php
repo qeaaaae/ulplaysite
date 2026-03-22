@@ -15,7 +15,7 @@ class NewsController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $news = News::with('author')
+        $news = News::with(['author', 'images'])
             ->withCount(['comments', 'views'])
             ->whereNotNull('published_at')
             ->orderByDesc('published_at')
@@ -36,7 +36,7 @@ class NewsController extends Controller
 
     public function show(News $news): View
     {
-        $news->load(['author', 'comments.user', 'comments.helpfulVotes']);
+        $news->load(['author', 'images', 'comments.user', 'comments.helpfulVotes']);
 
         if ($user = Auth::user()) {
             NewsView::firstOrCreate([
@@ -46,7 +46,7 @@ class NewsController extends Controller
             $news->loadCount('views');
         }
 
-        $similarNews = News::with('author')
+        $similarNews = News::with(['author', 'images'])
             ->whereNotNull('published_at')
             ->where('id', '!=', $news->id)
             ->withCount(['comments', 'views'])

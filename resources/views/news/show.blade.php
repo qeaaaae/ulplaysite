@@ -34,7 +34,7 @@
             @if($cover)
                 <figure class="rounded-2xl overflow-hidden shadow-xl ring-1 ring-stone-200/50 mb-4">
                     <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="news-{{ $news->id }}">
-                        <img src="{{ $cover->url }}" alt="{{ $news->title }}" class="w-full aspect-video object-cover cursor-zoom-in" onerror="this.style.display='none'">
+                        <img src="{{ $cover->url }}" alt="{{ $news->title }}" class="w-full aspect-video object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
                     </a>
                 </figure>
             @endif
@@ -43,7 +43,7 @@
                 <div class="mb-8 flex gap-2 overflow-x-auto pb-1">
                     @foreach($thumbs as $image)
                         <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="news-{{ $news->id }}" class="block w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 shrink-0">
-                            <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover">
+                            <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
                         </a>
                     @endforeach
                 </div>

@@ -17,7 +17,7 @@
 
     @stack('styles')
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden @yield('bodyClass')" data-notyf-message="{{ session('message') }}">
+<body class="font-sans antialiased min-h-screen flex flex-col overflow-x-hidden @yield('bodyClass')" data-notyf-message="{{ session('message') }}" data-auth-intended-checkout="{{ (session()->has('url.intended') && str_contains(session('url.intended', ''), 'checkout')) ? '1' : '0' }}">
     @include('partials.loader')
     <div id="app" class="flex-1 flex flex-col min-h-0 overflow-x-hidden" x-data="{
         mobileMenuOpen: false,
@@ -180,6 +180,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const msg = document.body?.dataset?.notyfMessage;
             if (msg) notyf.success(msg);
+            if (document.body?.dataset?.authIntendedCheckout === '1') {
+                window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { type: 'login' } }));
+            }
         });
     </script>
 

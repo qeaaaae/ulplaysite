@@ -50,6 +50,7 @@ class OrderTest extends TestCase
             'name' => 'Test User',
             'phone' => '+79991234567',
             'email' => $user->email,
+            'delivery_type' => 'delivery',
             'address' => 'Test Address 1',
             'payment' => 'cash',
             'comment' => null,
@@ -67,7 +68,7 @@ class OrderTest extends TestCase
 
         $response = $this->post(route('orders.store'), []);
 
-        $response->assertSessionHasErrors(['name', 'phone', 'email', 'address', 'payment']);
+        $response->assertSessionHasErrors(['name', 'phone', 'email', 'delivery_type', 'payment']);
     }
 
     public function test_show_allows_owner_to_view_order(): void
@@ -111,6 +112,7 @@ class OrderTest extends TestCase
             'name' => 'Test',
             'phone' => '123',
             'email' => $user->email,
+            'delivery_type' => 'delivery',
             'address' => 'Addr',
             'payment' => 'cash',
         ]);

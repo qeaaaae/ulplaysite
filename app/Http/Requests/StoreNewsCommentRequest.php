@@ -13,6 +13,13 @@ class StoreNewsCommentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('body')) {
+            $this->merge(['body' => strip_tags((string) $this->body)]);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {

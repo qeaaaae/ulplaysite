@@ -7,7 +7,7 @@
 <article class="group flex flex-col h-full bg-white rounded-xl border border-stone-200 overflow-hidden shadow-[0_1px_3px_0_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06)] hover:border-stone-300 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-2px_rgba(0,0,0,0.06)] transition-all duration-200">
     <div class="relative aspect-[4/3] overflow-hidden bg-stone-50">
         <a href="/products/{{ $product->slug }}" class="block absolute inset-0 z-0">
-            <img src="{{ $product->image }}" alt="{{ $product->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $product->id ?? 0 }}/400/400';">
+            <img src="{{ $product->image }}" alt="{{ $product->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.style.display='none'">
             <div class="absolute top-2 left-2 flex flex-wrap gap-1.5">
                 @if(!($product->in_stock ?? true))
                     <span class="px-2 py-0.5 bg-stone-600 text-white text-[10px] font-medium rounded">Нет в наличии</span>

@@ -15,11 +15,11 @@ class SupportTicketSeeder extends Seeder
     private const STATUSES = ['new', 'in_progress', 'resolved', 'closed'];
 
     private const IMAGES = [
-        'https://images.unsplash.com/photo-1518773553398-650c184e0bb3?w=1200&h=800&fit=crop',
-        'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=1200&h=800&fit=crop',
-        'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200&h=800&fit=crop',
-        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=800&fit=crop',
-        'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=800&fit=crop',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
     ];
 
     public function run(): void

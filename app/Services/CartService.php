@@ -19,7 +19,7 @@ class CartService
     public function getItems(): \Illuminate\Database\Eloquent\Collection
     {
         $query = CartItem::query()
-            ->with(['product', 'service'])
+            ->with(['product.images', 'service.images'])
             ->where(function ($q) {
                 if (Auth::check()) {
                     $q->where('user_id', Auth::id());

@@ -498,6 +498,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         el.textContent = data.cartCount ?? 0;
                         el.classList.toggle('!hidden', !(data.cartCount > 0));
                     });
+                    const newCartRoot = document.getElementById('cart-root');
+                    if (typeof initTomSelects === 'function' && newCartRoot) initTomSelects(newCartRoot);
                 } else {
                     window.notyf.error(data?.message || 'Ошибка обновления корзины');
                 }
@@ -553,19 +555,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await res.json().catch(() => ({}));
 
-            if (res.ok && data?.result && data?.html) {
-                const container = document.getElementById('comments');
-                if (container) {
-                    container.outerHTML = data.html;
-                } else {
-                    document.body.insertAdjacentHTML('beforeend', data.html);
-                }
+                if (res.ok && data?.result && data?.html) {
+                    const container = document.getElementById('comments');
+                    if (container) {
+                        container.outerHTML = data.html;
+                    } else {
+                        document.body.insertAdjacentHTML('beforeend', data.html);
+                    }
 
-                const newContainer = document.getElementById('comments');
-                if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
-                if (btn) btn.disabled = false;
-                return;
-            }
+                    const newContainer = document.getElementById('comments');
+                    if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                    if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
+                    if (btn) btn.disabled = false;
+                    return;
+                }
 
             if (res.status === 422 && data?.errors) {
                 const errBody = data.errors?.body?.[0] || '';
@@ -573,6 +576,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (errEl) {
                     errEl.textContent = errBody;
                     errEl.classList.remove('hidden');
+                }
+                if (data.wait_seconds && data.wait_seconds > 0) {
+                    window.dispatchEvent(new CustomEvent('comment-cooldown-start', { detail: { seconds: data.wait_seconds } }));
                 }
             } else {
                 window.notyf.error(data?.message || 'Ошибка отправки комментария');
@@ -732,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (container) container.outerHTML = data.html;
                     const newContainer = document.getElementById('comments');
                     if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                    if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
                 } else {
                     const li = document.querySelector(`li[data-comment-id="${commentId}"]`);
                     if (li) li.remove();
@@ -788,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const newContainer = document.getElementById('reviews');
                 if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
                 if (btn) btn.disabled = false;
                 return;
             }

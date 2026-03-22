@@ -26,12 +26,13 @@ class CommentController extends Controller
             ->first();
 
         if ($lastComment && $lastComment->created_at->diffInSeconds(now()) < self::COMMENT_COOLDOWN_SECONDS) {
-            $waitSeconds = self::COMMENT_COOLDOWN_SECONDS - $lastComment->created_at->diffInSeconds(now());
+            $waitSeconds = (int) ceil(self::COMMENT_COOLDOWN_SECONDS - $lastComment->created_at->diffInSeconds(now()));
             $message = "Подождите {$waitSeconds} сек. перед следующим комментарием.";
             if ($request->wantsJson()) {
                 return response()->json([
                     'message' => 'Validation error',
                     'errors' => ['body' => [$message]],
+                    'wait_seconds' => $waitSeconds,
                 ], 422);
             }
 

@@ -83,7 +83,7 @@
                     @if($review->image_urls && count($review->image_urls) > 0)
                         <div class="flex flex-wrap gap-2 mt-3">
                             @foreach($review->image_urls as $url)
-                                <a href="{{ $url }}" data-lightbox="image" data-lightbox-group="review-{{ $review->id }}" class="block w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-sky-300 transition-colors cursor-zoom-in"><img src="{{ $url }}" alt="" class="w-full h-full object-cover"></a>
+                                <a href="{{ $url }}" data-lightbox="image" data-lightbox-group="review-{{ $review->id }}" class="block w-16 h-16 rounded-lg overflow-hidden border border-stone-200 hover:border-sky-300 transition-colors cursor-zoom-in"><img src="{{ $url }}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'"></a>
                             @endforeach
                         </div>
                     @endif

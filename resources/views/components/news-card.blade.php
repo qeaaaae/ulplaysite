@@ -5,7 +5,7 @@
 <x-ui.card hover class="group flex flex-col h-full">
     <a href="/news/{{ $item->slug }}" class="block flex-1 flex flex-col">
         <div class="aspect-video overflow-hidden bg-stone-50 flex-shrink-0">
-            <img src="{{ $item->image }}" alt="{{ $item->title }}" class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $item->id ?? 0 }}/600/400';">
+            <img src="{{ $item->image }}" alt="{{ $item->title }}" class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" onerror="this.onerror=null;this.style.display='none'">
         </div>
         <div class="p-4 sm:p-5 flex-1 flex flex-col">
             <p class="text-stone-400 text-xs mb-2">{{ $item->published_at?->format(config('app.datetime_format')) ?? '' }}</p>

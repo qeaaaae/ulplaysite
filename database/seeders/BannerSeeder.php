@@ -10,9 +10,9 @@ use Illuminate\Database\Seeder;
 class BannerSeeder extends Seeder
 {
     private const IMAGES = [
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1920&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1920&h=600&fit=crop',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
+        'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
     ];
 
     public function run(): void

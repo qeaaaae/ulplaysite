@@ -40,7 +40,7 @@
                     @if($cover)
                         <div class="aspect-[4/3] lg:aspect-square rounded-xl overflow-hidden bg-stone-50 shadow-sm">
                             <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}">
-                                <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $product->id }}/800/800';">
+                                <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
                             </a>
                         </div>
                     @endif

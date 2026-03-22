@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\SupportTicketTypeEnum;
+use App\Http\Requests\StoreSupportTicketRequest;
 use App\Models\SupportTicket;
 use App\Models\UserNotification;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,9 +23,9 @@ class SupportTicketController extends Controller
         $user = $request->user();
 
         $tickets = SupportTicket::query()
+            ->forUser($user->id)
             ->with(['images'])
             ->withCount('messages')
-            ->where('user_id', $user->id)
             ->orderByDesc('updated_at')
             ->paginate(10);
 
@@ -37,14 +36,12 @@ class SupportTicketController extends Controller
 
     public function myShow(Request $request, SupportTicket $ticket)
     {
-        $user = $request->user();
-
-        abort_unless($ticket->user_id === $user->id, 403);
+        $this->authorize('view', $ticket);
 
         $ticket->load(['images', 'messages.senderUser']);
 
         UserNotification::query()
-            ->where('user_id', $user->id)
+            ->where('user_id', $request->user()->id)
             ->where('support_ticket_id', $ticket->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -54,15 +51,9 @@ class SupportTicketController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreSupportTicketRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'type' => ['required', 'string', 'in:' . implode(',', array_column(SupportTicketTypeEnum::cases(), 'value'))],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:3000'],
-            'images' => ['nullable', 'array', 'max:3'],
-            'images.*' => ['image', 'max:5120'],
-        ]);
+        $validated = $request->validated();
 
         $ticket = SupportTicket::create([
             'user_id' => $request->user()->id,

@@ -14,7 +14,7 @@ class ServiceController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $services = Service::withAvg('reviews', 'rating')
+        $services = Service::with('images')->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->orderBy('id')
             ->paginate(10)
@@ -34,14 +34,14 @@ class ServiceController extends Controller
 
     public function show(Service $service): View
     {
-        $service->load(['reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
+        $service->load(['images', 'reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
         $canReview = $user
             && $user->hasPurchasedService($service)
             && ! $service->reviews->contains('user_id', $user->id);
 
-        $similarServices = Service::withAvg('reviews', 'rating')
+        $similarServices = Service::with('images')->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->where('id', '!=', $service->id)
             ->when($service->type, fn ($q) => $q->where('type', $service->type))

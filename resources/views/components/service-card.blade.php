@@ -8,7 +8,7 @@
     <a href="{{ route('services.show', $service) }}" class="absolute inset-0 z-0" aria-label="{{ $service->title }}"><span class="sr-only">{{ $service->title }}</span></a>
     <div class="relative flex-1 flex flex-col min-h-0">
         <div class="absolute inset-0">
-            <img src="{{ $service->image }}" alt="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $service->id ?? 0 }}/600/400';">
+            <img src="{{ $service->image }}" alt="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.style.display='none'">
             <div class="absolute inset-0 bg-gradient-to-t from-stone-900/95 via-stone-900/30 to-transparent"></div>
         </div>
         <div class="relative z-10 mt-auto p-4 sm:p-5 md:p-6 flex flex-col">

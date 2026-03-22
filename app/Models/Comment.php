@@ -30,12 +30,16 @@ class Comment extends Model
             return false;
         }
 
-        return $user->is_admin || $this->user_id === $user->id;
+        return $this->user_id === $user->id;
     }
 
     public function isDeletableBy(?\App\Models\User $user): bool
     {
-        return $this->isEditableBy($user);
+        if (! $user) {
+            return false;
+        }
+
+        return $user->is_admin || $this->user_id === $user->id;
     }
 
     public function helpfulVotes(): HasMany

@@ -51,7 +51,7 @@ class ReviewSeeder extends Seeder
                 $imagesCount = random_int(0, 3);
                 for ($pos = 0; $pos < $imagesCount; $pos++) {
                     $review->imagesRelation()->create([
-                        'path' => 'https://picsum.photos/seed/review-' . $review->id . '-' . $pos . '/400/400',
+                        'path' => 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize',
                         'is_cover' => $pos === 0,
                         'position' => $pos,
                     ]);

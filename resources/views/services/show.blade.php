@@ -20,7 +20,7 @@
                     @if($cover)
                         <div class="aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden bg-stone-50">
                             <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="service-{{ $service->id }}">
-                                <img src="{{ $cover->url }}" alt="{{ $service->title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/seed/{{ $service->id }}/800/600';">
+                                <img src="{{ $cover->url }}" alt="{{ $service->title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
                             </a>
                         </div>
                     @endif

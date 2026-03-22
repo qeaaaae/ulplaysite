@@ -93,12 +93,13 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
     public function getPurchasedWithoutReview(): \Illuminate\Support\Collection
     {
-        $orderItemIds = OrderItem::query()
+        $orderItems = OrderItem::query()
+            ->select('product_id', 'service_id')
             ->whereHas('order', fn ($q) => $q->where('user_id', $this->id)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']))
             ->get();
 
-        $productIds = $orderItemIds->pluck('product_id')->filter()->unique()->values()->all();
-        $serviceIds = $orderItemIds->pluck('service_id')->filter()->unique()->values()->all();
+        $productIds = $orderItems->pluck('product_id')->filter()->unique()->values()->all();
+        $serviceIds = $orderItems->pluck('service_id')->filter()->unique()->values()->all();
 
         $reviewedProductIds = Review::where('user_id', $this->id)->where('reviewable_type', Product::class)->pluck('reviewable_id')->all();
         $reviewedServiceIds = Review::where('user_id', $this->id)->where('reviewable_type', Service::class)->pluck('reviewable_id')->all();
@@ -108,12 +109,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $items = collect();
         if ($productIds !== []) {
-            foreach (Product::whereIn('id', $productIds)->get() as $product) {
+            foreach (Product::select('id', 'title', 'slug')->whereIn('id', $productIds)->get() as $product) {
                 $items->push(['type' => 'product', 'model' => $product]);
             }
         }
         if ($serviceIds !== []) {
-            foreach (Service::whereIn('id', $serviceIds)->get() as $service) {
+            foreach (Service::select('id', 'title', 'slug')->whereIn('id', $serviceIds)->get() as $service) {
                 $items->push(['type' => 'service', 'model' => $service]);
             }
         }

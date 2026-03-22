@@ -87,13 +87,15 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('auth', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
-        RateLimiter::for('password', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
-        RateLimiter::for('cart', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
-        RateLimiter::for('orders', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
-        RateLimiter::for('support', fn (Request $request) => Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()));
-        RateLimiter::for('profile', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
-        RateLimiter::for('admin', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
-        RateLimiter::for('reviews', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
+        $max = fn (string $key, int $default) => config("throttle.{$key}.max_attempts", $default);
+
+        RateLimiter::for('auth', fn (Request $r) => Limit::perMinute($max('auth', 5))->by($r->ip()));
+        RateLimiter::for('password', fn (Request $r) => Limit::perMinute($max('password', 3))->by($r->ip()));
+        RateLimiter::for('cart', fn (Request $r) => Limit::perMinute($max('cart', 30))->by($r->user()?->id ?? $r->ip()));
+        RateLimiter::for('orders', fn (Request $r) => Limit::perMinute($max('orders', 10))->by($r->user()?->id ?? $r->ip()));
+        RateLimiter::for('support', fn (Request $r) => Limit::perMinute($max('support', 5))->by($r->user()?->id ?? $r->ip()));
+        RateLimiter::for('profile', fn (Request $r) => Limit::perMinute($max('profile', 10))->by($r->user()?->id ?? $r->ip()));
+        RateLimiter::for('admin', fn (Request $r) => Limit::perMinute($max('admin', 120))->by($r->user()?->id ?? $r->ip()));
+        RateLimiter::for('reviews', fn (Request $r) => Limit::perMinute($max('reviews', 10))->by($r->user()?->id ?? $r->ip()));
     }
 }

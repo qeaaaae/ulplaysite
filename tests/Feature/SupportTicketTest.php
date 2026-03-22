@@ -26,6 +26,7 @@ class SupportTicketTest extends TestCase
     public function test_store_creates_ticket_with_auth(): void
     {
         Storage::fake('public');
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -43,6 +44,7 @@ class SupportTicketTest extends TestCase
 
     public function test_store_validates_type(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -57,6 +59,7 @@ class SupportTicketTest extends TestCase
 
     public function test_store_validates_title_and_description(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -69,6 +72,7 @@ class SupportTicketTest extends TestCase
 
     public function test_store_validates_description_max_length(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -97,6 +101,7 @@ class SupportTicketTest extends TestCase
 
     public function test_my_index_shows_user_tickets(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         SupportTicket::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
@@ -109,6 +114,7 @@ class SupportTicketTest extends TestCase
     public function test_my_show_returns_403_for_other_users_ticket(): void
     {
         $ticket = SupportTicket::factory()->create(['user_id' => User::factory()->create()->id]);
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
         $this->actingAs($otherUser);
 
@@ -119,6 +125,7 @@ class SupportTicketTest extends TestCase
 
     public function test_my_show_allows_owner_to_view(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $ticket = SupportTicket::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
@@ -131,6 +138,7 @@ class SupportTicketTest extends TestCase
     public function test_store_creates_ticket_with_images(): void
     {
         \Illuminate\Support\Facades\Storage::fake('public');
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 

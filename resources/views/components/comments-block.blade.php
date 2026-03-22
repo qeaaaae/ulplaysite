@@ -28,8 +28,22 @@
                 <div class="mt-1.5 text-xs text-rose-600 hidden" data-ajax-comments-error="body"></div>
                 @error('body')<p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
-            <div class="flex flex-nowrap sm:flex-wrap items-center gap-2 sm:gap-3">
-                <x-ui.button type="submit" variant="primary" class="flex-1 min-w-0 sm:flex-none sm:min-w-[120px] shrink-0 py-2.5">Отправить</x-ui.button>
+            <div class="flex flex-nowrap sm:flex-wrap items-center gap-2 sm:gap-3" x-data="{
+                commentCooldown: 0,
+                cooldownInterval: null,
+                startCooldown(seconds) {
+                    this.commentCooldown = seconds;
+                    if (this.cooldownInterval) clearInterval(this.cooldownInterval);
+                    this.cooldownInterval = setInterval(() => {
+                        this.commentCooldown--;
+                        if (this.commentCooldown <= 0) clearInterval(this.cooldownInterval);
+                    }, 1000);
+                }
+            }" x-on:comment-cooldown-start.window="startCooldown($event.detail?.seconds ?? 30)">
+                <x-ui.button type="submit" variant="primary" class="flex-1 min-w-0 sm:flex-none sm:min-w-[120px] shrink-0 py-2.5" x-bind:disabled="commentCooldown > 0" x-show="commentCooldown === 0">Отправить</x-ui.button>
+                <span class="text-sm text-stone-500" x-show="commentCooldown > 0" x-cloak x-transition>
+                    Следующий комментарий через <span x-text="commentCooldown"></span> сек.
+                </span>
                 <div class="relative shrink-0">
                     <button type="button" @click="emojiOpen = !emojiOpen" class="inline-flex items-center justify-center w-10 h-10 text-stone-600 hover:text-stone-800 border border-stone-300 rounded-md hover:bg-stone-50 transition-colors cursor-pointer" title="Эмодзи" aria-label="Вставить эмодзи">
                         @svg('heroicon-o-face-smile', 'w-5 h-5')

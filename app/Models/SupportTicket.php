@@ -46,5 +46,10 @@ class SupportTicket extends Model
     {
         return $this->hasMany(SupportTicketMessage::class, 'support_ticket_id')->orderBy('created_at');
     }
+
+    public function scopeForUser($query, int $userId): void
+    {
+        $query->where('user_id', $userId);
+    }
 }
 

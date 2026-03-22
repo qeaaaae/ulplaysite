@@ -22,7 +22,7 @@ class ProductController extends Controller
     {
         $q = (string) ($request->input('q') ?? '');
 
-        $query = Product::with('category')
+        $query = Product::with(['category', 'images'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->where('in_stock', true);
@@ -97,7 +97,7 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
-        $product->load(['category', 'reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
+        $product->load(['category', 'images', 'reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
@@ -120,7 +120,7 @@ class ProductController extends Controller
 
         $categoryIds = $categoryIds->unique()->filter()->values()->all();
 
-        $similarProducts = Product::withAvg('reviews', 'rating')
+        $similarProducts = Product::with('images')->withAvg('reviews', 'rating')
             ->withCount('reviews')
             ->where('in_stock', true)
             ->where('id', '!=', $product->id)

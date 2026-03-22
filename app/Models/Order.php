@@ -43,4 +43,11 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function scopeForUser($query, ?int $userId): void
+    {
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+    }
 }
