@@ -8,4 +8,43 @@
     # Redirect all requests to public folder
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Restrict unsupported methods
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD|OPTIONS|PUT|PATCH|DELETE)$ [NC]
+    RewriteRule ^ - [R=405,L]
+
+    # Redirect trailing slashes (if not a real directory)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Serve /storage/* directly from storage/app/public/* on hosting
+    # where Laravel public/storage symlink is unavailable.
+    RewriteCond %{REQUEST_URI} ^/storage/(.+)$ [NC]
+    RewriteCond %{DOCUMENT_ROOT}/storage/app/public/%1 -f
+    RewriteRule ^storage/(.+)$ /storage/app/public/$1 [L]
+
+    # Same for /public/storage/* (after redirect to public)
+    RewriteCond %{REQUEST_URI} ^/public/storage/(.+)$ [NC]
+    RewriteCond %{DOCUMENT_ROOT}/storage/app/public/%1 -f
+    RewriteRule ^public/storage/(.+)$ /storage/app/public/$1 [L]
+
+    # Send other requests to front controller
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ public/index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
