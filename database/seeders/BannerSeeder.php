@@ -23,7 +23,6 @@ class BannerSeeder extends Seeder
                 [
                     'description' => "Описание баннера {$i}",
                     'link' => $i % 2 === 0 ? '/products' : '/services/repair',
-                    'sort_order' => $i,
                     'active' => $i <= 10,
                 ]
             );
