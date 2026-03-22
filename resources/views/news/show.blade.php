@@ -29,9 +29,16 @@
                 $images = $news->images;
                 $cover = $images->firstWhere('is_cover', true) ?? $images->first();
                 $thumbs = $cover ? $images->filter(fn ($img) => $img->id !== $cover->id) : $images;
+                $videoEmbedUrl = $news->video_embed_url;
             @endphp
 
-            @if($cover)
+            @if($videoEmbedUrl)
+                <figure class="rounded-2xl overflow-hidden shadow-xl ring-1 ring-stone-200/50 mb-4">
+                    <div class="aspect-video w-full bg-stone-900">
+                        <iframe src="{{ $videoEmbedUrl }}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+                    </div>
+                </figure>
+            @elseif($cover)
                 <figure class="rounded-2xl overflow-hidden shadow-xl ring-1 ring-stone-200/50 mb-4">
                     <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="news-{{ $news->id }}">
                         <img src="{{ $cover->url }}" alt="{{ $news->title }}" class="w-full aspect-video object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">

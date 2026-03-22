@@ -22,6 +22,11 @@ class UpdateNewsRequest extends FormRequest
             'slug' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'content' => ['nullable', 'string'],
+            'video_url' => ['nullable', 'string', 'url', 'max:512', function (string $attr, mixed $value, \Closure $fail) {
+                if ($value && ! app(\App\Services\VideoEmbedService::class)->isValidUrl($value)) {
+                    $fail('Ссылка должна быть с YouTube или Rutube.');
+                }
+            }],
             'published_at' => ['nullable', 'date'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:4096'],
@@ -30,8 +35,11 @@ class UpdateNewsRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $videoUrl = $this->input('video_url');
+        $trimmed = is_string($videoUrl) ? trim($videoUrl) : '';
         $this->merge([
             'slug' => Str::slug($this->input('slug') ?: $this->input('title', '')),
+            'video_url' => $trimmed === '' ? null : $trimmed,
         ]);
     }
 }

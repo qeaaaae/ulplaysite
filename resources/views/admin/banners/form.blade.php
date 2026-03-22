@@ -28,7 +28,6 @@
                 <textarea name="description" rows="2" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y">{{ old('description', $banner->description) }}</textarea>
             </div>
             <x-ui.input name="link" label="Ссылка" label-icon="heroicon-o-link" value="{{ old('link', $banner->link) }}" placeholder="https://..." :error="$errors->first('link')" />
-            <x-ui.input type="number" name="sort_order" label="Порядок" label-icon="heroicon-o-bars-3" value="{{ old('sort_order', $banner->sort_order ?? 1) }}" />
             <label class="flex items-center gap-2 cursor-pointer pt-1 lg:col-span-2">
                 <input type="checkbox" name="active" value="1" {{ old('active', $banner->active ?? true) ? 'checked' : '' }} class="rounded border-stone-300 text-sky-600 accent-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500/30">
                 <span class="text-sm text-stone-700">Активен</span>

@@ -32,7 +32,7 @@ class HomeController extends Controller
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
 
         return view('home', [
-            'banners' => Banner::with('images')->where('active', true)->orderBy('sort_order')->orderBy('id')->get(),
+            'banners' => Banner::with('images')->where('active', true)->orderBy('id')->get(),
             'categories' => $categories,
             'newProducts' => Product::with('images')->new()
                 ->inStock()

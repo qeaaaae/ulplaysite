@@ -48,7 +48,6 @@ class BannerControllerTest extends TestCase
             'title' => 'New Banner',
             'description' => 'Desc',
             'link' => 'https://example.com',
-            'sort_order' => 1,
             'active' => true,
         ]);
 
@@ -66,7 +65,6 @@ class BannerControllerTest extends TestCase
             'title' => 'Banner with image',
             'description' => 'Desc',
             'link' => 'https://example.com',
-            'sort_order' => 1,
             'active' => true,
             'image' => $image,
         ]);
@@ -85,7 +83,6 @@ class BannerControllerTest extends TestCase
             'title' => 'Updated Banner',
             'description' => $banner->description,
             'link' => $banner->link,
-            'sort_order' => $banner->sort_order,
             'active' => $banner->active,
         ]);
 

@@ -18,7 +18,6 @@ class BannerController extends Controller
     {
         $q = $request->input('q', '');
         $banners = Banner::when($q !== '', fn ($query) => $query->where('title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%"))
-            ->orderBy('sort_order')
             ->orderBy('id')
             ->paginate(10)
             ->withQueryString();

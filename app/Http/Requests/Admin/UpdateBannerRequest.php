@@ -20,7 +20,6 @@ class UpdateBannerRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'link' => ['nullable', 'string', 'max:255'],
-            'sort_order' => ['nullable', 'integer', 'min:1'],
             'active' => ['boolean'],
             'image' => ['nullable', 'image', 'max:4096'],
         ];
@@ -28,10 +27,6 @@ class UpdateBannerRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $sortOrder = $this->input('sort_order');
-        $this->merge([
-            'active' => $this->boolean('active'),
-            'sort_order' => $sortOrder === '' || $sortOrder === null ? 1 : (int) $sortOrder,
-        ]);
+        $this->merge(['active' => $this->boolean('active')]);
     }
 }

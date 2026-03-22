@@ -157,7 +157,7 @@ class CommentTest extends TestCase
         $this->assertSame('Original', $comment->body);
     }
 
-    public function test_update_comment_allowed_for_admin(): void
+    public function test_update_others_comment_forbidden_for_admin(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $news = News::factory()->create();
@@ -166,9 +166,9 @@ class CommentTest extends TestCase
 
         $response = $this->patchJson(route('comments.update', $comment), ['body' => 'Admin edit']);
 
-        $response->assertOk();
+        $response->assertForbidden();
         $comment->refresh();
-        $this->assertSame('Admin edit', $comment->body);
+        $this->assertSame('Original', $comment->body);
     }
 
     public function test_destroy_own_comment_succeeds(): void

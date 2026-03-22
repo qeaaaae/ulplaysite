@@ -19,6 +19,7 @@ class News extends Model
         'slug',
         'description',
         'content',
+        'video_url',
         'author_id',
         'published_at',
     ];
@@ -54,5 +55,10 @@ class News extends Model
     {
         $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
         return $image?->url;
+    }
+
+    public function getVideoEmbedUrlAttribute(): ?string
+    {
+        return app(\App\Services\VideoEmbedService::class)->toEmbedUrl($this->video_url);
     }
 }

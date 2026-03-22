@@ -20,7 +20,6 @@ class BannerFactory extends Factory
             'title' => fake()->words(3, true),
             'description' => fake()->optional()->sentence(),
             'link' => fake()->optional()->url(),
-            'sort_order' => fake()->numberBetween(1, 10),
             'active' => true,
         ];
     }

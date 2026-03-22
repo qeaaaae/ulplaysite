@@ -35,6 +35,7 @@
                 </label>
                 <textarea name="content" rows="6" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y min-h-[120px]">{{ old('content', $news->content) }}</textarea>
             </div>
+            <x-ui.input name="video_url" label="Видео (YouTube или Rutube)" label-icon="heroicon-o-video-camera" value="{{ old('video_url', $news->video_url) }}" placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..." :error="$errors->first('video_url')" />
             <x-ui.input type="date" name="published_at" label="Дата публикации" label-icon="heroicon-o-calendar" value="{{ old('published_at', $news->published_at?->format('Y-m-d')) }}" />
         </x-admin.form-section>
 
