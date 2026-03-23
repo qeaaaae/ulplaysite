@@ -111,7 +111,7 @@
             <div class="px-5 py-4 border-b border-stone-200">
                 <h2 class="text-lg font-semibold text-stone-900">Топ товаров по продажам</h2>
             </div>
-            <div class="overflow-x-auto">
+            <div class="hidden lg:block overflow-x-auto">
                 <table class="min-w-full divide-y divide-stone-200">
                     <thead class="bg-stone-50">
                         <tr>
@@ -133,12 +133,25 @@
                     </tbody>
                 </table>
             </div>
+            <div class="lg:hidden divide-y divide-stone-100">
+                @forelse($topProducts as $item)
+                    <div class="p-4 flex justify-between items-start gap-3">
+                        <p class="text-sm text-stone-800 font-medium min-w-0 flex-1">{{ $item->product?->title ?? '—' }}</p>
+                        <div class="shrink-0 text-right tabular-nums">
+                            <span class="text-sm text-stone-600">{{ $item->total_qty }} шт</span>
+                            <span class="block text-sm font-medium text-stone-900">{{ number_format((float) $item->total_sum, 0, ',', ' ') }} ₽</span>
+                        </div>
+                    </div>
+                @empty
+                    <p class="px-4 py-6 text-center text-stone-500 text-sm">Нет данных</p>
+                @endforelse
+            </div>
         </div>
         <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-stone-200">
                 <h2 class="text-lg font-semibold text-stone-900">Топ услуг по продажам</h2>
             </div>
-            <div class="overflow-x-auto">
+            <div class="hidden lg:block overflow-x-auto">
                 <table class="min-w-full divide-y divide-stone-200">
                     <thead class="bg-stone-50">
                         <tr>
@@ -159,6 +172,19 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="lg:hidden divide-y divide-stone-100">
+                @forelse($topServices as $item)
+                    <div class="p-4 flex justify-between items-start gap-3">
+                        <p class="text-sm text-stone-800 font-medium min-w-0 flex-1">{{ $item->service?->title ?? '—' }}</p>
+                        <div class="shrink-0 text-right tabular-nums">
+                            <span class="text-sm text-stone-600">{{ $item->total_qty }} шт</span>
+                            <span class="block text-sm font-medium text-stone-900">{{ number_format((float) $item->total_sum, 0, ',', ' ') }} ₽</span>
+                        </div>
+                    </div>
+                @empty
+                    <p class="px-4 py-6 text-center text-stone-500 text-sm">Нет данных</p>
+                @endforelse
             </div>
         </div>
     </div>

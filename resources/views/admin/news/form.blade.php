@@ -1,61 +1,73 @@
 @extends('layouts.admin')
 
 @section('content')
-    <div class="mb-6 flex items-center gap-3">
-        <a href="{{ route('admin.news.index') }}" class="p-2 rounded-lg text-stone-500 hover:bg-white hover:text-stone-700 transition-colors" title="К списку">
-            @svg('heroicon-o-arrow-left', 'w-5 h-5')
-        </a>
-        <div class="flex items-center gap-2.5">
-            @svg('heroicon-o-newspaper', 'w-8 h-8 text-sky-600')
-            <div>
-                <h1 class="text-2xl font-semibold text-stone-900">{{ $news->id ? 'Редактировать новость' : 'Новая новость' }}</h1>
-                <p class="text-sm text-stone-500">{{ $news->id ? $news->title : 'Заполните поля' }}</p>
-            </div>
-        </div>
-    </div>
-
-    <form method="POST" action="{{ $news->id ? route('admin.news.update', $news) : route('admin.news.store') }}" enctype="multipart/form-data" class="w-full space-y-6">
+    <form method="POST" action="{{ $news->id ? route('admin.news.update', $news) : route('admin.news.store') }}" enctype="multipart/form-data" class="w-full space-y-4">
         @csrf
         @if($news->id) @method('PATCH') @endif
 
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.news.index') }}" class="p-2 rounded-lg text-stone-500 hover:bg-white hover:text-stone-700 transition-colors" title="К списку">
+                    @svg('heroicon-o-arrow-left', 'w-5 h-5')
+                </a>
+                <div class="flex items-center gap-2.5">
+                    @svg('heroicon-o-newspaper', 'w-8 h-8 text-sky-600')
+                    <div>
+                        <h1 class="text-2xl font-semibold text-stone-900">{{ $news->id ? 'Редактировать новость' : 'Новая новость' }}</h1>
+                        @if($news->id)
+                            <a href="{{ route('news.show', $news) }}" target="_blank" rel="noopener" class="text-sm text-sky-600 hover:text-sky-700 hover:underline">
+                                {{ $news->title }}
+                            </a>
+                        @else
+                            <p class="text-sm text-stone-500">Заполните поля</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <x-ui.button type="submit" variant="primary" class="inline-flex items-center gap-2">
+                    @svg('heroicon-o-check', 'w-5 h-5')
+                    Сохранить
+                </x-ui.button>
+                <a href="{{ route('admin.news.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 rounded-md text-stone-700 hover:bg-stone-50 transition-colors text-sm font-medium">
+                    @svg('heroicon-o-x-mark', 'w-5 h-5')
+                    Отмена
+                </a>
+            </div>
+        </div>
+
         <x-admin.form-section title="Основное" icon="heroicon-o-document-text">
-            <x-ui.input name="title" label="Название" label-icon="heroicon-o-document-text" value="{{ old('title', $news->title) }}" required :error="$errors->first('title')" />
-            <x-ui.input name="slug" label="Ярлык" label-icon="heroicon-o-link" value="{{ old('slug', $news->slug) }}" :error="$errors->first('slug')" />
-            <div class="lg:col-span-2">
-                <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                    @svg('heroicon-o-document', 'w-4 h-4 text-stone-400')
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+                <x-ui.input name="title" label="Название" label-icon="heroicon-o-document-text" value="{{ old('title', $news->title) }}" required :error="$errors->first('title')" />
+                <x-ui.input name="slug" label="Ярлык" label-icon="heroicon-o-link" value="{{ old('slug', $news->slug) }}" :error="$errors->first('slug')" />
+                <x-ui.input name="video_url" label="Видео (YouTube или Rutube)" label-icon="heroicon-o-video-camera" value="{{ old('video_url', $news->video_url) }}" placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..." :error="$errors->first('video_url')" />
+                <x-ui.input type="date" name="published_at" label="Дата публикации" label-icon="heroicon-o-calendar" value="{{ old('published_at', $news->published_at?->format('Y-m-d')) }}" />
+            </div>
+            <div class="mt-4 flex flex-col">
+                <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
+                    @svg('heroicon-o-document', 'w-4 h-4 text-sky-500 shrink-0')
                     Краткое описание
                 </label>
-                <textarea name="description" rows="2" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y">{{ old('description', $news->description) }}</textarea>
+                <textarea name="description" rows="2" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y" placeholder="Краткое описание новости">{{ old('description', $news->description) }}</textarea>
             </div>
-            <div class="lg:col-span-2">
-                <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                    @svg('heroicon-o-document-text', 'w-4 h-4 text-stone-400')
+            <div class="mt-4 flex flex-col">
+                <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
+                    @svg('heroicon-o-document-text', 'w-4 h-4 text-sky-500 shrink-0')
                     Содержание
                 </label>
-                <textarea name="content" rows="6" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y min-h-[120px]">{{ old('content', $news->content) }}</textarea>
+                <textarea name="content" rows="6" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y min-h-[120px]" placeholder="Полный текст новости">{{ old('content', $news->content) }}</textarea>
             </div>
-            <x-ui.input name="video_url" label="Видео (YouTube или Rutube)" label-icon="heroicon-o-video-camera" value="{{ old('video_url', $news->video_url) }}" placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..." :error="$errors->first('video_url')" />
-            <x-ui.input type="date" name="published_at" label="Дата публикации" label-icon="heroicon-o-calendar" value="{{ old('published_at', $news->published_at?->format('Y-m-d')) }}" />
         </x-admin.form-section>
 
         <x-admin.form-section title="Изображения" icon="heroicon-o-photo">
             <div
-                class="space-y-3 lg:col-span-2"
+                class="space-y-3"
                 x-data="{
                     existing: {{ $news->images->map(fn($img) => ['id' => $img->id, 'url' => $img->url, 'is_cover' => (bool) $img->is_cover])->values()->toJson() }},
                     deleted: [],
-                    newPreviews: [],
                     removeExisting(id) {
                         this.deleted.push(id);
                         this.existing = this.existing.filter(img => img.id !== id);
-                    },
-                    handleFiles(event) {
-                        const files = Array.from(event.target.files || []).slice(0, 5);
-                        this.newPreviews = files.map(file => ({
-                            name: file.name,
-                            url: URL.createObjectURL(file),
-                        }));
                     },
                 }"
             >
@@ -65,22 +77,9 @@
                     label="Загрузить изображения (макс. 5)"
                     label-icon="heroicon-o-photo"
                     multiple
+                    :max-previews="5"
                     :error="$errors->first('images')"
-                    x-on:change="handleFiles"
                 />
-
-                <template x-if="newPreviews.length">
-                    <div class="mt-2">
-                        <p class="text-xs text-stone-500 mb-2">Новые изображения (предпросмотр):</p>
-                        <div class="flex flex-wrap gap-3">
-                            <template x-for="(img, idx) in newPreviews" :key="idx">
-                                <div class="w-28 h-28 rounded-lg overflow-hidden border border-dashed border-sky-300 bg-stone-50">
-                                    <img :src="img.url" alt="" class="w-full h-full object-cover">
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </template>
 
                 <template x-if="existing.length">
                     <div class="mt-4">
@@ -100,7 +99,7 @@
                                         :href="image.url"
                                         data-lightbox="image"
                                         data-lightbox-group="admin-news-{{ $news->id }}"
-                                        class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 relative"
+                                        class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 relative cursor-zoom-in hover:border-sky-300 transition-colors"
                                     >
                                         <img :src="image.url" alt="" class="w-full h-full object-cover">
                                         <span
@@ -145,16 +144,5 @@
                 <p class="mt-2 text-xs text-stone-400">Всего просмотров: {{ $views->count() }}</p>
             </x-admin.form-section>
         @endif
-
-        <div class="flex flex-wrap items-center gap-3 pt-2">
-            <x-ui.button type="submit" variant="primary" class="inline-flex items-center gap-2">
-                @svg('heroicon-o-check', 'w-5 h-5')
-                Сохранить
-            </x-ui.button>
-            <a href="{{ route('admin.news.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 rounded-md text-stone-700 hover:bg-stone-50 transition-colors text-sm font-medium">
-                @svg('heroicon-o-x-mark', 'w-5 h-5')
-                Отмена
-            </a>
-        </div>
     </form>
 @endsection

@@ -10,7 +10,7 @@
             <h2 class="font-medium text-stone-800">{{ $title }}</h2>
         </div>
     @endif
-    <div class="p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+    <div class="p-4 sm:p-5 space-y-4">
         {{ $slot }}
     </div>
 </section>

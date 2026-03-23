@@ -10,6 +10,7 @@ use App\Models\Review;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class ReviewController extends Controller
 {
@@ -46,6 +47,7 @@ class ReviewController extends Controller
         $data['user_id'] = $user->id;
 
         $review = Review::create($data);
+        Cache::forget("user.{$user->id}.purchased_no_review");
 
         if ($request->hasFile('images')) {
             $files = array_slice($request->file('images'), 0, 3);
@@ -115,6 +117,7 @@ class ReviewController extends Controller
         $data['user_id'] = $user->id;
 
         $review = Review::create($data);
+        Cache::forget("user.{$user->id}.purchased_no_review");
 
         if ($request->hasFile('images')) {
             $files = array_slice($request->file('images'), 0, 3);

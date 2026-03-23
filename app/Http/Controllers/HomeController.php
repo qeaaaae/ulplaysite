@@ -26,13 +26,14 @@ class HomeController extends Controller
         $newsCount = 4;
 
         $categories = Category::with('images')->withCount('products')
-            ->orderBy('sort_order')
+            ->orderByDesc('is_featured')
+            ->orderBy('name')
             ->take(6)
             ->get();
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
 
         return view('home', [
-            'banners' => Banner::with('images')->where('active', true)->orderBy('id')->get(),
+            'banners' => Banner::getCachedActive(),
             'categories' => $categories,
             'newProducts' => Product::with('images')->new()
                 ->inStock()
@@ -54,16 +55,10 @@ class HomeController extends Controller
     /** @return Collection<int, Product> */
     private function getRecommendedProducts(int $count): Collection
     {
-        $recommended = Product::with('images')->inStock()->recommended()->inRandomOrder()->take($count)->get();
-        if ($recommended->count() >= $count) {
-            return $recommended;
+        $pool = Product::with('images')->inStock()->recommended()->latest()->take(50)->get();
+        if ($pool->count() <= $count) {
+            return $pool;
         }
-        $ids = $recommended->pluck('id')->all();
-        $extra = Product::with('images')->inStock()
-            ->when($ids !== [], fn ($q) => $q->whereNotIn('id', $ids))
-            ->inRandomOrder()
-            ->take($count - $recommended->count())
-            ->get();
-        return $recommended->merge($extra);
+        return $pool->random(min($count, $pool->count()));
     }
 }

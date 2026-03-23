@@ -68,6 +68,10 @@
             ctx.authLoading = true;
             ctx.authErrors = {};
             const formData = new FormData(form);
+            try {
+                const raw = localStorage.getItem('ulplay_guest_cart');
+                if (raw) formData.append('_guest_cart', raw);
+            } catch (e) {}
             const url = this.authModalType === 'login' ? '{{ route('login') }}' : '{{ route('register') }}';
             let timeoutId;
             try {
@@ -76,6 +80,7 @@
                 const res = await fetch(url, {
                     method: 'POST',
                     body: formData,
+                    credentials: 'include',
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     signal: controller.signal
                 });
@@ -90,6 +95,7 @@
 
                 if (!res.ok && !data) data = {};
                 if (res.ok && data.redirect) {
+                    try { localStorage.removeItem('ulplay_guest_cart'); } catch (e) {}
                     window.location.href = data.redirect;
                     return;
                 }
@@ -118,7 +124,7 @@
                         Мы отправили письмо с ссылкой подтверждения. Пожалуйста, перейдите по ней.
                     </p>
 
-                    <form method="POST" action="{{ route('verification.send') }}">
+                    <form method="POST" action="{{ route('verification.send') }}" data-ajax-verification-send>
                         @csrf
                         <x-ui.button type="submit" variant="primary" class="w-full">
                             Отправить повторно
@@ -133,7 +139,7 @@
                     </form>
 
                     <p class="mt-3 text-xs text-stone-400">
-                        Повторная отправка ограничена (rate limit).
+                        Не более 3 отправок в 5 минут.
                     </p>
                 </div>
             </div>

@@ -12,13 +12,13 @@
         <x-admin.search-bar :action="route('admin.tickets.index')" placeholder="Заголовок, описание, имя или email..." :value="request('q', '')" />
         <form method="GET" action="{{ route('admin.tickets.index') }}" class="flex gap-2 items-center">
             @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
-            <select name="type" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150">
+            <select name="type" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px]">
                 <option value="">Все типы</option>
                 @foreach(\App\Enums\SupportTicketTypeEnum::cases() as $type)
                     <option value="{{ $type->value }}" {{ request('type') === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
                 @endforeach
             </select>
-            <select name="status" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150">
+            <select name="status" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px]">
                 <option value="">Все статусы</option>
                 <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>Новый</option>
                 <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>В работе</option>
@@ -28,126 +28,88 @@
         </form>
     </div>
 
-    <div class="lg:hidden space-y-3">
+    <div class="space-y-2">
         @forelse($tickets as $ticket)
-            @php($type = $ticket->type instanceof \App\Enums\SupportTicketTypeEnum ? $ticket->type : \App\Enums\SupportTicketTypeEnum::tryFrom((string) $ticket->type))
-            @php($statusLabel = match($ticket->status) {
-                'new' => 'Новый',
-                'in_progress' => 'В работе',
-                'resolved' => 'Решён',
-                'closed' => 'Закрыт',
-                default => (string) $ticket->status,
-            })
-            @php($statusClass = match($ticket->status) {
-                'resolved' => 'bg-emerald-100 text-emerald-800',
-                'closed' => 'bg-stone-200 text-stone-700',
-                'in_progress' => 'bg-sky-100 text-sky-800',
-                default => 'bg-amber-100 text-amber-800',
-            })
-            <a href="{{ route('admin.tickets.show', $ticket) }}" class="block p-4 bg-white rounded-lg shadow border border-stone-200 hover:border-sky-200 transition-colors">
-                <div class="flex justify-between items-start gap-3 mb-2">
-                    <span class="text-xs font-medium text-stone-500">#{{ $ticket->id }}</span>
-                    <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded shrink-0 {{ $statusClass }}">{{ $statusLabel }}</span>
+            @php
+                $type = $ticket->type instanceof \App\Enums\SupportTicketTypeEnum ? $ticket->type : \App\Enums\SupportTicketTypeEnum::tryFrom((string) $ticket->type);
+                $statusLabel = match($ticket->status) {
+                    'new' => 'Новый',
+                    'in_progress' => 'В работе',
+                    'resolved' => 'Решён',
+                    'closed' => 'Закрыт',
+                    default => (string) $ticket->status,
+                };
+                $statusClass = match($ticket->status) {
+                    'resolved' => 'bg-emerald-100 text-emerald-800',
+                    'closed' => 'bg-stone-200 text-stone-700',
+                    'in_progress' => 'bg-sky-100 text-sky-800',
+                    default => 'bg-amber-100 text-amber-800',
+                };
+            @endphp
+            <a href="{{ route('admin.tickets.show', $ticket) }}" class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-xl border border-stone-200 hover:border-sky-200 hover:shadow-sm transition-all group">
+                <div class="shrink-0 w-10 h-10 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center group-hover:bg-sky-50 transition-colors">
+                    @svg('heroicon-o-lifebuoy', 'w-5 h-5')
                 </div>
-                <h3 class="font-medium text-stone-800 line-clamp-2 mb-1">{{ $ticket->title }}</h3>
-                <p class="text-sm text-stone-500 line-clamp-2 mb-3">{{ \Illuminate\Support\Str::limit($ticket->description, 80) }}</p>
-                <div class="flex flex-wrap items-center gap-2 text-xs text-stone-500">
-                    @if($ticket->user)
-                        <span>{{ $ticket->user->name }}</span>
-                        <span>·</span>
-                    @endif
-                    <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
-                        {{ $type?->label() ?? '—' }}
-                    </span>
-                    <span>·</span>
-                    <span>{{ $ticket->created_at->format(config('app.datetime_format')) }}</span>
-                    <span>·</span>
-                    <span>{{ $ticket->images->count() }} фото</span>
+                {{-- Мобильная версия: 2 строки, только важное --}}
+                <div class="min-w-0 flex-1 sm:hidden">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-semibold text-stone-900">#{{ $ticket->id }}</span>
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $statusClass }}">{{ $statusLabel }}</span>
+                        <span class="text-stone-300">·</span>
+                        <span class="text-sm text-stone-700 truncate" title="{{ $ticket->title }}">
+                            {{ \Illuminate\Support\Str::limit($ticket->title, 30) }}
+                        </span>
+                    </div>
+                    <div class="text-xs text-stone-500 mt-1.5 flex flex-wrap items-center gap-x-2">
+                        <span>{{ $ticket->created_at->format('d.m.Y') }}</span>
+                        <span class="text-stone-300">·</span>
+                        <span>@if($ticket->user){{ $ticket->user->name }}@else Гость @endif</span>
+                        <span class="text-stone-300">·</span>
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded mt-2 {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
+                            {{ $type?->label() ?? '—' }}
+                        </span>
+                    </div>
+                </div>
+                {{-- ПК версия: оригинальная сетка --}}
+                <div class="min-w-0 flex-1 hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+                    <div class="sm:col-span-2 lg:col-span-1">
+                        <span class="font-semibold text-stone-900">#{{ $ticket->id }}</span>
+                        <span class="inline-flex ml-2 px-2 py-0.5 text-xs font-medium rounded {{ $statusClass }}">{{ $statusLabel }}</span>
+                    </div>
+                    <div class="text-sm text-stone-800 min-w-0 truncate" title="{{ $ticket->title }}">
+                        {{ \Illuminate\Support\Str::limit($ticket->title, 40) }}
+                    </div>
+                    <div class="text-sm text-stone-600 truncate">
+                        @if($ticket->user)
+                            {{ $ticket->user->name }}
+                            <span class="text-stone-400"> · </span>
+                            <span class="text-stone-500 truncate">{{ $ticket->user->email }}</span>
+                        @else
+                            <span class="text-stone-400">Гость</span>
+                        @endif
+                    </div>
+                    <div class="text-sm text-stone-500 flex flex-wrap items-center gap-x-2 gap-y-0.5 sm:col-span-2 lg:col-span-1">
+                        <span>{{ $ticket->created_at->format('d.m.Y') }}</span>
+                        <span class="text-stone-300">·</span>
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
+                            {{ $type?->label() ?? '—' }}
+                        </span>
+                        <span class="text-stone-300">·</span>
+                        <span>{{ $ticket->images->count() }} фото</span>
+                    </div>
+                </div>
+                <div class="shrink-0 flex items-center gap-2">
+                    <span class="text-stone-300 group-hover:text-sky-500 transition-colors">@svg('heroicon-o-chevron-right', 'w-5 h-5')</span>
                 </div>
             </a>
         @empty
-            <div class="p-8 bg-white rounded-lg shadow border border-stone-200 text-center text-stone-500">Тикетов пока нет</div>
+            <div class="p-8 bg-white rounded-xl border border-stone-200 text-center text-stone-500">
+                Тикетов пока нет
+            </div>
         @endforelse
-        @if($tickets->isNotEmpty())
-            <div class="pt-2">{{ $tickets->links() }}</div>
-        @endif
     </div>
 
-    <div class="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-stone-200 table-fixed">
-                <colgroup>
-                    <col class="w-14">
-                    <col style="width: 22%">
-                    <col style="width: 18%">
-                    <col class="w-28">
-                    <col class="w-14">
-                    <col class="w-24">
-                    <col class="w-36">
-                    <col class="w-12">
-                </colgroup>
-                <thead class="bg-stone-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">ID</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Заголовок</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Отправитель</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Тип</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Фото</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Статус</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Дата</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200">
-                    @forelse($tickets as $ticket)
-                        <tr class="hover:bg-stone-50/50">
-                            <td class="px-4 py-3 font-medium">{{ $ticket->id }}</td>
-                            <td class="px-4 py-3 min-w-0">
-                                <span class="font-medium text-stone-800 block truncate">{{ $ticket->title }}</span>
-                                <p class="text-sm text-stone-500 truncate mt-0.5">{{ \Illuminate\Support\Str::limit($ticket->description, 50) }}</p>
-                            </td>
-                            <td class="px-4 py-3 text-sm min-w-0">
-                                @if($ticket->user)
-                                    <span class="block truncate">{{ $ticket->user->name }}</span>
-                                    <span class="text-stone-500 block truncate">{{ $ticket->user->email }}</span>
-                                @else
-                                    <span class="text-stone-500">Гость</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                @php($type = $ticket->type instanceof \App\Enums\SupportTicketTypeEnum ? $ticket->type : \App\Enums\SupportTicketTypeEnum::tryFrom((string) $ticket->type))
-                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
-                                    {{ $type?->label() ?? '—' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">{{ $ticket->images->count() }}</td>
-                            <td class="px-4 py-3">
-                                @php($statusLabel = match($ticket->status) {
-                                    'new' => 'Новый',
-                                    'in_progress' => 'В работе',
-                                    'resolved' => 'Решён',
-                                    'closed' => 'Закрыт',
-                                    default => (string) $ticket->status,
-                                })
-                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded
-                                    @if($ticket->status === 'resolved') bg-emerald-100 text-emerald-800
-                                    @elseif($ticket->status === 'closed') bg-stone-200 text-stone-700
-                                    @elseif($ticket->status === 'in_progress') bg-sky-100 text-sky-800
-                                    @else bg-amber-100 text-amber-800
-                                    @endif">{{ $statusLabel }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-sm">{{ $ticket->created_at->format(config('app.datetime_format')) }}</td>
-                            <td class="px-4 py-3">
-                                <a href="{{ route('admin.tickets.show', $ticket) }}" class="inline-flex p-2 text-stone-500 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors" title="Подробнее">@svg('heroicon-o-eye', 'w-5 h-5')</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="8" class="px-4 py-8 text-center text-stone-500">Тикетов пока нет</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="px-4 py-3 border-t border-stone-200">{{ $tickets->links() }}</div>
-    </div>
+    @if($tickets->isNotEmpty())
+        <div class="mt-4">{{ $tickets->links() }}</div>
+    @endif
 @endsection
-

@@ -18,7 +18,6 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'PlayStation',
                 'parent_id' => null,
-                'sort_order' => 1,
                 'is_featured' => true,
             ]
         );
@@ -35,7 +34,6 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Xbox',
                 'parent_id' => null,
-                'sort_order' => 2,
                 'is_featured' => false,
             ]
         );
@@ -52,7 +50,6 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Nintendo',
                 'parent_id' => null,
-                'sort_order' => 3,
                 'is_featured' => false,
             ]
         );
@@ -65,13 +62,13 @@ class CategorySeeder extends Seeder
         ]);
 
         $children = [
-            ['slug' => 'playstation-4', 'name' => 'PlayStation 4', 'parent' => $playstation, 'sort_order' => 1],
-            ['slug' => 'playstation-3', 'name' => 'PlayStation 3', 'parent' => $playstation, 'sort_order' => 2],
-            ['slug' => 'xbox-one', 'name' => 'Xbox ONE', 'parent' => $xbox, 'sort_order' => 1],
-            ['slug' => 'xbox-360', 'name' => 'Xbox 360', 'parent' => $xbox, 'sort_order' => 2],
-            ['slug' => 'nintendo-switch', 'name' => 'Nintendo Switch', 'parent' => $nintendo, 'sort_order' => 1],
-            ['slug' => 'accessories', 'name' => 'Аксессуары', 'parent' => null, 'sort_order' => 4],
-            ['slug' => 'games', 'name' => 'Игры', 'parent' => null, 'sort_order' => 5],
+            ['slug' => 'playstation-4', 'name' => 'PlayStation 4', 'parent' => $playstation],
+            ['slug' => 'playstation-3', 'name' => 'PlayStation 3', 'parent' => $playstation],
+            ['slug' => 'xbox-one', 'name' => 'Xbox ONE', 'parent' => $xbox],
+            ['slug' => 'xbox-360', 'name' => 'Xbox 360', 'parent' => $xbox],
+            ['slug' => 'nintendo-switch', 'name' => 'Nintendo Switch', 'parent' => $nintendo],
+            ['slug' => 'accessories', 'name' => 'Аксессуары', 'parent' => null],
+            ['slug' => 'games', 'name' => 'Игры', 'parent' => null],
         ];
 
         foreach ($children as $item) {
@@ -80,7 +77,6 @@ class CategorySeeder extends Seeder
                 [
                     'name' => $item['name'],
                     'parent_id' => $item['parent']?->id,
-                    'sort_order' => $item['sort_order'],
                     'is_featured' => false,
                 ]
             );

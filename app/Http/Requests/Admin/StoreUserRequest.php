@@ -22,6 +22,7 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', Password::defaults()],
+            'email_verified' => ['nullable', 'boolean'],
             'is_admin' => ['boolean'],
             'is_blocked' => ['boolean'],
         ];
@@ -30,6 +31,7 @@ class StoreUserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'email_verified' => $this->boolean('email_verified'),
             'is_admin' => $this->boolean('is_admin'),
             'is_blocked' => $this->boolean('is_blocked'),
         ]);

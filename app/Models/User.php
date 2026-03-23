@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'phone',
+        'email_verified_at',
         'is_admin',
         'is_blocked',
     ];
@@ -93,19 +94,35 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
     public function getPurchasedWithoutReview(): \Illuminate\Support\Collection
     {
-        $orderItems = OrderItem::query()
-            ->select('product_id', 'service_id')
-            ->whereHas('order', fn ($q) => $q->where('user_id', $this->id)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']))
-            ->get();
+        return \Illuminate\Support\Facades\Cache::remember(
+            "user.{$this->id}.purchased_no_review",
+            300,
+            fn () => $this->loadPurchasedWithoutReview()
+        );
+    }
 
-        $productIds = $orderItems->pluck('product_id')->filter()->unique()->values()->all();
-        $serviceIds = $orderItems->pluck('service_id')->filter()->unique()->values()->all();
+    /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
+    private function loadPurchasedWithoutReview(): \Illuminate\Support\Collection
+    {
+        $orderSubquery = fn ($q) => $q->where('user_id', $this->id)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']);
 
-        $reviewedProductIds = Review::where('user_id', $this->id)->where('reviewable_type', Product::class)->pluck('reviewable_id')->all();
-        $reviewedServiceIds = Review::where('user_id', $this->id)->where('reviewable_type', Service::class)->pluck('reviewable_id')->all();
+        $productIds = OrderItem::query()
+            ->select('product_id')
+            ->whereNotNull('product_id')
+            ->whereHas('order', $orderSubquery)
+            ->whereNotIn('product_id', Review::where('user_id', $this->id)->where('reviewable_type', Product::class)->select('reviewable_id'))
+            ->distinct()
+            ->pluck('product_id')
+            ->all();
 
-        $productIds = array_diff($productIds, $reviewedProductIds);
-        $serviceIds = array_diff($serviceIds, $reviewedServiceIds);
+        $serviceIds = OrderItem::query()
+            ->select('service_id')
+            ->whereNotNull('service_id')
+            ->whereHas('order', $orderSubquery)
+            ->whereNotIn('service_id', Review::where('user_id', $this->id)->where('reviewable_type', Service::class)->select('reviewable_id'))
+            ->distinct()
+            ->pluck('service_id')
+            ->all();
 
         $items = collect();
         if ($productIds !== []) {

@@ -28,7 +28,7 @@
                     <input type="hidden" name="rating" :value="rating" required>
                     @for($i = 1; $i <= 5; $i++)
                         <button type="button" class="p-1 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/30" @click="rating = {{ $i }}" @mouseenter="hover = {{ $i }}" @mouseleave="hover = 0" aria-label="Оценка {{ $i }}">
-                            <span class="block text-2xl leading-none" :class="(hover || rating) >= {{ $i }} ? 'text-amber-500' : 'text-stone-300'">★</span>
+                            <span class="block text-2xl leading-none" :class="(hover || rating) >= {{ $i }} ? 'text-sky-500' : 'text-stone-300'">★</span>
                         </button>
                     @endfor
                 </div>
@@ -44,13 +44,16 @@
                 @error('body')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
             <div class="form-field">
-                <label class="flex items-center gap-2 text-sm font-medium text-stone-700 mb-1.5">
-                    @svg('heroicon-o-photo', 'w-4 h-4 text-sky-500')
-                    Фото (макс. 3)
-                </label>
-                <input type="file" name="images[]" accept="image/*" multiple class="block w-full text-sm text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-sky-50 file:text-sky-700 file:hover:bg-sky-100 file:transition-colors border border-stone-200 rounded-lg bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-400">
+                <x-ui.file-input
+                    name="images[]"
+                    accept="image/*"
+                    multiple
+                    :max-previews="3"
+                    label="Фото (макс. 3)"
+                    label-icon="heroicon-o-photo"
+                    :error="$errors->first('images')"
+                />
                 <div class="mt-1.5 text-xs text-rose-600 hidden" data-ajax-review-error="images"></div>
-                @error('images')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
             </div>
         </div>
         <div class="pt-1">
@@ -69,11 +72,11 @@
     @if($reviews->isEmpty())
         <p class="text-stone-500 text-sm">Пока ничего нет.</p>
     @else
-        <ul class="space-y-4">
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($reviews as $review)
                 <li class="p-4 bg-white rounded-xl border border-stone-200 shadow-sm hover:border-stone-300 transition-colors">
                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                        <span class="flex gap-0.5 text-amber-500 text-sm" aria-hidden="true">@for($i = 0; $i < 5; $i++)<span class="{{ $i < $review->rating ? 'opacity-100' : 'opacity-30' }}">★</span>@endfor</span>
+                        <span class="flex gap-0.5 text-sky-500 text-lg" aria-hidden="true">@for($i = 0; $i < 5; $i++)<span class="{{ $i < $review->rating ? 'opacity-100' : 'opacity-30' }}">★</span>@endfor</span>
                         <span class="text-sm font-medium text-stone-700">{{ $review->user->name ?? 'Гость' }}</span>
                         <span class="text-xs text-stone-400">{{ $review->created_at->format(config('app.datetime_format')) }}</span>
                     </div>

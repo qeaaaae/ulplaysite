@@ -41,6 +41,7 @@
     "This password reset link will expire in :count minutes.": "Срок действия ссылки для сброса пароля истекает через :count минут.",
     "to": "по",
     "Toggle navigation": "Переключить навигацию",
+    "Too Many Attempts": "Слишком много запросов. Подождите немного и попробуйте снова.",
     "Too Many Requests": "Слишком много запросов",
     "Unauthorized": "Не авторизован",
     "Verify Email Address": "Подтвердить адрес электронной почты",

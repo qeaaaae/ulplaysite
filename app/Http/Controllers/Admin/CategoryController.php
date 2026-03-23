@@ -19,7 +19,7 @@ class CategoryController extends Controller
         $q = $request->input('q', '');
         $categories = Category::withCount('products')
             ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('name', 'like', "%{$q}%")->orWhere('slug', 'like', "%{$q}%")))
-            ->orderBy('sort_order')
+            ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
         return view('admin.categories.index', ['categories' => $categories, 'search' => $q]);
@@ -29,7 +29,7 @@ class CategoryController extends Controller
     {
         return view('admin.categories.form', [
             'category' => new Category(),
-            'categories' => Category::whereNull('parent_id')->orderBy('sort_order')->get(),
+            'categories' => Category::getCachedRoots(),
         ]);
     }
 
@@ -54,7 +54,7 @@ class CategoryController extends Controller
     {
         return view('admin.categories.form', [
             'category' => $category,
-            'categories' => Category::whereNull('parent_id')->where('id', '!=', $category->id)->orderBy('sort_order')->get(),
+            'categories' => Category::getCachedRoots()->reject(fn ($c) => $c->id === $category->id)->values(),
         ]);
     }
 

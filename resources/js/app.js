@@ -340,6 +340,26 @@ function initAdminImagePreview() {
     });
 }
 
+const AJAX_SPINNER_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>';
+
+function setButtonLoading(btn, loadingText = 'Загрузка...') {
+    if (!btn) return;
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    const textPart = loadingText ? `<span class="ml-2">${loadingText}</span>` : '';
+    btn.innerHTML = `<span class="animate-spin inline-flex shrink-0">${AJAX_SPINNER_SVG}</span>${textPart}`;
+}
+
+function restoreButton(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    if (btn.dataset.originalHtml) {
+        btn.innerHTML = btn.dataset.originalHtml;
+        delete btn.dataset.originalHtml;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTomSelects();
     initLightbox();
@@ -381,13 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const btn = form.querySelector('.cart-add-btn') || form.querySelector('button[type="submit"]');
         const cartUrl = form.dataset.cartUrl || '/cart';
-        const originalText = btn?.innerHTML;
-
-        if (btn) {
-            btn.disabled = true;
-            btn.setAttribute('disabled', 'disabled');
-            if (btn.innerHTML.includes('В корзину')) btn.innerHTML = '<span class="animate-pulse">...</span>';
-        }
+        if (btn) setButtonLoading(btn, 'Добавление...');
 
         try {
             const formData = new FormData(form);
@@ -395,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(form.action, {
                 method: 'POST',
                 body: formData,
+                credentials: 'include',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
@@ -406,12 +421,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.status === 429) {
                 window.notyf.error('Слишком много запросов. Подождите минуту.');
-                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+                if (btn) restoreButton(btn);
                 delete form.dataset.cartAddSubmitting;
                 return;
             }
 
             if (res.ok && data.success) {
+                const productId = parseInt(form.dataset.productId, 10);
+                if (productId) {
+                    try {
+                        const stored = JSON.parse(localStorage.getItem('ulplay_guest_cart') || '{"products":[],"services":[]}');
+                        const qty = parseInt(form.querySelector('[name="quantity"]')?.value || '1', 10) || 1;
+                        const idx = (stored.products || []).findIndex((p) => p.id === productId);
+                        if (idx >= 0) {
+                            stored.products[idx].quantity = Math.min(99, (stored.products[idx].quantity || 0) + qty);
+                        } else {
+                            stored.products = [...(stored.products || []), { id: productId, quantity: qty }];
+                        }
+                        localStorage.setItem('ulplay_guest_cart', JSON.stringify(stored));
+                    } catch (err) {}
+                }
                 document.querySelectorAll('[data-cart-count]').forEach((el) => {
                     el.textContent = data.cartCount ?? 0;
                     el.classList.toggle('!hidden', !(data.cartCount > 0));
@@ -443,12 +472,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const msg = (data.errors && data.errors.quantity && data.errors.quantity[0]) || data.message || 'Ошибка добавления в корзину';
                 window.notyf.error(msg);
-                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+                if (btn) restoreButton(btn);
                 delete form.dataset.cartAddSubmitting;
             }
         } catch (err) {
             window.notyf.error('Ошибка соединения');
-            if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); btn.innerHTML = originalText; }
+            if (btn) restoreButton(btn);
             delete form.dataset.cartAddSubmitting;
         }
     });
@@ -463,8 +492,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const btn = form.querySelector('button[type="submit"]');
         const confirmMessage = form.dataset.confirmMessage;
-
-        if (btn) btn.disabled = true;
+        const loadingText = form.matches('[data-ajax-cart-remove]')
+            ? ''
+            : form.matches('[data-ajax-cart-clear]')
+              ? 'Очистка...'
+              : '';
+        if (btn) setButtonLoading(btn, loadingText);
 
         const doAjax = async () => {
             try {
@@ -506,14 +539,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 window.notyf.error('Ошибка соединения');
             } finally {
-                if (btn) btn.disabled = false;
+                if (btn) restoreButton(btn);
             }
         };
 
         if (confirmMessage && typeof window.ulplayConfirm === 'function' && (form.matches('[data-ajax-cart-remove],[data-ajax-cart-clear]'))) {
             window.ulplayConfirm(confirmMessage, (ok) => {
                 if (!ok) {
-                    if (btn) btn.disabled = false;
+                    if (btn) restoreButton(btn);
                     return;
                 }
                 doAjax();
@@ -522,6 +555,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         await doAjax();
+    });
+
+    // AJAX: verification send (resend email)
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-verification-send]')) return;
+
+        e.preventDefault();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) setButtonLoading(btn, 'Отправка...');
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.status === 429) {
+                const retryAfter = res.headers.get('Retry-After');
+                const msg = retryAfter ? `Повторите через ${Math.ceil(parseInt(retryAfter, 10) / 60)} мин.` : 'Слишком много запросов. Подождите 5 минут.';
+                window.notyf.error(msg);
+            } else if (res.ok && data?.result) {
+                window.notyf.success(data?.message || 'Ссылка отправлена.');
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отправки.');
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения.');
+        } finally {
+            if (btn) restoreButton(btn);
+        }
+    });
+
+    // AJAX: forgot password (send reset link)
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-forgot-password]')) return;
+
+        e.preventDefault();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+        const errEl = form.querySelector('[data-ajax-forgot-error]');
+        const fieldWrap = form.querySelector('.form-field');
+
+        if (errEl) {
+            errEl.textContent = '';
+            errEl.classList.add('hidden');
+        }
+        if (fieldWrap) fieldWrap.classList.remove('is-invalid');
+        if (btn) setButtonLoading(btn, 'Отправка...');
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.status === 429) {
+                const retryAfter = res.headers.get('Retry-After');
+                const msg = retryAfter ? `Повторите через ${Math.ceil(parseInt(retryAfter, 10) / 60)} мин.` : 'Слишком много запросов. Подождите 5 минут.';
+                window.notyf.error(msg);
+            } else if (res.ok && data?.result) {
+                window.notyf.success(data?.message || 'Ссылка отправлена.');
+                if (errEl) errEl.classList.add('hidden');
+            } else if (res.status === 422 && data?.errors?.email) {
+                const msg = data.errors.email[0] || data?.message;
+                if (errEl) {
+                    errEl.textContent = msg;
+                    errEl.classList.remove('hidden');
+                }
+                if (fieldWrap) fieldWrap.classList.add('is-invalid');
+                window.notyf.error(msg);
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отправки.');
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения.');
+        } finally {
+            if (btn) restoreButton(btn);
+        }
     });
 
     // AJAX submit for comments on news page
@@ -539,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('hidden');
         });
 
-        if (btn) btn.disabled = true;
+        if (btn) setButtonLoading(btn, 'Отправка...');
 
         try {
             const formData = new FormData(form);
@@ -566,7 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newContainer = document.getElementById('comments');
                     if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
                     if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
-                    if (btn) btn.disabled = false;
+                    if (btn) restoreButton(btn);
                     return;
                 }
 
@@ -586,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             window.notyf.error('Ошибка соединения');
         } finally {
-            if (btn) btn.disabled = false;
+            if (btn) restoreButton(btn);
         }
     });
 
@@ -601,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = form.querySelector('button[type="submit"]');
         const commentId = form.dataset.commentHelpfulCommentId;
 
-        if (btn) btn.disabled = true;
+        if (btn) setButtonLoading(btn, '');
 
         try {
             const formData = new FormData(form);
@@ -627,20 +755,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (btn) {
-                    btn.disabled = true;
-                    btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                    restoreButton(btn);
                     const outlineIcon = btn.querySelector('.comment-helpful-icon-outline');
                     const filledIcon = btn.querySelector('.comment-helpful-icon-filled');
-                    outlineIcon && outlineIcon.classList.add('hidden');
-                    filledIcon && filledIcon.classList.remove('hidden');
+                    const isAdded = data.added === true;
+                    if (outlineIcon) outlineIcon.classList.toggle('hidden', isAdded);
+                    if (filledIcon) filledIcon.classList.toggle('hidden', !isAdded);
+                    btn.setAttribute('aria-label', isAdded ? 'Убрать оценку' : 'Отметить комментарий как полезный');
                 }
             } else {
                 window.notyf.error(data?.message || 'Ошибка отметки');
-                if (btn) btn.disabled = false;
+                if (btn) restoreButton(btn);
             }
         } catch (err) {
             window.notyf.error('Ошибка соединения');
-            if (btn) btn.disabled = false;
+            if (btn) restoreButton(btn);
         }
     });
 
@@ -654,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const commentId = form.dataset.commentEditId;
         const btn = form.querySelector('button[type="submit"]');
-        if (btn) btn.disabled = true;
+        if (btn) setButtonLoading(btn, 'Сохранение...');
 
         try {
             const formData = new FormData(form);
@@ -697,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             window.notyf?.error?.('Ошибка соединения');
         } finally {
-            if (btn) btn.disabled = false;
+            if (btn) restoreButton(btn);
         }
     });
 
@@ -708,48 +837,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
         e.preventDefault();
 
-        if (!confirm('Удалить комментарий?')) return;
+        const confirmMessage = form.dataset.confirmMessage || 'Удалить комментарий?';
+        const doDelete = async () => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const commentId = form.dataset.commentDeleteId;
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) setButtonLoading(btn, 'Удаление...');
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const commentId = form.dataset.commentDeleteId;
-        const btn = form.querySelector('button[type="submit"]');
-        if (btn) btn.disabled = true;
+            try {
+                const formData = new FormData();
+                formData.append('_method', 'DELETE');
+                formData.append('_token', csrfToken || '');
 
-        try {
-            const formData = new FormData();
-            formData.append('_method', 'DELETE');
-            formData.append('_token', csrfToken || '');
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        Accept: 'application/json',
+                        ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                    },
+                });
 
-            const res = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    Accept: 'application/json',
-                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
-                },
-            });
-
-            const data = await res.json().catch(() => ({}));
+                const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data?.result) {
-                if (data?.html) {
-                    const container = document.getElementById('comments');
-                    if (container) container.outerHTML = data.html;
-                    const newContainer = document.getElementById('comments');
-                    if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
-                    if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
+                    if (data?.html) {
+                        const container = document.getElementById('comments');
+                        if (container) container.outerHTML = data.html;
+                        const newContainer = document.getElementById('comments');
+                        if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
+                        if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
+                    } else {
+                        const li = document.querySelector(`li[data-comment-id="${commentId}"]`);
+                        if (li) li.remove();
+                    }
                 } else {
-                    const li = document.querySelector(`li[data-comment-id="${commentId}"]`);
-                    if (li) li.remove();
+                    window.notyf?.error?.(data?.message || 'Ошибка удаления');
                 }
-            } else {
-                window.notyf?.error?.(data?.message || 'Ошибка удаления');
+            } catch (err) {
+                window.notyf?.error?.('Ошибка соединения');
+            } finally {
+                if (btn) restoreButton(btn);
             }
-        } catch (err) {
-            window.notyf?.error?.('Ошибка соединения');
-        } finally {
-            if (btn) btn.disabled = false;
+        };
+
+        if (typeof window.ulplayConfirm === 'function') {
+            window.ulplayConfirm(confirmMessage, (ok) => {
+                if (ok) doDelete();
+            });
+        } else if (confirm(confirmMessage)) {
+            doDelete();
         }
     });
 
@@ -769,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('hidden');
         });
 
-        if (btn) btn.disabled = true;
+        if (btn) setButtonLoading(btn, 'Отправка...');
 
         try {
             const formData = new FormData(form);
@@ -796,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newContainer = document.getElementById('reviews');
                 if (window.Alpine?.initTree && newContainer) window.Alpine.initTree(newContainer);
                 if (typeof initTomSelects === 'function') initTomSelects(newContainer || document);
-                if (btn) btn.disabled = false;
+                if (btn) restoreButton(btn);
                 return;
             }
 
@@ -826,7 +964,59 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             window.notyf.error('Ошибка соединения');
         } finally {
-            if (btn) btn.disabled = false;
+            if (btn) restoreButton(btn);
+        }
+    });
+
+    // AJAX submit for admin ticket reply
+    document.body.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (!form.matches('[data-ajax-admin-ticket-reply]')) return;
+
+        e.preventDefault();
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const btn = form.querySelector('button[type="submit"]');
+        const textarea = form.querySelector('textarea[name="message"]');
+
+        if (btn) setButtonLoading(btn, 'Отправка...');
+
+        try {
+            const formData = new FormData(form);
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                    ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data?.result && data?.html) {
+                const container = document.getElementById('admin-ticket-messages');
+                const emptyEl = document.getElementById('admin-ticket-messages-empty');
+                if (emptyEl) emptyEl.remove();
+                if (container) {
+                    container.insertAdjacentHTML('beforeend', data.html);
+                    container.scrollTop = container.scrollHeight;
+                }
+                const countEl = document.getElementById('admin-ticket-messages-count');
+                if (countEl) countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
+                if (textarea) textarea.value = '';
+                window.notyf.success(data.message || 'Ответ отправлен');
+            } else if (res.status === 422 && data?.errors) {
+                const errMsg = data.errors?.message?.[0] || 'Ошибка валидации';
+                window.notyf.error(errMsg);
+            } else {
+                window.notyf.error(data?.message || 'Ошибка отправки ответа');
+            }
+        } catch (err) {
+            window.notyf.error('Ошибка соединения');
+        } finally {
+            if (btn) restoreButton(btn);
         }
     });
 });

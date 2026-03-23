@@ -93,7 +93,7 @@
                                     </button>
                                 @endif
                                 @if($canDelete)
-                                    <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="inline" data-ajax-comment-delete data-comment-delete-id="{{ $comment->id }}">
+                                    <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="inline" data-ajax-comment-delete data-comment-delete-id="{{ $comment->id }}" data-confirm-message="Удалить комментарий?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Удалить" aria-label="Удалить комментарий">
@@ -131,9 +131,8 @@
                                 @csrf
                                 <button
                                     type="submit"
-                                    class="text-xs font-medium transition-colors cursor-pointer {{ $hasHelpful ? 'text-sky-600 opacity-50 cursor-not-allowed' : 'text-sky-600 hover:text-sky-700' }}"
-                                    {{ $hasHelpful ? 'disabled' : '' }}
-                                    aria-label="{{ $hasHelpful ? 'Отмечено полезным' : 'Отметить комментарий как полезный' }}"
+                                    class="text-xs font-medium transition-colors cursor-pointer text-sky-600 hover:text-sky-700"
+                                    aria-label="{{ $hasHelpful ? 'Убрать оценку' : 'Отметить комментарий как полезный' }}"
                                 >
                                 <span class="comment-helpful-icon-outline {{ $hasHelpful ? 'hidden' : '' }}" aria-hidden="true">
                                     @svg('heroicon-o-hand-thumb-up', 'w-4 h-4')

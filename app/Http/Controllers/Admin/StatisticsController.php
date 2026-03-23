@@ -15,12 +15,24 @@ use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StatisticsController extends Controller
 {
+    private const CACHE_KEY = 'admin.statistics';
+    private const CACHE_TTL = 900;
+
     public function index(): View
+    {
+        $data = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn () => $this->computeStatistics());
+
+        return view('admin.statistics.index', $data);
+    }
+
+    /** @return array<string, mixed> */
+    private function computeStatistics(): array
     {
         $now = Carbon::now();
         $startOfMonth = $now->copy()->startOfMonth();
@@ -170,7 +182,7 @@ class StatisticsController extends Controller
             $hourLabels[] = sprintf('%02d:00', $h);
         }
 
-        return view('admin.statistics.index', [
+        return [
             'totalOrders' => $totalOrders,
             'totalRevenue' => $totalRevenue,
             'ordersThisMonth' => $ordersThisMonth,
@@ -204,6 +216,6 @@ class StatisticsController extends Controller
             'newsChartDowComments' => array_values($newsByDayOfWeekComments),
             'newsChartHourLabels' => $hourLabels,
             'newsChartHourViews' => array_values($newsViewsByHour),
-        ]);
+        ];
     }
 }

@@ -90,7 +90,7 @@
 
             @php
                 $filterBase = array_filter(['category' => $currentCategory?->slug, 'q' => request('q')]);
-                $selectClass = 'w-full sm:min-w-[160px] sm:max-w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 appearance-none bg-no-repeat pr-9 bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center]';
+                $selectClass = 'h-11 w-full sm:min-w-[240px] sm:max-w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 appearance-none bg-no-repeat pr-9 bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center]';
             @endphp
             <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 p-4 sm:p-5 mb-6 sm:mb-8 bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-visible">
                 <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 md:gap-6">
@@ -135,7 +135,7 @@
                     placeholder="Поиск..."
                     :value="request('q')"
                     :hiddens="array_filter(['category' => $currentCategory?->slug, 'sort' => $currentSort ?? 'newest'])"
-                    formClass="w-full sm:flex-1 sm:min-w-0"
+                    formClass="h-11 w-full sm:flex-1 sm:min-w-0"
                 />
             </div>
 

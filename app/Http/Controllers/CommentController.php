@@ -120,17 +120,28 @@ class CommentController extends Controller
         /** @var \App\Models\User $user */
         $user = $request->user();
 
-        $vote = CommentHelpfulVote::firstOrCreate([
-            'comment_id' => $comment->id,
-            'user_id' => $user->id,
-        ]);
+        $vote = CommentHelpfulVote::where('comment_id', $comment->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($vote) {
+            $vote->delete();
+            $added = false;
+        } else {
+            CommentHelpfulVote::create([
+                'comment_id' => $comment->id,
+                'user_id' => $user->id,
+            ]);
+            $added = true;
+        }
 
         $count = CommentHelpfulVote::where('comment_id', $comment->id)->count();
 
         return response()->json([
             'result' => true,
-            'message' => $vote->wasRecentlyCreated ? 'Спасибо!' : 'Вы уже отметили комментарий как полезный.',
+            'message' => $added ? 'Спасибо!' : 'Оценка снята.',
             'count' => $count,
+            'added' => $added,
         ]);
     }
 }

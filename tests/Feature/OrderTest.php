@@ -21,6 +21,7 @@ class OrderTest extends TestCase
 
     public function test_checkout_redirects_to_cart_when_empty(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -31,6 +32,7 @@ class OrderTest extends TestCase
 
     public function test_checkout_shows_page_when_cart_has_items(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
         app(CartService::class)->addProduct(Product::factory()->create(), 1);
@@ -42,6 +44,7 @@ class OrderTest extends TestCase
 
     public function test_store_creates_order_and_redirects(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
         app(CartService::class)->addProduct(Product::factory()->create(['price' => 100, 'stock' => 5]), 2);
@@ -62,6 +65,7 @@ class OrderTest extends TestCase
 
     public function test_store_validates_required_fields(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
         app(CartService::class)->addProduct(Product::factory()->create(), 1);
@@ -73,6 +77,7 @@ class OrderTest extends TestCase
 
     public function test_show_allows_owner_to_view_order(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $order = Order::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
@@ -85,6 +90,7 @@ class OrderTest extends TestCase
     public function test_show_returns_403_for_other_users_order(): void
     {
         $order = Order::factory()->create(['user_id' => User::factory()->create()->id]);
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
         $this->actingAs($otherUser);
 
@@ -95,6 +101,7 @@ class OrderTest extends TestCase
 
     public function test_my_orders_returns_200(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -105,6 +112,7 @@ class OrderTest extends TestCase
 
     public function test_store_redirects_with_error_when_cart_becomes_empty(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -123,6 +131,7 @@ class OrderTest extends TestCase
 
     public function test_show_allows_admin_to_view_any_order(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['is_admin' => true]);
         $order = Order::factory()->create(['user_id' => User::factory()->create()->id]);
         $this->actingAs($admin);
@@ -134,6 +143,7 @@ class OrderTest extends TestCase
 
     public function test_show_allows_view_via_session_key(): void
     {
+        /** @var User $viewer */
         $viewer = User::factory()->create();
         $order = Order::factory()->create(['user_id' => User::factory()->create()->id]);
         $this->actingAs($viewer);

@@ -25,7 +25,6 @@ class CategoryFactory extends Factory
             'parent_id' => null,
             'description' => fake()->optional()->sentence(),
             'is_featured' => false,
-            'sort_order' => 0,
         ];
     }
 }

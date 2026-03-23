@@ -9,6 +9,7 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\NotificationsController;
+use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -44,7 +45,6 @@ Route::patch('/cart/{cartItem}', [\App\Http\Controllers\CartController::class, '
 Route::delete('/cart/{cartItem}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove')->middleware(['throttle:cart', 'verified_if_auth']);
 Route::post('/cart/clear', [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear')->middleware(['throttle:cart', 'verified_if_auth']);
 
-
 Route::middleware(['auth', 'verified_if_auth'])->group(function () {
     Route::get('/checkout', [\App\Http\Controllers\OrderController::class, 'checkout'])->name('checkout');
     Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store')->middleware('throttle:orders');
@@ -72,15 +72,9 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('home')->with('message', 'Email успешно подтверждён.');
     })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
-    Route::post('/email/verification-notification', function (Request $request) {
-        if ($request->user()->hasVerifiedEmail()) {
-            return back();
-        }
-
-        $request->user()->sendEmailVerificationNotification();
-
-        return back()->with('message', 'Ссылка для подтверждения email отправлена повторно.');
-    })->middleware('throttle:6,1')->name('verification.send');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:verification_resend')
+        ->name('verification.send');
 
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('notifications.index');
     Route::get('/support', [SupportTicketController::class, 'create'])->name('support.create');
@@ -90,5 +84,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::fallback(function () {
-    return response()->view('errors.404', [], 404);
+    $exception = new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+
+    return response()->view('errors.404', ['exception' => $exception], 404);
 });

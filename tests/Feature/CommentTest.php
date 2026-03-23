@@ -14,6 +14,7 @@ class CommentTest extends TestCase
 {
     public function test_store_comment_succeeds(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $this->actingAs($user);
@@ -32,6 +33,7 @@ class CommentTest extends TestCase
 
     public function test_store_comment_fails_within_cooldown(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         Comment::create([
@@ -51,6 +53,7 @@ class CommentTest extends TestCase
     public function test_store_comment_succeeds_after_cooldown(): void
     {
         Carbon::setTestNow($now = Carbon::create(2025, 1, 15, 12, 0, 0));
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         Comment::create([
@@ -70,20 +73,26 @@ class CommentTest extends TestCase
         $this->assertDatabaseCount('comments', 2);
     }
 
-    public function test_helpful_increments_count(): void
+    public function test_helpful_toggles_vote(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => User::factory()->create()->id, 'body' => 'Test']);
         $this->actingAs($user);
 
         $response = $this->postJson(route('comments.helpful', $comment));
+        $response->assertJson(['result' => true, 'count' => 1, 'added' => true]);
 
-        $response->assertJson(['result' => true, 'count' => 1]);
+        $response = $this->postJson(route('comments.helpful', $comment));
+        $response->assertJson(['result' => true, 'count' => 0, 'added' => false]);
+
+        $this->assertDatabaseCount('comment_helpful_votes', 0);
     }
 
     public function test_store_comment_returns_json_when_wants_json(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $this->actingAs($user);
@@ -99,6 +108,7 @@ class CommentTest extends TestCase
 
     public function test_store_comment_returns_json_errors_within_cooldown(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         Comment::create([
@@ -118,6 +128,7 @@ class CommentTest extends TestCase
 
     public function test_store_comment_validates_body_required(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $this->actingAs($user);
@@ -129,6 +140,7 @@ class CommentTest extends TestCase
 
     public function test_update_own_comment_succeeds(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => $user->id, 'body' => 'Original']);
@@ -145,6 +157,7 @@ class CommentTest extends TestCase
 
     public function test_update_others_comment_forbidden_for_user(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => User::factory()->create()->id, 'body' => 'Original']);
@@ -159,6 +172,7 @@ class CommentTest extends TestCase
 
     public function test_update_others_comment_forbidden_for_admin(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['is_admin' => true]);
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => User::factory()->create()->id, 'body' => 'Original']);
@@ -173,6 +187,7 @@ class CommentTest extends TestCase
 
     public function test_destroy_own_comment_succeeds(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => $user->id, 'body' => 'To delete']);
@@ -187,6 +202,7 @@ class CommentTest extends TestCase
 
     public function test_destroy_others_comment_forbidden_for_user(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => User::factory()->create()->id, 'body' => 'Keep']);
@@ -200,6 +216,7 @@ class CommentTest extends TestCase
 
     public function test_destroy_comment_allowed_for_admin(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['is_admin' => true]);
         $news = News::factory()->create();
         $comment = Comment::create(['news_id' => $news->id, 'user_id' => User::factory()->create()->id, 'body' => 'To delete']);

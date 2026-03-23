@@ -145,10 +145,11 @@ class CartService
         return $query->first();
     }
 
-    public function mergeSessionToUser(int $userId, ?string $sessionId = null): void
+    public function mergeSessionToUser(int $userId, ?string $sessionId = null): int
     {
         $sessionId = $sessionId ?? $this->getSessionId();
         $items = CartItem::where('session_id', $sessionId)->whereNull('user_id')->get();
+        $merged = 0;
         foreach ($items as $item) {
             $existing = CartItem::where('user_id', $userId)
                 ->where(function ($q) use ($item) {
@@ -160,11 +161,70 @@ class CartService
                 })
                 ->first();
             if ($existing) {
-                $existing->quantity += $item->quantity;
+                $newQty = $existing->quantity + $item->quantity;
+                if ($existing->product_id && $existing->product) {
+                    $newQty = min($newQty, max(0, (int) $existing->product->stock));
+                } else {
+                    $newQty = min($newQty, 99);
+                }
+                $existing->quantity = $newQty;
                 $existing->save();
                 $item->delete();
             } else {
                 $item->update(['user_id' => $userId]);
+            }
+            $merged++;
+        }
+        return $merged;
+    }
+
+    public function restoreGuestCartToUser(int $userId, array $products, array $services): void
+    {
+        foreach ($products as $p) {
+            $productId = (int) ($p['id'] ?? $p['product_id'] ?? 0);
+            $qty = max(1, min(99, (int) ($p['quantity'] ?? 1)));
+            if ($productId < 1) continue;
+            $product = Product::find($productId);
+            if (!$product || !$product->in_stock) continue;
+            $qty = min($qty, max(0, (int) $product->stock));
+            $existing = CartItem::where('user_id', $userId)
+                ->where('product_id', $productId)
+                ->whereNull('service_id')
+                ->first();
+            if ($existing) {
+                $existing->quantity = min($existing->quantity + $qty, max(0, (int) $product->stock));
+                $existing->save();
+            } else {
+                CartItem::create([
+                    'session_id' => $this->getSessionId(),
+                    'user_id' => $userId,
+                    'product_id' => $productId,
+                    'service_id' => null,
+                    'quantity' => $qty,
+                ]);
+            }
+        }
+        foreach ($services as $s) {
+            $serviceId = (int) ($s['id'] ?? $s['service_id'] ?? 0);
+            $qty = max(1, min(99, (int) ($s['quantity'] ?? 1)));
+            if ($serviceId < 1) continue;
+            $service = Service::find($serviceId);
+            if (!$service) continue;
+            $existing = CartItem::where('user_id', $userId)
+                ->where('service_id', $serviceId)
+                ->whereNull('product_id')
+                ->first();
+            if ($existing) {
+                $existing->quantity = min($existing->quantity + $qty, 99);
+                $existing->save();
+            } else {
+                CartItem::create([
+                    'session_id' => $this->getSessionId(),
+                    'user_id' => $userId,
+                    'product_id' => null,
+                    'service_id' => $serviceId,
+                    'quantity' => $qty,
+                ]);
             }
         }
     }

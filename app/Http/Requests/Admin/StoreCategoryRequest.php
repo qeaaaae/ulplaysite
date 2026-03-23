@@ -24,17 +24,14 @@ class StoreCategoryRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:4096'],
             'is_featured' => ['boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $sortOrder = $this->input('sort_order');
         $this->merge([
             'slug' => Str::slug($this->input('slug') ?: $this->input('name', '')),
             'is_featured' => $this->boolean('is_featured'),
-            'sort_order' => $sortOrder === '' || $sortOrder === null ? 1 : (int) $sortOrder,
         ]);
     }
 }

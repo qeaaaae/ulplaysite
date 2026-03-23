@@ -27,6 +27,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user)],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['nullable', Password::defaults()],
+            'email_verified' => ['nullable', 'boolean'],
             'is_admin' => ['boolean'],
             'is_blocked' => ['boolean'],
         ];
@@ -35,6 +36,7 @@ class UpdateUserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'email_verified' => $this->boolean('email_verified'),
             'is_admin' => $this->boolean('is_admin'),
             'is_blocked' => $this->boolean('is_blocked'),
         ]);

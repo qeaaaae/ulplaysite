@@ -82,7 +82,7 @@ class ProductController extends Controller
             ]);
         }
 
-        $categories = Category::withCount('products')->orderBy('sort_order')->get();
+        $categories = Category::getCachedWithProductsCount();
 
         return view('products.index', [
             'products' => $products,

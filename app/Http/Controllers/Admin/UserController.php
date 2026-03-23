@@ -37,6 +37,8 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
+        $validated['email_verified_at'] = $validated['email_verified'] ? now() : null;
+        unset($validated['email_verified']);
         User::create($validated);
         return redirect()->route('admin.users.index')->with('message', 'Пользователь создан');
     }
@@ -54,13 +56,15 @@ class UserController extends Controller
         } else {
             unset($validated['password']);
         }
+        $validated['email_verified_at'] = $validated['email_verified'] ? now() : null;
+        unset($validated['email_verified']);
         $user->update($validated);
         return redirect()->route('admin.users.index')->with('message', 'Пользователь обновлён');
     }
 
     public function destroy(User $user): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        if ($user->getKey() === auth()->id()) {
             return back()->with('error', 'Нельзя удалить себя');
         }
         $user->delete();
@@ -69,7 +73,7 @@ class UserController extends Controller
 
     public function restore(User $user): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        if ($user->getKey() === auth()->id()) {
             return back()->with('error', 'Нельзя восстановить себя');
         }
         $user->restore();
@@ -78,7 +82,7 @@ class UserController extends Controller
 
     public function block(User $user): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        if ($user->getKey() === auth()->id()) {
             return back()->with('error', 'Нельзя заблокировать себя');
         }
         $user->update(['is_blocked' => true]);

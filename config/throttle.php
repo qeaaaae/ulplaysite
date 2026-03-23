@@ -9,7 +9,12 @@ return [
 
     'password' => [
         'max_attempts' => 3,
-        'decay_minutes' => 1,
+        'decay_minutes' => 5,
+    ],
+
+    'verification_resend' => [
+        'max_attempts' => 3,
+        'decay_minutes' => 5,
     ],
 
     'cart' => [

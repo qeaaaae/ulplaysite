@@ -68,13 +68,17 @@
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
                 </a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 md:auto-rows-[minmax(140px,1fr)]">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr] gap-3 sm:gap-4 md:gap-5 auto-rows-[minmax(120px,1fr)] lg:auto-rows-[minmax(140px,1fr)]">
                 @foreach($categories as $index => $category)
                     @php
-                        $isFeatured = ($category->is_featured ?? $category['is_featured'] ?? false) || $index === 0;
-                        $visibilityClass = $index === 4 ? 'hidden md:block' : ($index === 5 ? 'hidden md:block lg:hidden' : '');
+                        $isFeatured = (bool) ($category->is_featured ?? $category['is_featured'] ?? false);
+                        $visibilityClass = match ($index) {
+                            4 => 'hidden md:block',
+                            5 => 'hidden md:block lg:hidden',
+                            default => '',
+                        };
                     @endphp
-                    <div class="{{ $isFeatured ? 'md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2' : '' }} {{ $visibilityClass }}">
+                    <div class="{{ $isFeatured ? 'lg:col-span-1 lg:row-span-2' : '' }} {{ $visibilityClass }}">
                         @include('components.category-card', [
                             'category' => $category,
                             'featured' => $isFeatured,

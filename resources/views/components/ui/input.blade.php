@@ -5,9 +5,9 @@
     'hint' => null,
 ])
 
-<div {{ $attributes->only('class')->merge(['class' => 'form-field' . ($error ? ' is-invalid' : '')]) }}>
+<div {{ $attributes->only('class')->merge(['class' => 'form-field flex flex-col' . ($error ? ' is-invalid' : '')]) }}>
     @if($label)
-        <label for="{{ $attributes->get('id') }}" class="{{ $labelIcon ? 'flex items-center gap-2' : 'block' }} text-sm font-medium text-stone-700 mb-1.5">
+        <label for="{{ $attributes->get('id') }}" class="{{ $labelIcon ? 'flex items-center gap-2 min-h-[1.5rem]' : 'block min-h-[1.5rem]' }} text-sm font-medium text-stone-700 mb-1.5">
             @if($labelIcon)
                 @svg($labelIcon, 'w-4 h-4 text-sky-500 shrink-0')
             @endif

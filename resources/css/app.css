@@ -232,7 +232,9 @@ h6 {
 .form-field:has(textarea[required]) label::after {
     content: '*';
     margin-left: 1px;
-    font-size: 1.4em;
+    font-size: 1em;
+    line-height: 1;
+    vertical-align: baseline;
     color: #e11d48;
 }
 

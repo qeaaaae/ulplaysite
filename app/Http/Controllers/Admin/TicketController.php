@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use App\Models\UserNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -48,20 +49,39 @@ class TicketController extends Controller
             'status' => ['required', 'string', 'in:new,in_progress,resolved,closed'],
         ]);
 
-        $ticket->update([
-            'status' => $request->status,
-        ]);
+        $oldStatus = $ticket->status;
+        $newStatus = $request->status;
+
+        $ticket->update(['status' => $newStatus]);
+
+        if ($ticket->user_id !== null && in_array($newStatus, ['resolved', 'closed'], true)) {
+            $title = match ($newStatus) {
+                'resolved' => 'Обращение решено',
+                'closed' => 'Обращение закрыто',
+                default => 'Статус обращения изменён',
+            };
+
+            UserNotification::query()->create([
+                'user_id' => $ticket->user_id,
+                'type' => 'ticket_status_changed',
+                'title' => $title,
+                'body' => $ticket->title,
+                'support_ticket_id' => $ticket->id,
+                'url' => route('tickets.my.show', $ticket),
+                'read_at' => null,
+            ]);
+        }
 
         return redirect()->back()->with('message', 'Статус тикета обновлён');
     }
 
-    public function reply(Request $request, SupportTicket $ticket): RedirectResponse
+    public function reply(Request $request, SupportTicket $ticket): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
         ]);
 
-        $ticket->messages()->create([
+        $message = $ticket->messages()->create([
             'sender_role' => 'admin',
             'sender_user_id' => $request->user()?->id,
             'content' => strip_tags($validated['message']),
@@ -80,6 +100,17 @@ class TicketController extends Controller
                 'support_ticket_id' => $ticket->id,
                 'url' => route('tickets.my.show', $ticket),
                 'read_at' => null,
+            ]);
+        }
+
+        if ($request->wantsJson()) {
+            $message->setRelation('senderUser', $request->user());
+            $html = view('admin.tickets.partials.message', ['message' => $message])->render();
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Ответ отправлен',
+                'html' => $html,
             ]);
         }
 

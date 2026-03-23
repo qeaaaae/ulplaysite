@@ -37,7 +37,6 @@ class CategoryControllerTest extends TestCase
         $response = $this->post(route('admin.categories.store'), [
             'name' => 'New Category',
             'description' => 'Desc',
-            'sort_order' => 1,
         ]);
 
         $response->assertRedirect(route('admin.categories.index'));
@@ -53,7 +52,6 @@ class CategoryControllerTest extends TestCase
         $response = $this->post(route('admin.categories.store'), [
             'name' => 'Category with image',
             'description' => 'Desc',
-            'sort_order' => 1,
             'image' => $image,
         ]);
 
@@ -80,7 +78,6 @@ class CategoryControllerTest extends TestCase
         $response = $this->patch(route('admin.categories.update', $category), [
             'name' => 'Updated Category',
             'description' => $category->description,
-            'sort_order' => max(1, $category->sort_order),
         ]);
 
         $response->assertRedirect(route('admin.categories.index'));

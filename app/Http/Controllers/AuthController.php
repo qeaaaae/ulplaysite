@@ -15,6 +15,8 @@ class AuthController extends Controller
 {
     public function login(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
+        $guestSessionId = session()->getId();
+
         $validated = $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -30,9 +32,22 @@ class AuthController extends Controller
                 }
                 return back()->withErrors(['email' => 'Ваш аккаунт заблокирован.']);
             }
-            $oldSessionId = session()->getId();
+            $cart = app(CartService::class);
+            $mergedFromSession = $cart->mergeSessionToUser($user->id, $guestSessionId);
+            if ($mergedFromSession === 0) {
+                $guestCart = $request->input('_guest_cart');
+                if (is_string($guestCart)) {
+                    $data = json_decode($guestCart, true);
+                    if (is_array($data)) {
+                        $cart->restoreGuestCartToUser(
+                            $user->id,
+                            $data['products'] ?? [],
+                            $data['services'] ?? []
+                        );
+                    }
+                }
+            }
             $request->session()->regenerate();
-            app(CartService::class)->mergeSessionToUser($user->id, $oldSessionId);
             if ($request->expectsJson()) {
                 return response()->json(['redirect' => redirect()->intended(route('home'))->getTargetUrl()]);
             }
@@ -47,6 +62,8 @@ class AuthController extends Controller
 
     public function register(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
+        $guestSessionId = session()->getId();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -61,10 +78,23 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $oldSessionId = session()->getId();
         Auth::login($user);
+        $cart = app(CartService::class);
+        $mergedFromSession = $cart->mergeSessionToUser($user->id, $guestSessionId);
+        if ($mergedFromSession === 0) {
+            $guestCart = $request->input('_guest_cart');
+            if (is_string($guestCart)) {
+                $data = json_decode($guestCart, true);
+                if (is_array($data)) {
+                    $cart->restoreGuestCartToUser(
+                        $user->id,
+                        $data['products'] ?? [],
+                        $data['services'] ?? []
+                    );
+                }
+            }
+        }
         $request->session()->regenerate();
-        app(CartService::class)->mergeSessionToUser($user->id, $oldSessionId);
 
         if (! $user->hasVerifiedEmail()) {
             try {

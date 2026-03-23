@@ -32,7 +32,7 @@ class ProductController extends Controller
     {
         return view('admin.products.form', [
             'product' => new Product(),
-            'categories' => Category::orderBy('sort_order')->get(),
+            'categories' => Category::getCachedAll(),
         ]);
     }
 
@@ -62,7 +62,7 @@ class ProductController extends Controller
     {
         return view('admin.products.form', [
             'product' => $product,
-            'categories' => Category::orderBy('sort_order')->get(),
+            'categories' => Category::getCachedAll(),
         ]);
     }
 

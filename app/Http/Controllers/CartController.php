@@ -132,11 +132,13 @@ class CartController extends Controller
     private function authorizeCartItem(CartItem $cartItem): void
     {
         if (Auth::check()) {
-            if ($cartItem->user_id !== Auth::id()) {
+            $userId = Auth::id();
+            if ($userId === null || (int) $cartItem->user_id !== (int) $userId) {
                 abort(403, 'Этот товар не в вашей корзине.');
             }
         } else {
-            if ($cartItem->user_id !== null || $cartItem->session_id !== $this->cart->getSessionId()) {
+            $sessionId = $this->cart->getSessionId();
+            if ($cartItem->user_id !== null || $cartItem->session_id !== $sessionId) {
                 abort(403, 'Этот товар не в вашей корзине.');
             }
         }

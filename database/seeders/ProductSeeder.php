@@ -27,7 +27,7 @@ class ProductSeeder extends Seeder
 
     public function run(): void
     {
-        $categoryIds = Category::orderBy('sort_order')->pluck('id')->all();
+        $categoryIds = Category::orderBy('name')->pluck('id')->all();
         if ($categoryIds === []) {
             return;
         }

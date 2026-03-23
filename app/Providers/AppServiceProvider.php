@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use App\Models\User;
 use App\Services\CartService;
@@ -36,6 +37,23 @@ class AppServiceProvider extends ServiceProvider
                 ->subject('Подтвердите адрес электронной почты')
                 ->view('emails.verify-email', [
                     'verificationUrl' => $verificationUrl,
+                    'user' => $notifiable,
+                ]);
+        });
+
+        // Custom design for "Reset password" mail.
+        ResetPassword::toMailUsing(function ($notifiable, string $token) {
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+            $expireMinutes = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire', 60);
+
+            return (new MailMessage)
+                ->subject('Восстановление пароля')
+                ->view('emails.reset-password', [
+                    'resetUrl' => $resetUrl,
+                    'expireMinutes' => $expireMinutes,
                     'user' => $notifiable,
                 ]);
         });
@@ -90,7 +108,14 @@ class AppServiceProvider extends ServiceProvider
         $max = fn (string $key, int $default) => config("throttle.{$key}.max_attempts", $default);
 
         RateLimiter::for('auth', fn (Request $r) => Limit::perMinute($max('auth', 5))->by($r->ip()));
-        RateLimiter::for('password', fn (Request $r) => Limit::perMinute($max('password', 3))->by($r->ip()));
+        RateLimiter::for('password', fn (Request $r) => Limit::perMinutes(
+            config('throttle.password.decay_minutes', 5),
+            config('throttle.password.max_attempts', 3)
+        )->by($r->ip()));
+        RateLimiter::for('verification_resend', fn (Request $r) => Limit::perMinutes(
+            config('throttle.verification_resend.decay_minutes', 5),
+            config('throttle.verification_resend.max_attempts', 3)
+        )->by($r->user()?->id ?? $r->ip()));
         RateLimiter::for('cart', fn (Request $r) => Limit::perMinute($max('cart', 30))->by($r->user()?->id ?? $r->ip()));
         RateLimiter::for('orders', fn (Request $r) => Limit::perMinute($max('orders', 10))->by($r->user()?->id ?? $r->ip()));
         RateLimiter::for('support', fn (Request $r) => Limit::perMinute($max('support', 5))->by($r->user()?->id ?? $r->ip()));

@@ -14,9 +14,6 @@
                 @endif
             </div>
         </a>
-        <button type="button" class="absolute top-2 right-2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm text-stone-500 hover:text-rose-500 hover:bg-white transition-all duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-sky-500/50 touch-manipulation cursor-pointer" title="Добавить в избранное" onclick="notyf.success('Добавлено в избранное')">
-            @svg('heroicon-o-heart', 'w-5 h-5')
-        </button>
     </div>
     <div class="p-4 sm:p-5 flex-1 flex flex-col">
         <a href="/products/{{ $product->slug }}" class="block flex-1 group/title">
@@ -71,7 +68,7 @@
                     </x-ui.button>
                 @endif
             @else
-                <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}">
+                <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-product-id="{{ $product->id ?? '' }}">
                     @csrf
                     <input type="hidden" name="quantity" value="1">
                     <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn h-11" type="submit">
