@@ -11,6 +11,6 @@ class SupportTicketPolicy
 {
     public function view(User $user, SupportTicket $ticket): bool
     {
-        return $ticket->user_id === $user->id;
+        return $user->is_admin || $ticket->user_id === $user->id;
     }
 }
