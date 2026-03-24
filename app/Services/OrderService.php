@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\WebPushService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -67,6 +68,10 @@ class OrderService
                 app(WebPushService::class)->notifyNewOrder($order);
             } catch (\Throwable $e) {
                 report($e);
+            }
+
+            if ($order->user_id !== null) {
+                Cache::forget("user.{$order->user_id}.purchased_no_review");
             }
 
             return $order;

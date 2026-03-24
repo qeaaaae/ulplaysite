@@ -105,13 +105,14 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
     private function loadPurchasedWithoutReview(): \Illuminate\Support\Collection
     {
-        $orderSubquery = fn ($q) => $q->where('user_id', $this->id)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']);
+        $userId = (int) $this->getKey();
+        $orderSubquery = fn ($q) => $q->where('user_id', $userId)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']);
 
         $productIds = OrderItem::query()
             ->select('product_id')
             ->whereNotNull('product_id')
             ->whereHas('order', $orderSubquery)
-            ->whereNotIn('product_id', Review::where('user_id', $this->id)->where('reviewable_type', Product::class)->select('reviewable_id'))
+            ->whereNotIn('product_id', Review::where('user_id', $userId)->where('reviewable_type', Product::class)->select('reviewable_id'))
             ->distinct()
             ->pluck('product_id')
             ->all();
@@ -120,7 +121,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->select('service_id')
             ->whereNotNull('service_id')
             ->whereHas('order', $orderSubquery)
-            ->whereNotIn('service_id', Review::where('user_id', $this->id)->where('reviewable_type', Service::class)->select('reviewable_id'))
+            ->whereNotIn('service_id', Review::where('user_id', $userId)->where('reviewable_type', Service::class)->select('reviewable_id'))
             ->distinct()
             ->pluck('service_id')
             ->all();

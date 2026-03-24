@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\UserNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -44,6 +45,10 @@ class OrderController extends Controller
         $newStatus = $request->status;
 
         $order->update(['status' => $newStatus]);
+
+        if ($order->user_id !== null) {
+            Cache::forget("user.{$order->user_id}.purchased_no_review");
+        }
 
         if ($order->user_id === null) {
             return redirect()->back()->with('message', 'Статус заказа обновлён');
