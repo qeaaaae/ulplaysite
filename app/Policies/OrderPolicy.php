@@ -18,7 +18,7 @@ class OrderPolicy
             return true;
         }
 
-        if ($user && $order->user_id === $user->id) {
+        if ($user && $order->user_id !== null && (int) $order->user_id === (int) $user->getKey()) {
             return true;
         }
 
