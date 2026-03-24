@@ -26,11 +26,11 @@ class Comment extends Model
 
     public function isEditableBy(?\App\Models\User $user): bool
     {
-        if (! $user) {
+        if (! $user || $this->user_id === null) {
             return false;
         }
 
-        return $this->user_id === $user->id;
+        return (int) $this->user_id === (int) $user->getKey();
     }
 
     public function isDeletableBy(?\App\Models\User $user): bool
@@ -39,7 +39,7 @@ class Comment extends Model
             return false;
         }
 
-        return $user->is_admin || $this->user_id === $user->id;
+        return $user->is_admin || ($this->user_id !== null && (int) $this->user_id === (int) $user->getKey());
     }
 
     public function helpfulVotes(): HasMany

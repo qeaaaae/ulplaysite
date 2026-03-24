@@ -428,19 +428,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok && data.success) {
                 const productId = parseInt(form.dataset.productId, 10);
-                if (productId) {
-                    try {
-                        const stored = JSON.parse(localStorage.getItem('ulplay_guest_cart') || '{"products":[],"services":[]}');
-                        const qty = parseInt(form.querySelector('[name="quantity"]')?.value || '1', 10) || 1;
+                const serviceId = parseInt(form.dataset.serviceId, 10);
+                const qty = parseInt(form.querySelector('[name="quantity"]')?.value || '1', 10) || 1;
+                try {
+                    const stored = JSON.parse(localStorage.getItem('ulplay_guest_cart') || '{"products":[],"services":[]}');
+                    if (productId) {
                         const idx = (stored.products || []).findIndex((p) => p.id === productId);
                         if (idx >= 0) {
                             stored.products[idx].quantity = Math.min(99, (stored.products[idx].quantity || 0) + qty);
                         } else {
                             stored.products = [...(stored.products || []), { id: productId, quantity: qty }];
                         }
+                    } else if (serviceId) {
+                        const idx = (stored.services || []).findIndex((s) => s.id === serviceId);
+                        if (idx >= 0) {
+                            stored.services[idx].quantity = Math.min(99, (stored.services[idx].quantity || 0) + qty);
+                        } else {
+                            stored.services = [...(stored.services || []), { id: serviceId, quantity: qty }];
+                        }
+                    }
+                    if (productId || serviceId) {
                         localStorage.setItem('ulplay_guest_cart', JSON.stringify(stored));
-                    } catch (err) {}
-                }
+                    }
+                } catch (err) {}
                 document.querySelectorAll('[data-cart-count]').forEach((el) => {
                     el.textContent = data.cartCount ?? 0;
                     el.classList.toggle('!hidden', !(data.cartCount > 0));

@@ -79,13 +79,27 @@
                         <p class="mt-6 text-xl font-bold text-stone-900">от {{ number_format($service->price, 0, ',', ' ') }} ₽</p>
                     @endif
                     <div class="flex flex-wrap gap-3 mt-6">
-                        <form action="{{ route('cart.add-service', $service) }}" method="POST">
-                            @csrf
-                            <x-ui.button type="submit" variant="primary" size="md">
-                                @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                В корзину
-                            </x-ui.button>
-                        </form>
+                        @if(in_array($service->id, $cartServiceIds ?? []))
+                            @if(auth()->check())
+                                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="md">
+                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                    В корзине
+                                </x-ui.button>
+                            @else
+                                <x-ui.button type="button" variant="outline" size="md" @click="openAuthModal('login')">
+                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                    В корзине
+                                </x-ui.button>
+                            @endif
+                        @else
+                            <form action="{{ route('cart.add-service', $service) }}" method="POST" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-service-id="{{ $service->id }}">
+                                @csrf
+                                <x-ui.button type="submit" variant="primary" size="md" class="cart-add-btn">
+                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                    В корзину
+                                </x-ui.button>
+                            </form>
+                        @endif
                         <x-ui.button href="{{ route('services.index') }}" variant="outline" size="md">
                             Все услуги
                         </x-ui.button>

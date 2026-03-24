@@ -50,10 +50,19 @@ class CartController extends Controller
         return redirect()->back()->with('message', 'Товар добавлен в корзину');
     }
 
-    public function addService(Request $request, Service $service): RedirectResponse
+    public function addService(Request $request, Service $service): RedirectResponse|JsonResponse
     {
         $request->validate(['quantity' => ['nullable', 'integer', 'min:1', 'max:99']]);
         $this->cart->addService($service, (int) ($request->quantity ?? 1));
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'cartCount' => $this->cart->count(),
+                'message' => 'Услуга добавлена в корзину',
+            ]);
+        }
+
         return redirect()->back()->with('message', 'Услуга добавлена в корзину');
     }
 

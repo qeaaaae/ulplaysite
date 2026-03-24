@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @if($banners->isNotEmpty())
     <section class="pt-4 md:pt-5 mb-3 md:mb-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <div class="swiper hero-swiper rounded-2xl overflow-hidden shadow-[0_4px_14px_0_rgba(0,0,0,0.08)]" data-banner-count="{{ $banners->count() }}">
@@ -36,8 +37,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- News --}}
+    @if($news->isNotEmpty())
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-newspaper">Последние новости</x-ui.section-heading>
@@ -54,8 +57,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Categories --}}
+    @if($categories->isNotEmpty())
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-3 md:mb-4">
@@ -88,8 +93,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- New Products --}}
+    @if($newProducts->isNotEmpty())
     <section class="pt-2 md:pt-3 pb-3 md:pb-4 mb-3 md:mb-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-sparkles">Новые поступления</x-ui.section-heading>
@@ -106,8 +113,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Recommended --}}
+    @if($recommendedProducts->isNotEmpty())
     <section class="pt-3 md:pt-4 pb-4 md:pb-5 mb-3 md:mb-4 bg-white">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-star">Рекомендуемые</x-ui.section-heading>
@@ -124,8 +133,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Services --}}
+    @if($services->isNotEmpty())
     <section class="pt-3 md:pt-4 pb-3 md:pb-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.section-heading icon="heroicon-o-wrench-screwdriver">Наши услуги</x-ui.section-heading>
@@ -142,6 +153,7 @@
             </div>
         </div>
     </section>
+    @endif
 @endsection
 
 @push('scripts')
@@ -149,7 +161,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof Swiper !== 'undefined') {
             var heroEl = document.querySelector('.hero-swiper');
-            var bannerCount = heroEl ? parseInt(heroEl.getAttribute('data-banner-count') || '0', 10) : 0;
+            if (!heroEl) return;
+            var bannerCount = parseInt(heroEl.getAttribute('data-banner-count') || '0', 10);
             var autoplayDelay = 5000;
             var heroSwiper = new Swiper('.hero-swiper', {
                 loop: false,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -32,9 +33,10 @@ class ServiceController extends Controller
         return view('services.index', ['services' => $services]);
     }
 
-    public function show(Service $service): View
+    public function show(Service $service, CartService $cart): View
     {
         $service->load(['images', 'reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
+        $cartServiceIds = $cart->getItems()->pluck('service_id')->filter()->values()->all();
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
         $canReview = $user
@@ -54,6 +56,7 @@ class ServiceController extends Controller
             'reviews' => $service->reviews,
             'canReview' => $canReview,
             'similarServices' => $similarServices,
+            'cartServiceIds' => $cartServiceIds,
         ]);
     }
 }

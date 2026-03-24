@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at',
         'is_admin',
         'is_blocked',
+        'is_bot',
     ];
 
     /**
@@ -159,5 +160,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getEmailForVerification(): string
     {
         return $this->email;
+    }
+
+    public function scopeRealUsers(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('is_bot', false);
     }
 }

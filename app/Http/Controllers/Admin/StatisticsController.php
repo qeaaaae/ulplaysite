@@ -50,8 +50,8 @@ class StatisticsController extends Controller
         $ordersLastMonth = (clone $ordersQuery)->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
         $revenueLastMonth = (float) (clone $ordersPaidQuery)->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->sum('total');
 
-        $usersTotal = User::withoutTrashed()->count();
-        $usersNewThisMonth = User::withoutTrashed()->where('created_at', '>=', $startOfMonth)->count();
+        $usersTotal = User::withoutTrashed()->realUsers()->count();
+        $usersNewThisMonth = User::withoutTrashed()->realUsers()->where('created_at', '>=', $startOfMonth)->count();
         $productsCount = Product::count();
         $servicesCount = Service::count();
         $newsCount = News::count();
@@ -142,6 +142,7 @@ class StatisticsController extends Controller
         $chartDowData = array_values($ordersByDayOfWeek);
 
         $usersByDay = User::withoutTrashed()
+            ->realUsers()
             ->where('created_at', '>=', $last30Days)
             ->where('is_admin', false)
             ->selectRaw('date(created_at) as d, count(*) as c')

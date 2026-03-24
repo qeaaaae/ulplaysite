@@ -38,7 +38,12 @@
                             <td class="px-4 py-3 font-medium">{{ $u->name }}</td>
                             <td class="px-4 py-3">{{ $u->email }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">{{ $u->phone ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $u->is_admin ? 'Админ' : 'Пользователь' }}</td>
+                            <td class="px-4 py-3">
+                                {{ $u->is_admin ? 'Админ' : 'Пользователь' }}
+                                @if($u->is_bot)
+                                    <span class="ml-1 text-xs px-1.5 py-0.5 rounded bg-stone-200 text-stone-600">бот</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3">
                                 @if($u->trashed())
                                     <span class="text-stone-400">Удалён</span>
@@ -75,6 +80,7 @@
                         <p class="text-sm text-stone-500">{{ $u->email }}</p>
                         <p class="text-sm mt-1">
                             <span class="{{ $u->is_admin ? 'text-sky-600' : 'text-stone-600' }}">{{ $u->is_admin ? 'Админ' : 'Пользователь' }}</span>
+                            @if($u->is_bot)<span class="text-xs px-1.5 py-0.5 rounded bg-stone-200 text-stone-600">бот</span>@endif
                             ·
                             @if($u->trashed())
                                 <span class="text-stone-400">Удалён</span>

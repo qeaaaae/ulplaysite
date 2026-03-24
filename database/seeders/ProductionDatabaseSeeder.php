@@ -6,13 +6,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-class UserSeeder extends Seeder
+class ProductionDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         $this->call([
             AdminUserSeeder::class,
             RealisticUserSeeder::class,
+            CategorySeeder::class,
         ]);
     }
 }
