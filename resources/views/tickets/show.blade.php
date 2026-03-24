@@ -11,6 +11,9 @@
                 <a href="{{ route('tickets.my.index') }}" class="text-sm text-sky-600 hover:underline">К списку</a>
             </div>
 
+            @if(session('error'))
+                <p class="text-rose-600 text-sm mb-4">{{ session('error') }}</p>
+            @endif
             @php($type = $ticket->type instanceof \App\Enums\SupportTicketTypeEnum ? $ticket->type : \App\Enums\SupportTicketTypeEnum::tryFrom((string) $ticket->type))
             @php($statusLabel = match($ticket->status) {
                 'new' => 'Новый',
@@ -87,6 +90,17 @@
                             </div>
                         @endforelse
                     </div>
+
+                    @if(!in_array($ticket->status, ['resolved', 'closed'], true))
+                        <form action="{{ route('tickets.my.reply', $ticket) }}" method="POST" class="mt-4 pt-4 border-t border-stone-200">
+                            @csrf
+                            <textarea name="message" rows="3" maxlength="2000" required placeholder="Написать ответ..." class="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-lg focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y">{{ old('message') }}</textarea>
+                            @error('message')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                            <div class="mt-2">
+                                <x-ui.button type="submit" variant="primary" size="sm">Отправить</x-ui.button>
+                            </div>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

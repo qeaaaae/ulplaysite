@@ -82,5 +82,24 @@ class SupportTicketController extends Controller
 
         return redirect()->route('tickets.my.index')->with('message', 'Заявка в техподдержку отправлена');
     }
+
+    public function reply(Request $request, SupportTicket $ticket): RedirectResponse
+    {
+        $this->authorize('view', $ticket);
+
+        if (in_array($ticket->status, ['resolved', 'closed'], true)) {
+            return redirect()->back()->with('error', 'Нельзя ответить в закрытом обращении');
+        }
+
+        $validated = $request->validate(['message' => ['required', 'string', 'max:2000']]);
+
+        $ticket->messages()->create([
+            'sender_role' => 'user',
+            'sender_user_id' => $request->user()->id,
+            'content' => strip_tags($validated['message']),
+        ]);
+
+        return redirect()->back()->with('message', 'Сообщение отправлено');
+    }
 }
 

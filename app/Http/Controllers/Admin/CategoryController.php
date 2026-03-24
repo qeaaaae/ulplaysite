@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,9 +17,10 @@ class CategoryController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
         $categories = Category::withCount('products')
-            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('name', 'like', "%{$q}%")->orWhere('slug', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('name', 'like', $like)->orWhere('slug', 'like', $like)))
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
@@ -71,7 +73,7 @@ class CategoryController extends Controller
         }
         unset($validated['image']);
         $category->update($validated);
-        return redirect()->route('admin.categories.index')->with('message', 'Категория обновлена');
+        return redirect()->back()->with('message', 'Категория обновлена');
     }
 
     public function destroy(Category $category): RedirectResponse

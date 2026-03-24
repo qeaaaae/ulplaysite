@@ -170,12 +170,12 @@
 
     <template id="cart-in-button-tpl">
         @if(auth()->check())
-            <a href="{{ route('cart.index') }}" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
+            <a href="{{ route('cart.index') }}" class="inline-flex shrink-0 items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
                 @svg('heroicon-o-shopping-cart', 'w-4 h-4')
                 В корзине
             </a>
         @else
-            <button type="button" @click="openAuthModal('login')" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
+            <button type="button" @click="openAuthModal('login')" class="inline-flex shrink-0 items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 rounded-md cursor-pointer transition-colors">
                 @svg('heroicon-o-shopping-cart', 'w-4 h-4')
                 В корзине
             </button>

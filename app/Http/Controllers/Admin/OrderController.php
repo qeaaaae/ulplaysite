@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\UserNotification;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,11 +19,13 @@ class OrderController extends Controller
     {
         $orders = Order::with('user')->withCount('items')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
-            ->when($request->filled('q'), fn ($q) => $q->where(function ($q2) use ($request) {
-                $q2->where('order_number', 'like', '%' . $request->q . '%')
-                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', '%' . $request->q . '%')
-                        ->orWhere('email', 'like', '%' . $request->q . '%'));
-            }))
+            ->when($request->filled('q'), function ($q) use ($request): void {
+                $like = '%' . StrHelper::escapeForLike((string) $request->q) . '%';
+                $q->where(function ($q2) use ($like): void {
+                    $q2->where('order_number', 'like', $like)
+                        ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $like)->orWhere('email', 'like', $like));
+                });
+            })
             ->latest()
             ->paginate(10)
             ->withQueryString();

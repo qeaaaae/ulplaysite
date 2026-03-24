@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Support\StrHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -35,12 +36,13 @@ class ProductController extends Controller
             $tokens = preg_split('/\s+/u', trim($q), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $query->where(function ($builder) use ($tokens) {
                 foreach ($tokens as $token) {
-                    $builder->where(function ($b) use ($token) {
-                        $b->where('title', 'like', "%{$token}%")
-                            ->orWhere('description', 'like', "%{$token}%")
-                            ->orWhereHas('category', function ($q2) use ($token) {
-                                $q2->where('name', 'like', "%{$token}%")
-                                    ->orWhere('slug', 'like', "%{$token}%");
+                    $escaped = StrHelper::escapeForLike($token);
+                    $builder->where(function ($b) use ($escaped) {
+                        $b->where('title', 'like', "%{$escaped}%")
+                            ->orWhere('description', 'like', "%{$escaped}%")
+                            ->orWhereHas('category', function ($q2) use ($escaped) {
+                                $q2->where('name', 'like', "%{$escaped}%")
+                                    ->orWhere('slug', 'like', "%{$escaped}%");
                             });
                     });
                 }
@@ -62,7 +64,7 @@ class ProductController extends Controller
                 ->orderByDesc('id'),
             'relevance' => $query->orderByRaw(
                 'CASE WHEN title LIKE ? THEN 3 WHEN description LIKE ? THEN 2 ELSE 0 END DESC',
-                ["%{$q}%", "%{$q}%"]
+                ['%' . StrHelper::escapeForLike($q) . '%', '%' . StrHelper::escapeForLike($q) . '%']
             )->orderByDesc('reviews_avg_rating')
                 ->orderByDesc('reviews_count')
                 ->orderByDesc('id'),

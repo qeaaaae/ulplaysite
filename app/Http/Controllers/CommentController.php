@@ -17,6 +17,30 @@ class CommentController extends Controller
 {
     private const COMMENT_COOLDOWN_SECONDS = 30;
 
+    public function index(Request $request, News $news): \Illuminate\Http\JsonResponse
+    {
+        $page = max(1, (int) $request->get('comments_page', 1));
+        $sort = $request->get('comments_sort', 'newest');
+
+        $commentsQuery = $news->comments()->with(['user', 'helpfulVotes'])->reorder();
+        if ($sort === 'popular') {
+            $commentsQuery->withCount('helpfulVotes')->orderByDesc('helpful_votes_count')->orderByDesc('created_at');
+        } else {
+            $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
+            $commentsQuery->orderBy('created_at', $sortDir);
+        }
+        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page)->withQueryString();
+
+        return response()->json([
+            'result' => true,
+            'html' => view('components.comments-results', [
+                'news' => $news,
+                'comments' => $comments,
+                'canComment' => $request->user() !== null,
+            ])->render(),
+        ]);
+    }
+
     public function store(StoreNewsCommentRequest $request, News $news): RedirectResponse|JsonResponse
     {
         $user = $request->user();
@@ -46,14 +70,14 @@ class CommentController extends Controller
         ]);
 
         if ($request->wantsJson()) {
-            $news->load(['comments.user', 'comments.helpfulVotes']);
+            $comments = $news->comments()->with(['user', 'helpfulVotes'])->orderByDesc('created_at')->paginate(10, ['*'], 'comments_page');
 
             return response()->json([
                 'result' => true,
                 'message' => 'Комментарий добавлен.',
                 'html' => view('components.comments-block', [
                     'news' => $news,
-                    'comments' => $news->comments,
+                    'comments' => $comments,
                     'canComment' => true,
                 ])->render(),
             ]);
@@ -99,14 +123,23 @@ class CommentController extends Controller
         $comment->delete();
 
         if ($request->wantsJson()) {
-            $news->load(['comments.user', 'comments.helpfulVotes']);
+            $page = max(1, (int) $request->get('comments_page', 1));
+            $sort = $request->get('comments_sort', 'newest');
+            $commentsQuery = $news->comments()->with(['user', 'helpfulVotes'])->reorder();
+            if ($sort === 'popular') {
+                $commentsQuery->withCount('helpfulVotes')->orderByDesc('helpful_votes_count')->orderByDesc('created_at');
+            } else {
+                $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
+                $commentsQuery->orderBy('created_at', $sortDir);
+            }
+            $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page)->withQueryString();
 
             return response()->json([
                 'result' => true,
                 'message' => 'Комментарий удалён.',
                 'html' => view('components.comments-block', [
                     'news' => $news,
-                    'comments' => $news->comments,
+                    'comments' => $comments,
                     'canComment' => true,
                 ])->render(),
             ]);

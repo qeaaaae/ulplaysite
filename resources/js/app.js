@@ -131,9 +131,18 @@ window.initTomSelects = initTomSelects;
 function initLightbox() {
     let overlay = null;
     let overlayImg = null;
-    let state = { scale: 1, rotate: 0 };
+    let state = { scale: 1, rotate: 0, x: 0, y: 0 };
     let currentGroup = [];
     let currentIndex = 0;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0, stateX: 0, stateY: 0 };
+
+    function applyTransform() {
+        if (!overlayImg) return;
+        overlayImg.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale}) rotate(${state.rotate}deg)`;
+        overlayImg.style.cursor = state.scale > 1 ? 'grab' : 'default';
+        overlayImg.style.cursor = isDragging ? 'grabbing' : (state.scale > 1 ? 'grab' : 'default');
+    }
 
     function ensureOverlay() {
         if (overlay) return;
@@ -198,10 +207,64 @@ function initLightbox() {
         `;
         overlayImg = overlay.querySelector('img');
 
-        overlay.addEventListener('click', () => {
-            overlay.classList.add('opacity-0');
-            setTimeout(() => overlay?.remove(), 200);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay?.remove(), 200);
+            }
         });
+
+        function getClientCoords(e) {
+            if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+        function onMove(e) {
+            if (!isDragging) return;
+            const coords = getClientCoords(e);
+            state.x = dragStart.stateX + (coords.x - dragStart.x);
+            state.y = dragStart.stateY + (coords.y - dragStart.y);
+            applyTransform();
+        }
+        function onMoveTouch(e) {
+            onMove(e);
+            if (isDragging) e.preventDefault();
+        }
+        function onUp() {
+            if (isDragging) {
+                isDragging = false;
+                applyTransform();
+            }
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            document.removeEventListener('touchmove', onMoveTouch, { passive: false });
+            document.removeEventListener('touchend', onUpTouch);
+            document.removeEventListener('touchcancel', onUpTouch);
+        }
+        function onUpTouch(e) {
+            onUp();
+        }
+        function startDrag(clientX, clientY) {
+            if (state.scale <= 1) return;
+            isDragging = true;
+            dragStart = { x: clientX, y: clientY, stateX: state.x, stateY: state.y };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp, { once: true });
+            document.addEventListener('touchmove', onMoveTouch, { passive: false });
+            document.addEventListener('touchend', onUpTouch, { once: true });
+            document.addEventListener('touchcancel', onUpTouch, { once: true });
+            applyTransform();
+        }
+        overlayImg.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            startDrag(e.clientX, e.clientY);
+        });
+        overlayImg.addEventListener('touchstart', (e) => {
+            if (!e.touches.length || state.scale <= 1) return;
+            e.preventDefault();
+            startDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
 
         overlay.querySelectorAll('button[data-action]').forEach((btn) => {
             btn.addEventListener('click', (e) => {
@@ -217,9 +280,9 @@ function initLightbox() {
                     currentIndex = (currentIndex + delta + currentGroup.length) % currentGroup.length;
                     const item = currentGroup[currentIndex];
                     if (!item) return;
-                    state = { scale: 1, rotate: 0 };
+                    state = { scale: 1, rotate: 0, x: 0, y: 0 };
                     overlayImg.src = item.src;
-                    overlayImg.style.transform = 'scale(1) rotate(0deg)';
+                    applyTransform();
                     updateCounter();
                     return;
                 }
@@ -230,13 +293,12 @@ function initLightbox() {
                 } else if (action === 'zoom-out') {
                     state.scale = Math.max(state.scale - 0.25, 0.5);
                 } else if (action === 'rotate') {
-                    state.rotate = (state.rotate + 90) % 360;
+                    state.rotate += 90;
                 } else if (action === 'reset') {
-                    state = { scale: 1, rotate: 0 };
+                    state = { scale: 1, rotate: 0, x: 0, y: 0 };
                 }
 
-                overlayImg.style.transform = `scale(${state.scale}) rotate(${state.rotate}deg)`;
-                overlayImg.style.cursor = state.scale > 1 ? 'grab' : 'default';
+                applyTransform();
             });
         });
 
@@ -303,11 +365,11 @@ function initLightbox() {
         if (!href) return;
 
         e.preventDefault();
-        state = { scale: 1, rotate: 0 };
+        state = { scale: 1, rotate: 0, x: 0, y: 0 };
         collectGroup(link, href);
         ensureOverlay();
         overlayImg.src = href;
-        overlayImg.style.transform = 'scale(1) rotate(0deg)';
+        applyTransform();
         updateCounter();
 
         const arrows = overlay.querySelectorAll('button[data-action="prev"], button[data-action="next"]');
@@ -473,6 +535,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 if (replacement) {
+                    const parent = form.parentElement;
+                    const isInCard = parent?.classList?.contains('flex') && parent?.classList?.contains('min-w-0');
+                    const isInPurchaseBlock = form.closest('[data-purchase-block]');
+                    if (isInCard) {
+                        replacement.classList.add('w-full');
+                        replacement.classList.remove('shrink-0');
+                    }
+                    if (isInPurchaseBlock) {
+                        replacement.classList.remove('px-3', 'py-1.5', 'shrink-0');
+                        replacement.classList.add('px-5', 'py-2.5', 'sm:shrink-0');
+                        const icon = replacement.querySelector('svg');
+                        if (icon) {
+                            icon.classList.remove('w-4', 'h-4');
+                            icon.classList.add('w-5', 'h-5');
+                        }
+                    }
                     try {
                         form.replaceWith(replacement);
                     } catch (err) {
@@ -858,6 +936,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('_method', 'DELETE');
                 formData.append('_token', csrfToken || '');
+                const commentsEl = document.getElementById('comments');
+                if (commentsEl) {
+                    const page = commentsEl.dataset.commentsPage;
+                    const sort = commentsEl.dataset.commentsSort;
+                    if (page) formData.append('comments_page', page);
+                    if (sort) formData.append('comments_sort', sort);
+                }
 
                 const res = await fetch(form.action, {
                     method: 'POST',
@@ -1016,15 +1101,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const countEl = document.getElementById('admin-ticket-messages-count');
                 if (countEl) countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
                 if (textarea) textarea.value = '';
-                window.notyf.success(data.message || 'Ответ отправлен');
             } else if (res.status === 422 && data?.errors) {
-                const errMsg = data.errors?.message?.[0] || 'Ошибка валидации';
-                window.notyf.error(errMsg);
             } else {
-                window.notyf.error(data?.message || 'Ошибка отправки ответа');
             }
         } catch (err) {
-            window.notyf.error('Ошибка соединения');
         } finally {
             if (btn) restoreButton(btn);
         }

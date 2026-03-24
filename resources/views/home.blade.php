@@ -165,22 +165,11 @@
             var bannerCount = parseInt(heroEl.getAttribute('data-banner-count') || '0', 10);
             var autoplayDelay = 5000;
             var heroSwiper = new Swiper('.hero-swiper', {
-                loop: false,
+                loop: bannerCount > 1,
                 autoplay: { delay: autoplayDelay, disableOnInteraction: false },
                 pagination: false,
                 navigation: { nextEl: '.hero-next', prevEl: '.hero-prev' },
             });
-            var loopTimeout = null;
-            heroSwiper.on('slideChangeTransitionEnd', function() {
-                if (loopTimeout) clearTimeout(loopTimeout);
-                if (heroSwiper.isEnd && bannerCount > 1) {
-                    loopTimeout = setTimeout(function() {
-                        loopTimeout = null;
-                        heroSwiper.slideTo(0, 300);
-                    }, autoplayDelay);
-                }
-            });
-            var loopEnabled = false;
             var items = document.querySelectorAll('.hero-pagination-item');
             var prevActiveIdx = 0;
             var stretchDuration = 0.4;

@@ -67,6 +67,8 @@ class OrderController extends Controller
             return redirect()->route('cart.index')->with('error', $e->getMessage());
         }
 
+        session()->put('order_view_' . $order->id, true);
+
         return redirect()->route('orders.show', $order)->with('message', 'Заказ оформлен');
     }
 

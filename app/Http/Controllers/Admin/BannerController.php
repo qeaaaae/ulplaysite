@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBannerRequest;
 use App\Http\Requests\Admin\UpdateBannerRequest;
 use App\Models\Banner;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,8 +17,9 @@ class BannerController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
-        $banners = Banner::when($q !== '', fn ($query) => $query->where('title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%"))
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
+        $banners = Banner::when($q !== '', fn ($query) => $query->where('title', 'like', $like)->orWhere('description', 'like', $like))
             ->orderBy('id')
             ->paginate(10)
             ->withQueryString();
@@ -64,7 +66,7 @@ class BannerController extends Controller
         }
         unset($validated['image']);
         $banner->update($validated);
-        return redirect()->route('admin.banners.index')->with('message', 'Баннер обновлён');
+        return redirect()->back()->with('message', 'Баннер обновлён');
     }
 
     public function destroy(Banner $banner): RedirectResponse

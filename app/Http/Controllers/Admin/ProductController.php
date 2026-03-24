@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,11 +18,12 @@ class ProductController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
         $products = Product::with('category')
-            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', "%{$q}%")
-                ->orWhere('slug', 'like', "%{$q}%")
-                ->orWhere('description', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', $like)
+                ->orWhere('slug', 'like', $like)
+                ->orWhere('description', 'like', $like)))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -98,7 +100,7 @@ class ProductController extends Controller
                 }
             }
         }
-        return redirect()->route('admin.products.index')->with('message', 'Товар обновлён');
+        return redirect()->back()->with('message', 'Товар обновлён');
     }
 
     public function destroy(Product $product): RedirectResponse

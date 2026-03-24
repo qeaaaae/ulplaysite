@@ -34,9 +34,19 @@ class NewsController extends Controller
         return view('news.index', ['news' => $news]);
     }
 
-    public function show(News $news): View
+    public function show(Request $request, News $news): View
     {
-        $news->load(['author', 'images', 'comments.user', 'comments.helpfulVotes']);
+        $news->load(['author', 'images']);
+
+        $sort = $request->get('comments_sort', 'newest');
+        $commentsQuery = $news->comments()->with(['user', 'helpfulVotes'])->reorder();
+        if ($sort === 'popular') {
+            $commentsQuery->withCount('helpfulVotes')->orderByDesc('helpful_votes_count')->orderByDesc('created_at');
+        } else {
+            $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
+            $commentsQuery->orderBy('created_at', $sortDir);
+        }
+        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page')->withQueryString();
 
         if ($user = Auth::user()) {
             NewsView::firstOrCreate([
@@ -56,6 +66,7 @@ class NewsController extends Controller
 
         return view('news.show', [
             'news' => $news,
+            'comments' => $comments,
             'similarNews' => $similarNews,
         ]);
     }

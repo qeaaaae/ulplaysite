@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,11 +18,12 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
         $users = User::withTrashed()
-            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('name', 'like', "%{$q}%")
-                ->orWhere('email', 'like', "%{$q}%")
-                ->orWhere('phone', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('name', 'like', $like)
+                ->orWhere('email', 'like', $like)
+                ->orWhere('phone', 'like', $like)))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -59,7 +61,7 @@ class UserController extends Controller
         $validated['email_verified_at'] = $validated['email_verified'] ? now() : null;
         unset($validated['email_verified']);
         $user->update($validated);
-        return redirect()->route('admin.users.index')->with('message', 'Пользователь обновлён');
+        return redirect()->back()->with('message', 'Пользователь обновлён');
     }
 
     public function destroy(User $user): RedirectResponse

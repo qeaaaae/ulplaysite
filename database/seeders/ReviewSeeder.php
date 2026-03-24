@@ -14,10 +14,10 @@ class ReviewSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = User::where('is_admin', false)->limit(25)->get();
+        $users = User::where('is_admin', false)->get();
         $productIds = Product::pluck('id')->unique()->values()->all();
 
-        if (count($productIds) < 1) {
+        if (count($productIds) < 1 || $users->isEmpty()) {
             return;
         }
 
@@ -32,9 +32,10 @@ class ReviewSeeder extends Seeder
             'Всё супер, как на фото.',
         ];
 
-        foreach ($users as $user) {
-            $chosen = collect($productIds)->random(min(4, count($productIds)))->unique()->values()->all();
-            foreach ($chosen as $productId) {
+        foreach ($productIds as $productId) {
+            $reviewsCount = min(10, $users->count());
+            $selectedUsers = $users->shuffle()->take($reviewsCount);
+            foreach ($selectedUsers as $user) {
                 $daysAgo = random_int(0, 45);
                 $createdAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
                 $review = Review::create([

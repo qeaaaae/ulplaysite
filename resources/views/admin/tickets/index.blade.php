@@ -12,13 +12,15 @@
         <x-admin.search-bar :action="route('admin.tickets.index')" placeholder="Заголовок, описание, имя или email..." :value="request('q', '')" />
         <form method="GET" action="{{ route('admin.tickets.index') }}" class="flex gap-2 items-center">
             @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
-            <select name="type" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px]">
+            <div class="admin-ticket-type-select">
+            <select name="type" data-enhance="tom-select" data-submit-on-change class="h-11 px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150">
                 <option value="">Все типы</option>
                 @foreach(\App\Enums\SupportTicketTypeEnum::cases() as $type)
                     <option value="{{ $type->value }}" {{ request('type') === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
                 @endforeach
             </select>
-            <select name="status" data-enhance="tom-select" data-submit-on-change class="px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px]">
+            </div>
+            <select name="status" data-enhance="tom-select" data-submit-on-change class="h-11 px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[140px]">
                 <option value="">Все статусы</option>
                 <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>Новый</option>
                 <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>В работе</option>

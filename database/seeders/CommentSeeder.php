@@ -14,7 +14,7 @@ class CommentSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = User::where('is_admin', false)->limit(25)->get();
+        $users = User::where('is_admin', false)->get();
         $newsIds = News::pluck('id')->unique()->values()->all();
 
         if (empty($newsIds) || $users->isEmpty()) {
@@ -30,7 +30,7 @@ class CommentSeeder extends Seeder
         ];
 
         foreach ($newsIds as $newsId) {
-            $commentCount = fake()->numberBetween(1, min(6, $users->count()));
+            $commentCount = min(20, $users->count());
             $selectedUsers = $users->shuffle()->take($commentCount);
             foreach ($selectedUsers as $user) {
                 $daysAgo = random_int(0, 30);

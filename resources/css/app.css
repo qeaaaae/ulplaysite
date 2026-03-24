@@ -96,6 +96,25 @@ h6 {
     display: none !important;
 }
 
+/* Фиксированная ширина селекта сортировки комментариев (TomSelect иначе расширяется) */
+.comments-sort-select-wrap {
+    width: 184px;
+    min-width: 184px;
+    flex-shrink: 0;
+}
+.comments-sort-select-wrap .ts-wrapper,
+.comments-sort-select-wrap .ts-control {
+    width: 184px !important;
+    min-width: 184px !important;
+    max-width: 184px !important;
+}
+
+/* Админка: селект типа тикета — фиксированная минимальная ширина */
+.admin-ticket-type-select .ts-wrapper,
+.admin-ticket-type-select .ts-control {
+    min-width: 230px !important;
+}
+
 /* UlPlay — общий лоадер на старте страницы */
 .ulplay-loader {
     position: fixed;
@@ -321,7 +340,7 @@ h6 {
     border-radius: 0 !important;
     min-height: unset !important;
     width: 100%;
-    min-width: 0;
+    min-width: 190px;
     cursor: pointer;
 }
 
@@ -330,7 +349,7 @@ h6 {
     /* 44px — как у инпутов (min-h-11) */
     width: 100% !important;
     max-width: 100% !important;
-    min-width: 0;
+    min-width: 190px;
     cursor: pointer;
 }
 

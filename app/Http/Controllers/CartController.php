@@ -33,6 +33,18 @@ class CartController extends Controller
 
     public function addProduct(Request $request, Product $product): RedirectResponse|JsonResponse
     {
+        if (! $product->in_stock) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Товар недоступен для заказа',
+                    'errors' => ['quantity' => ['Товар временно отсутствует в наличии.']],
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors(['quantity' => 'Товар временно отсутствует в наличии.']);
+        }
+
         $stock = max(0, (int) $product->stock);
         $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1', 'max:' . $stock],

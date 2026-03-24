@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreServiceRequest;
 use App\Http\Requests\Admin\UpdateServiceRequest;
 use App\Models\Service;
+use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,8 +17,9 @@ class ServiceController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
-        $services = Service::when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', "%{$q}%")->orWhere('slug', 'like', "%{$q}%")))
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
+        $services = Service::when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', $like)->orWhere('slug', 'like', $like)))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -88,7 +90,7 @@ class ServiceController extends Controller
                 }
             }
         }
-        return redirect()->route('admin.services.index')->with('message', 'Услуга обновлена');
+        return redirect()->back()->with('message', 'Услуга обновлена');
     }
 
     public function destroy(Service $service): RedirectResponse

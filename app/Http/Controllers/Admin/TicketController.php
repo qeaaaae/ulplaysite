@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use App\Models\UserNotification;
+use App\Support\StrHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,11 +23,11 @@ class TicketController extends Controller
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
             ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
             ->when($request->filled('q'), function ($q) use ($request): void {
-                $query = (string) $request->q;
-                $q->where(function ($q2) use ($query): void {
-                    $q2->where('title', 'like', '%' . $query . '%')
-                        ->orWhere('description', 'like', '%' . $query . '%')
-                        ->orWhereHas('user', fn ($u) => $u->where('name', 'like', '%' . $query . '%')->orWhere('email', 'like', '%' . $query . '%'));
+                $like = '%' . StrHelper::escapeForLike((string) $request->q) . '%';
+                $q->where(function ($q2) use ($like): void {
+                    $q2->where('title', 'like', $like)
+                        ->orWhere('description', 'like', $like)
+                        ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $like)->orWhere('email', 'like', $like));
                 });
             })
             ->latest()

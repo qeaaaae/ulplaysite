@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreNewsRequest;
 use App\Http\Requests\Admin\UpdateNewsRequest;
 use App\Models\News;
+use App\Support\StrHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,9 +18,10 @@ class NewsController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = $request->input('q', '');
+        $q = (string) $request->input('q', '');
+        $like = '%' . StrHelper::escapeForLike($q) . '%';
         $news = News::with('author')
-            ->when($q !== '', fn ($query) => $query->where('title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%"))
+            ->when($q !== '', fn ($query) => $query->where('title', 'like', $like)->orWhere('description', 'like', $like))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -99,7 +101,7 @@ class NewsController extends Controller
                 }
             }
         }
-        return redirect()->route('admin.news.index')->with('message', 'Новость обновлена');
+        return redirect()->back()->with('message', 'Новость обновлена');
     }
 
     public function destroy(News $news): RedirectResponse

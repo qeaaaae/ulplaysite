@@ -55,28 +55,30 @@
                 @endif
             </div>
         <div class="mt-4 flex gap-2">
-            @if($inCart)
-                @if(auth()->check())
-                    <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="flex-1 justify-center h-11">
-                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-                        В корзине
-                    </x-ui.button>
+            <div class="flex-1 min-w-0 flex">
+                @if($inCart)
+                    @if(auth()->check())
+                        <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="sm" class="w-full justify-center h-11">
+                            @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                            В корзине
+                        </x-ui.button>
+                    @else
+                        <x-ui.button type="button" variant="outline" size="sm" class="w-full justify-center h-11" @click="openAuthModal('login')">
+                            @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                            В корзине
+                        </x-ui.button>
+                    @endif
                 @else
-                    <x-ui.button type="button" variant="outline" size="sm" class="flex-1 justify-center h-11" @click="openAuthModal('login')">
-                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-                        В корзине
-                    </x-ui.button>
+                    <form action="{{ route('cart.add-product', $product) }}" method="POST" class="w-full cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-product-id="{{ $product->id ?? '' }}">
+                        @csrf
+                        <input type="hidden" name="quantity" value="1">
+                        <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn h-11" type="submit">
+                            @svg('heroicon-o-shopping-cart', 'w-4 h-4')
+                            В корзину
+                        </x-ui.button>
+                    </form>
                 @endif
-            @else
-                <form action="{{ route('cart.add-product', $product) }}" method="POST" class="flex-1 cart-add-form" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-product-id="{{ $product->id ?? '' }}">
-                    @csrf
-                    <input type="hidden" name="quantity" value="1">
-                    <x-ui.button variant="primary" size="sm" class="w-full justify-center shadow-sm hover:shadow-md transition-shadow cart-add-btn h-11" type="submit">
-                        @svg('heroicon-o-shopping-cart', 'w-4 h-4')
-                        В корзину
-                    </x-ui.button>
-                </form>
-            @endif
+            </div>
             <a href="/products/{{ $product->slug }}" class="flex items-center justify-center w-11 h-11 rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50 hover:border-stone-400 shrink-0 transition-colors cursor-pointer" title="Подробнее">
                 @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4')
             </a>

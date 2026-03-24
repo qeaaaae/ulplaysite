@@ -20,6 +20,7 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{news:slug}/comments', [\App\Http\Controllers\CommentController::class, 'index'])->name('comments.index');
 Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.show');
 
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
@@ -81,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/support-tickets', [SupportTicketController::class, 'store'])->name('support-tickets.store')->middleware('throttle:support');
     Route::get('/my-tickets', [SupportTicketController::class, 'myIndex'])->name('tickets.my.index');
     Route::get('/my-tickets/{ticket}', [SupportTicketController::class, 'myShow'])->name('tickets.my.show');
+    Route::post('/my-tickets/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('tickets.my.reply')->middleware('throttle:support');
 });
 
 Route::fallback(function () {

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div>
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <x-ui.breadcrumbs :items="[
                 ['label' => 'Главная', 'url' => route('home')],
                 ['label' => 'Услуги', 'url' => route('services.index')],
                 ['label' => $service->title, 'url' => null],
-            ]" />
+            ]" class="!mb-0 py-4" />
 
             @php
                 $images = $service->images;
@@ -35,8 +35,9 @@
                         </div>
                     @endif
                 </div>
-                <div>
-                    <h1 class="text-2xl font-semibold text-stone-900 mt-2 mb-3">{{ $service->title }}</h1>
+                <div class="flex flex-col">
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900 mb-2">{{ $service->title }}</h1>
+
                     @php
                         $reviews = $reviews ?? $service->reviews;
                         $avgRating = $reviews->isEmpty() ? 0 : (float) $reviews->avg('rating');
@@ -70,39 +71,40 @@
                             <span class="text-stone-400 text-sm">Нет отзывов</span>
                         @endif
                     </div>
+
                     @if($service->description)
-                        <div class="text-stone-600 leading-relaxed prose prose-stone max-w-none">
-                            <p>{{ $service->description }}</p>
-                        </div>
+                        <p class="text-stone-600 leading-relaxed mb-4">{{ $service->description }}</p>
                     @endif
-                    @if($service->price)
-                        <p class="mt-6 text-xl font-bold text-stone-900">от {{ number_format($service->price, 0, ',', ' ') }} ₽</p>
-                    @endif
-                    <div class="flex flex-wrap gap-3 mt-6">
-                        @if(in_array($service->id, $cartServiceIds ?? []))
-                            @if(auth()->check())
-                                <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="md">
-                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                    В корзине
-                                </x-ui.button>
-                            @else
-                                <x-ui.button type="button" variant="outline" size="md" @click="openAuthModal('login')">
-                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                    В корзине
-                                </x-ui.button>
+
+                    <div class="pt-4 border-t border-stone-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-stone-50/80 border border-stone-200/80" data-purchase-block>
+                            @if($service->price)
+                                <div class="flex items-baseline gap-2 flex-wrap">
+                                    <span class="text-2xl sm:text-3xl font-bold text-stone-900">от {{ number_format($service->price, 0, ',', ' ') }} ₽</span>
+                                </div>
                             @endif
-                        @else
-                            <form action="{{ route('cart.add-service', $service) }}" method="POST" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-service-id="{{ $service->id }}">
-                                @csrf
-                                <x-ui.button type="submit" variant="primary" size="md" class="cart-add-btn">
-                                    @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                    В корзину
-                                </x-ui.button>
-                            </form>
-                        @endif
-                        <x-ui.button href="{{ route('services.index') }}" variant="outline" size="md">
-                            Все услуги
-                        </x-ui.button>
+                            @if(in_array($service->id, $cartServiceIds ?? []))
+                                @if(auth()->check())
+                                    <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="lg" class="sm:shrink-0">
+                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                        В корзине
+                                    </x-ui.button>
+                                @else
+                                    <x-ui.button type="button" variant="outline" size="lg" class="sm:shrink-0" @click="openAuthModal('login')">
+                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                        В корзине
+                                    </x-ui.button>
+                                @endif
+                            @else
+                                <form action="{{ route('cart.add-service', $service) }}" method="POST" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-service-id="{{ $service->id }}" class="sm:shrink-0">
+                                    @csrf
+                                    <x-ui.button type="submit" variant="primary" size="lg" class="cart-add-btn w-full sm:w-auto">
+                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
+                                        В корзину
+                                    </x-ui.button>
+                                </form>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

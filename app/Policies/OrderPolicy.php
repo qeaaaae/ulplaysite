@@ -12,6 +12,13 @@ class OrderPolicy
 {
     use HandlesAuthorization;
 
+    /**
+     * Разрешает просмотр заказа:
+     * - Администратору — всегда
+     * - Владельцу заказа (user_id совпадает)
+     * - По session-ключу order_view_{id} — устанавливается при редиректе после создания
+     *   заказа (OrderController::store), даёт одноразовый доступ к просмотру без проверки user_id
+     */
     public function view(?User $user, Order $order): bool
     {
         if ($user && $user->is_admin) {
