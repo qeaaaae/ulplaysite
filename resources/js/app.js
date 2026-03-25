@@ -410,12 +410,23 @@ function setButtonLoading(btn, loadingText = 'Загрузка...') {
     btn.dataset.originalHtml = btn.innerHTML;
     btn.disabled = true;
     const textPart = loadingText ? `<span class="ml-2">${loadingText}</span>` : '';
+    // Лайк и др.: фиксируем текущий размер кнопки, чтобы карточка не прыгала
+    if (!loadingText) {
+        const h = btn.offsetHeight;
+        const w = btn.offsetWidth;
+        btn.style.minHeight = `${Math.max(h, 1)}px`;
+        btn.style.minWidth = `${Math.max(w, 1)}px`;
+        btn.innerHTML = `<span class="inline-flex w-full items-center justify-center"><span class="animate-spin inline-flex shrink-0">${AJAX_SPINNER_SVG}</span></span>`;
+        return;
+    }
     btn.innerHTML = `<span class="animate-spin inline-flex shrink-0">${AJAX_SPINNER_SVG}</span>${textPart}`;
 }
 
 function restoreButton(btn) {
     if (!btn) return;
     btn.disabled = false;
+    btn.style.minHeight = '';
+    btn.style.minWidth = '';
     if (btn.dataset.originalHtml) {
         btn.innerHTML = btn.dataset.originalHtml;
         delete btn.dataset.originalHtml;
@@ -834,6 +845,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data?.result) {
+                if (btn) {
+                    restoreButton(btn);
+                }
+
                 const countEl = commentId
                     ? document.querySelector(`[data-comment-helpful-count="${commentId}"]`)
                     : null;
@@ -843,7 +858,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (btn) {
-                    restoreButton(btn);
                     const outlineIcon = btn.querySelector('.comment-helpful-icon-outline');
                     const filledIcon = btn.querySelector('.comment-helpful-icon-filled');
                     const isAdded = data.added === true;

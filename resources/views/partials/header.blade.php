@@ -34,8 +34,8 @@
 </div>
 <header class="sticky top-0 z-40 bg-white/98 backdrop-blur-sm border-b border-stone-200 shadow-[0_1px_0_0_rgba(0,0,0,0.04)]">
     <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
-        <div class="flex justify-between items-center h-14 sm:h-16">
-            <div class="flex items-center gap-4 min-w-0">
+        <div class="flex items-center justify-between lg:justify-start gap-3 lg:gap-5 h-14 sm:h-16 min-w-0">
+            <div class="flex items-center gap-4 min-w-0 shrink-0">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 text-stone-900 hover:text-sky-600 transition-colors duration-200 shrink-0">
                     <span class="font-heading text-xl font-semibold">UlPlay</span>
                 </a>
@@ -64,11 +64,13 @@
                 </nav>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-4">
-                <div class="hidden lg:flex max-w-md">
-                    <x-ui.search-form action="{{ route('products.index') }}" placeholder="Поиск товаров..." :value="request('q', '')" />
+            <div class="hidden lg:flex flex-1 min-w-0 justify-center px-2 xl:px-4">
+                <div class="w-full max-w-xl">
+                    <x-ui.search-form action="{{ route('search.index') }}" placeholder="Товары, услуги, новости..." :value="request('q', '')" />
                 </div>
+            </div>
 
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
                 @if($isAuthenticated ?? false)
                     <a href="{{ route('cart.index') }}" class="hidden lg:flex relative items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer">
                         @svg('heroicon-o-shopping-cart', 'w-5 h-5')
@@ -88,31 +90,63 @@
                             Выйти
                         </button>
                     </form>
-                    <div class="hidden lg:flex items-center gap-2">
-                        @if(auth()->user()?->is_admin)
-                            <a href="{{ route('admin.index') }}" class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Админка">@svg('heroicon-o-cog-6-tooth', 'w-5 h-5')</a>
-                        @endif
-                        @if(($notificationsUnreadCount ?? 0) > 0)
-                            <a href="{{ route('notifications.index') }}" class="flex items-center justify-center w-10 h-10 relative rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Уведомления">
-                                @svg('heroicon-o-bell', 'w-5 h-5')
-                                <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-semibold flex items-center justify-center">
-                                    {{ $notificationsUnreadCount }}
-                                </span>
+                    <div class="relative hidden lg:block" @click.outside="userMenuOpen = false">
+                        <button
+                            type="button"
+                            id="user-menu-trigger"
+                            @click="userMenuOpen = !userMenuOpen"
+                            :aria-expanded="userMenuOpen"
+                            aria-haspopup="menu"
+                            aria-controls="user-menu-dropdown"
+                            class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 focus-visible:ring-offset-0"
+                            :class="userMenuOpen ? 'bg-sky-50/90 text-sky-700 ring-1 ring-sky-200/80' : ''"
+                            title="Уведомления, поддержка, профиль и выход"
+                        >
+                            @svg('heroicon-o-squares-2x2', 'w-5 h-5')
+                        </button>
+                        <div
+                            id="user-menu-dropdown"
+                            x-show="userMenuOpen"
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            class="absolute right-0 top-full mt-1.5 w-64 rounded-xl border border-stone-200 bg-white py-1.5 shadow-lg z-50 ring-1 ring-black/5"
+                            role="menu"
+                            aria-labelledby="user-menu-trigger"
+                        >
+                            <a href="{{ route('profile') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
+                                <span class="shrink-0 text-stone-500">@svg('heroicon-o-user-circle', 'w-5 h-5')</span>
+                                <span class="font-medium">Профиль</span>
                             </a>
-                        @else
-                            <a href="{{ route('notifications.index') }}" class="flex items-center justify-center w-10 h-10 relative rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Уведомления">
-                                @svg('heroicon-o-bell', 'w-5 h-5')
+                            <a href="{{ route('notifications.index') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors relative">
+                                <span class="shrink-0 text-stone-500">@svg('heroicon-o-bell', 'w-5 h-5')</span>
+                                <span class="font-medium">Уведомления</span>
+                                @if(($notificationsUnreadCount ?? 0) > 0)
+                                    <span class="inline-flex min-w-[1.25rem] h-5 px-1.5 ml-auto rounded-full bg-rose-600 text-white text-xs font-semibold items-center justify-center">{{ $notificationsUnreadCount }}</span>
+                                @endif
                             </a>
-                        @endif
-                        <a href="{{ route('profile') }}" class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Профиль">
-                            @svg('heroicon-o-user-circle', 'w-5 h-5')
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Выйти">
-                                @svg('heroicon-o-arrow-right-on-rectangle', 'w-5 h-5')
-                            </button>
-                        </form>
+                            <a href="{{ route('tickets.my.index') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
+                                <span class="shrink-0 text-stone-500">@svg('heroicon-o-lifebuoy', 'w-5 h-5')</span>
+                                <span class="font-medium">Техподдержка</span>
+                            </a>
+                            @if(auth()->user()?->is_admin)
+                                <a href="{{ route('admin.index') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
+                                    <span class="shrink-0 text-stone-500">@svg('heroicon-o-cog-6-tooth', 'w-5 h-5')</span>
+                                    <span class="font-medium">Админка</span>
+                                </a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}" class="w-full" role="none">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer" role="menuitem">
+                                    <span class="shrink-0 text-stone-500">@svg('heroicon-o-arrow-right-on-rectangle', 'w-5 h-5')</span>
+                                    Выйти
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @else
                     <button type="button" @click="openAuthModal('login')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-stone-300 text-stone-700 rounded-md hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 transition-colors cursor-pointer">
@@ -133,7 +167,7 @@
 
         <div x-show="mobileMenuOpen" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="lg:hidden border-t border-stone-200 py-3">
             <div class="px-4 sm:px-6 pb-3">
-                <x-ui.search-form action="{{ route('products.index') }}" placeholder="Поиск товаров..." :value="request('q', '')" size="mobile" formClass="rounded-lg" />
+                <x-ui.search-form action="{{ route('search.index') }}" placeholder="Товары, услуги, новости..." :value="request('q', '')" size="mobile" formClass="rounded-lg" />
             </div>
             <nav class="flex flex-col gap-0.5 px-4 sm:px-6">
                 <a href="/products?category=playstation" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
@@ -173,6 +207,10 @@
                 @endif
                 @if($isAuthenticated ?? false)
                     <div class="mt-2 space-y-2">
+                        <a href="{{ route('profile') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
+                            @svg('heroicon-o-user-circle', 'w-5 h-5 shrink-0')
+                            Профиль
+                        </a>
                         <a href="{{ route('notifications.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer relative">
                             @svg('heroicon-o-bell', 'w-5 h-5 shrink-0')
                             <span>Уведомления</span>
@@ -182,16 +220,16 @@
                                 </span>
                             @endif
                         </a>
+                        <a href="{{ route('tickets.my.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
+                            @svg('heroicon-o-lifebuoy', 'w-5 h-5 shrink-0')
+                            Техподдержка
+                        </a>
                         @if(auth()->user()?->is_admin)
                             <a href="{{ route('admin.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
                                 @svg('heroicon-o-cog-6-tooth', 'w-5 h-5 shrink-0')
                                 Админка
                             </a>
                         @endif
-                        <a href="{{ route('profile') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
-                            @svg('heroicon-o-user-circle', 'w-5 h-5 shrink-0')
-                            Профиль
-                        </a>
                     </div>
                 @endif
             </div>

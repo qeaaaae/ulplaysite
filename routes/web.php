@@ -5,6 +5,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SupportTicketController;
@@ -20,6 +21,7 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 Route::get('/news/{news:slug}/comments', [\App\Http\Controllers\CommentController::class, 'index'])->name('comments.index');
 Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.show');
 

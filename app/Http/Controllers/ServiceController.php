@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Services\CartService;
+use App\Support\StrHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -15,9 +16,27 @@ class ServiceController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $services = Service::with('images')->withAvg('reviews', 'rating')
+        $q = trim((string) $request->input('q', ''));
+        $tokens = preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $servicesQuery = Service::with('images')->withAvg('reviews', 'rating')
             ->withCount('reviews')
-            ->orderBy('id')
+            ->orderBy('id');
+
+        if (!empty($tokens)) {
+            $servicesQuery->where(function ($builder) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $escaped = StrHelper::escapeForLike($token);
+                    $builder->where(function ($q1) use ($escaped) {
+                        $q1->where('title', 'like', "%{$escaped}%")
+                            ->orWhere('description', 'like', "%{$escaped}%")
+                            ->orWhere('type', 'like', "%{$escaped}%");
+                    });
+                }
+            });
+        }
+
+        $services = $servicesQuery
             ->paginate(10)
             ->withQueryString();
 

@@ -38,10 +38,10 @@
 
             <div class="@if($hasSimilar) lg:grid lg:grid-cols-[7fr_3fr] lg:gap-5 xl:gap-6 @endif">
                 <div class="min-w-0">
-                    <div class="grid grid-cols-1 gap-6 min-[820px]:grid-cols-2 min-[820px]:gap-6 lg:gap-8">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
                         <div>
                             @if($cover)
-                                <div class="aspect-[4/3] min-[820px]:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50">
+                                <div class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50">
                                     <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}">
                                         <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
                                     </a>
@@ -154,7 +154,7 @@
                 @if($hasSimilar)
                     <aside class="lg:sticky lg:top-4 lg:self-start mt-10 lg:mt-0 pt-8 lg:pt-0 border-t lg:border-t-0 border-stone-200">
                         <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-4">Похожие товары</x-ui.section-heading>
-                        <div class="grid grid-cols-1 gap-3 min-[820px]:grid-cols-4 min-[820px]:gap-4 lg:grid-cols-1 lg:gap-4">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-1 lg:gap-4">
                             @foreach($similarProducts as $similar)
                                 <div class="min-w-0">
                                     @include('components.product-card', ['product' => $similar, 'cartProductIds' => $cartProductIds ?? []])

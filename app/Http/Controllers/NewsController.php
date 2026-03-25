@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\News;
 use App\Models\NewsView;
+use App\Support\StrHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -15,10 +16,28 @@ class NewsController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $news = News::with(['author', 'images'])
+        $q = trim((string) $request->input('q', ''));
+        $tokens = preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $newsQuery = News::with(['author', 'images'])
             ->withCount(['comments', 'views'])
             ->whereNotNull('published_at')
-            ->orderByDesc('published_at')
+            ->orderByDesc('published_at');
+
+        if (!empty($tokens)) {
+            $newsQuery->where(function ($builder) use ($tokens) {
+                foreach ($tokens as $token) {
+                    $escaped = StrHelper::escapeForLike($token);
+                    $builder->where(function ($q1) use ($escaped) {
+                        $q1->where('title', 'like', "%{$escaped}%")
+                            ->orWhere('description', 'like', "%{$escaped}%")
+                            ->orWhere('content', 'like', "%{$escaped}%");
+                    });
+                }
+            });
+        }
+
+        $news = $newsQuery
             ->paginate(10)
             ->withQueryString();
 

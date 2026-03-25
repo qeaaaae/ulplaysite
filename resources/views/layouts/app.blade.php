@@ -21,6 +21,7 @@
     @include('partials.loader')
     <div id="app" class="flex-1 flex flex-col min-h-0 overflow-x-hidden" x-data="{
         mobileMenuOpen: false,
+        userMenuOpen: false,
         searchOpen: false,
         authModalOpen: false,
         authModalType: 'login',
@@ -110,7 +111,8 @@
             }
         }
     }"
-         x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')">
+         x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')"
+         @keydown.escape.window="userMenuOpen = false">
         @php
             $needsEmailVerify = auth()->check()
                 && !auth()->user()->hasVerifiedEmail();
@@ -150,16 +152,6 @@
         <main class="flex-1">
             @yield('content')
         </main>
-
-        @auth
-        <a
-            href="{{ route('support.create') }}"
-            aria-label="Техническая поддержка"
-            class="fixed right-4 bottom-4 z-[99990] inline-flex items-center justify-center w-12 h-12 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 transition-colors"
-        >
-            @svg('heroicon-o-lifebuoy', 'w-5 h-5')
-        </a>
-        @endauth
 
         @include('partials.footer')
 
