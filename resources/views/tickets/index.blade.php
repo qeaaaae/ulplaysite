@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-6 sm:py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <h1 class="text-xl sm:text-2xl font-semibold text-stone-900">Мои обращения</h1>
@@ -37,6 +37,12 @@
                                         </span>
                                         <span class="font-medium text-stone-900 line-clamp-1">{{ $ticket->title }}</span>
                                     </div>
+                                    @if($ticket->service)
+                                        <p class="text-sm text-stone-600 mt-1">
+                                            <span class="text-stone-500">Услуга:</span>
+                                            {{ $ticket->service->title }}
+                                        </p>
+                                    @endif
                                     <p class="text-sm text-stone-500">
                                         Обновлено: {{ $ticket->updated_at->format(config('app.datetime_format')) }}
                                     </p>

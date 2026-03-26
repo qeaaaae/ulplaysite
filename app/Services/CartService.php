@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Models\CartItem;
 use App\Models\Product;
-use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 
 class CartService
@@ -19,7 +18,7 @@ class CartService
     public function getItems(): \Illuminate\Database\Eloquent\Collection
     {
         $query = CartItem::query()
-            ->with(['product.images', 'service.images'])
+            ->with(['product.images'])
             ->where(function ($q) {
                 if (Auth::check()) {
                     $q->where('user_id', Auth::id());
@@ -28,7 +27,7 @@ class CartService
                 }
             });
 
-        return $query->get()->filter(fn (CartItem $item) => $item->product || $item->service);
+        return $query->get()->filter(fn (CartItem $item) => $item->product !== null);
     }
 
     public function count(): int
@@ -53,30 +52,14 @@ class CartService
         if ($item) {
             $item->quantity = min($item->quantity + $quantity, $maxQty);
             $item->save();
+
             return $item;
         }
+
         return CartItem::create([
             'session_id' => $this->getSessionId(),
             'user_id' => Auth::id(),
             'product_id' => $product->id,
-            'service_id' => null,
-            'quantity' => $quantity,
-        ]);
-    }
-
-    public function addService(Service $service, int $quantity = 1): CartItem
-    {
-        $item = $this->findService($service->id);
-        if ($item) {
-            $item->quantity += $quantity;
-            $item->save();
-            return $item;
-        }
-        return CartItem::create([
-            'session_id' => $this->getSessionId(),
-            'user_id' => Auth::id(),
-            'product_id' => null,
-            'service_id' => $service->id,
             'quantity' => $quantity,
         ]);
     }
@@ -86,12 +69,9 @@ class CartService
         if ($quantity < 1) {
             return $item->delete();
         }
-        if ($item->product_id && $item->product) {
-            $quantity = min($quantity, max(0, (int) $item->product->stock));
-        } else {
-            $quantity = min($quantity, 99);
-        }
+        $quantity = min($quantity, max(0, (int) $item->product->stock));
         $item->quantity = $quantity;
+
         return $item->save();
     }
 
@@ -111,6 +91,7 @@ class CartService
         });
         $count = $query->count();
         $query->delete();
+
         return $count;
     }
 
@@ -121,27 +102,14 @@ class CartService
 
     private function findProduct(int $productId): ?CartItem
     {
-        $query = CartItem::where('product_id', $productId)
-            ->whereNull('service_id');
+        $query = CartItem::where('product_id', $productId);
 
         if (Auth::check()) {
             $query->where('user_id', Auth::id());
         } else {
             $query->where('session_id', $this->getSessionId());
         }
-        return $query->first();
-    }
 
-    private function findService(int $serviceId): ?CartItem
-    {
-        $query = CartItem::where('service_id', $serviceId)
-            ->whereNull('product_id');
-
-        if (Auth::check()) {
-            $query->where('user_id', Auth::id());
-        } else {
-            $query->where('session_id', $this->getSessionId());
-        }
         return $query->first();
     }
 
@@ -152,21 +120,11 @@ class CartService
         $merged = 0;
         foreach ($items as $item) {
             $existing = CartItem::where('user_id', $userId)
-                ->where(function ($q) use ($item) {
-                    if ($item->product_id) {
-                        $q->where('product_id', $item->product_id)->whereNull('service_id');
-                    } else {
-                        $q->where('service_id', $item->service_id)->whereNull('product_id');
-                    }
-                })
+                ->where('product_id', $item->product_id)
                 ->first();
             if ($existing) {
                 $newQty = $existing->quantity + $item->quantity;
-                if ($existing->product_id && $existing->product) {
-                    $newQty = min($newQty, max(0, (int) $existing->product->stock));
-                } else {
-                    $newQty = min($newQty, 99);
-                }
+                $newQty = min($newQty, max(0, (int) $existing->product->stock));
                 $existing->quantity = $newQty;
                 $existing->save();
                 $item->delete();
@@ -175,6 +133,7 @@ class CartService
             }
             $merged++;
         }
+
         return $merged;
     }
 
@@ -183,13 +142,16 @@ class CartService
         foreach ($products as $p) {
             $productId = (int) ($p['id'] ?? $p['product_id'] ?? 0);
             $qty = max(1, min(99, (int) ($p['quantity'] ?? 1)));
-            if ($productId < 1) continue;
+            if ($productId < 1) {
+                continue;
+            }
             $product = Product::find($productId);
-            if (!$product || !$product->in_stock) continue;
+            if (! $product || ! $product->in_stock) {
+                continue;
+            }
             $qty = min($qty, max(0, (int) $product->stock));
             $existing = CartItem::where('user_id', $userId)
                 ->where('product_id', $productId)
-                ->whereNull('service_id')
                 ->first();
             if ($existing) {
                 $existing->quantity = min($existing->quantity + $qty, max(0, (int) $product->stock));
@@ -199,30 +161,6 @@ class CartService
                     'session_id' => $this->getSessionId(),
                     'user_id' => $userId,
                     'product_id' => $productId,
-                    'service_id' => null,
-                    'quantity' => $qty,
-                ]);
-            }
-        }
-        foreach ($services as $s) {
-            $serviceId = (int) ($s['id'] ?? $s['service_id'] ?? 0);
-            $qty = max(1, min(99, (int) ($s['quantity'] ?? 1)));
-            if ($serviceId < 1) continue;
-            $service = Service::find($serviceId);
-            if (!$service) continue;
-            $existing = CartItem::where('user_id', $userId)
-                ->where('service_id', $serviceId)
-                ->whereNull('product_id')
-                ->first();
-            if ($existing) {
-                $existing->quantity = min($existing->quantity + $qty, 99);
-                $existing->save();
-            } else {
-                CartItem::create([
-                    'session_id' => $this->getSessionId(),
-                    'user_id' => $userId,
-                    'product_id' => null,
-                    'service_id' => $serviceId,
                     'quantity' => $qty,
                 ]);
             }

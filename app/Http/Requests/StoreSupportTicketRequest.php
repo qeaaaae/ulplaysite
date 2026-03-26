@@ -22,6 +22,11 @@ class StoreSupportTicketRequest extends FormRequest
         if ($this->has('description')) {
             $this->merge(['description' => strip_tags((string) $this->description)]);
         }
+        if (! $this->filled('service_id')) {
+            $this->merge(['service_id' => null]);
+        } else {
+            $this->merge(['service_id' => (int) $this->input('service_id')]);
+        }
     }
 
     /** @return array<string, mixed> */
@@ -31,6 +36,7 @@ class StoreSupportTicketRequest extends FormRequest
             'type' => ['required', 'string', 'in:' . implode(',', array_column(SupportTicketTypeEnum::cases(), 'value'))],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:3000'],
+            'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'images' => ['nullable', 'array', 'max:3'],
             'images.*' => ['image', 'max:5120'],
         ];

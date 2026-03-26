@@ -12,6 +12,8 @@ class ProductSeeder extends Seeder
 {
     private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
+    private const PRODUCTS_PER_CHILD_CATEGORY = 10;
+
     private const TITLES = [
         'Геймпад беспроводной',
         'Зарядная станция для геймпадов',
@@ -27,37 +29,46 @@ class ProductSeeder extends Seeder
 
     public function run(): void
     {
-        $categoryIds = Category::orderBy('name')->pluck('id')->all();
-        if ($categoryIds === []) {
+        $childCategoryIds = Category::query()
+            ->whereNotNull('parent_id')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        if ($childCategoryIds === []) {
             return;
         }
 
-        $count = count($categoryIds);
-        for ($i = 1; $i <= 100; $i++) {
-            $title = self::TITLES[($i - 1) % count(self::TITLES)] . " #{$i}";
-            $slug = 'product-' . $i;
-            $product = Product::firstOrCreate(
-                ['slug' => $slug],
-                [
-                    'title' => $title,
-                    'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-                    'price' => rand(500, 15000),
-                    'category_id' => $categoryIds[($i - 1) % $count],
-                    'in_stock' => $i % 10 !== 0,
-                    'is_new' => $i <= 30,
-                    'is_recommended' => $i <= 15,
-                    'discount_percent' => $i % 4 === 0 ? rand(5, 20) : null,
-                ]
-            );
+        $titleCount = count(self::TITLES);
+        $productIndex = 0;
 
-            // Максимум 5 фото на товар
-            $product->images()->delete();
-            for ($pos = 0; $pos < 5; $pos++) {
-                $product->images()->create([
-                    'path' => self::IMAGE,
-                    'is_cover' => $pos === 0,
-                    'position' => $pos,
-                ]);
+        foreach ($childCategoryIds as $categoryId) {
+            for ($n = 0; $n < self::PRODUCTS_PER_CHILD_CATEGORY; $n++) {
+                $productIndex++;
+                $title = self::TITLES[($productIndex - 1) % $titleCount] . " #{$productIndex}";
+                $slug = 'product-' . $productIndex;
+                $product = Product::updateOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'title' => $title,
+                        'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+                        'price' => rand(500, 15000),
+                        'category_id' => $categoryId,
+                        'in_stock' => $productIndex % 10 !== 0,
+                        'is_new' => $productIndex <= 30,
+                        'is_recommended' => $productIndex <= 15,
+                        'discount_percent' => $productIndex % 4 === 0 ? rand(5, 20) : null,
+                    ]
+                );
+
+                $product->images()->delete();
+                for ($pos = 0; $pos < 5; $pos++) {
+                    $product->images()->create([
+                        'path' => self::IMAGE,
+                        'is_cover' => $pos === 0,
+                        'position' => $pos,
+                    ]);
+                }
             }
         }
     }

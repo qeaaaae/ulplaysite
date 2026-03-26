@@ -71,7 +71,7 @@ class ProductController extends Controller
             default => $query->latest(),
         };
 
-        $products = $query->paginate(10)->withQueryString();
+        $products = $query->paginate(12)->withQueryString();
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
 
         if ($request->wantsJson()) {
@@ -84,14 +84,29 @@ class ProductController extends Controller
             ]);
         }
 
-        $categories = Category::getCachedWithProductsCount();
+        $currentCategory = $request->filled('category')
+            ? Category::where('slug', (string) $request->category)->first()
+            : null;
+
+        $categoryTree = Category::getTreeForProductFilter();
+
+        $expandParentIds = [];
+        if ($currentCategory !== null) {
+            if ($currentCategory->parent_id !== null) {
+                $expandParentIds[] = $currentCategory->parent_id;
+            } else {
+                $root = $categoryTree->firstWhere('id', $currentCategory->id);
+                if ($root && $root->children->isNotEmpty()) {
+                    $expandParentIds[] = $currentCategory->id;
+                }
+            }
+        }
 
         return view('products.index', [
             'products' => $products,
-            'categories' => $categories,
-            'currentCategory' => $request->filled('category')
-                ? Category::where('slug', $request->category)->first()
-                : null,
+            'categoryTree' => $categoryTree,
+            'expandParentIds' => $expandParentIds,
+            'currentCategory' => $currentCategory,
             'cartProductIds' => $cartProductIds,
             'currentSort' => $sort,
         ]);
@@ -99,13 +114,18 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
-        $product->load(['category', 'images', 'reviews' => fn ($q) => $q->with('user')->latest()->limit(50)]);
+        $product->load(['category', 'images']);
+        $product->loadCount('reviews');
+        $product->loadAvg('reviews', 'rating');
+        $reviews = $product->reviews()->with('user')->latest()->paginate(10, ['*'], 'reviews_page');
+        $reviews->setPath(route('reviews.index.product', $product));
+        $reviews = $reviews->withQueryString();
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
         $canReview = $user
             && $user->hasPurchasedProduct($product)
-            && ! $product->reviews->contains('user_id', $user->id);
+            && ! $product->reviews()->where('user_id', $user->id)->exists();
 
         $categoryIds = collect();
         if ($product->category_id) {
@@ -136,7 +156,7 @@ class ProductController extends Controller
         return view('products.show', [
             'product' => $product,
             'cartProductIds' => $cartProductIds,
-            'reviews' => $product->reviews,
+            'reviews' => $reviews,
             'canReview' => $canReview,
             'similarProducts' => $similarProducts,
         ]);

@@ -4,37 +4,53 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 
+/**
+ * По 10 услуг на каждую корневую категорию (parent_id = null).
+ */
 class ServiceSeeder extends Seeder
 {
     private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
+    private const SERVICES_PER_ROOT_CATEGORY = 10;
+
     public function run(): void
     {
-        $types = ['repair', 'buy'];
-        $titles = ['Ремонт игровых приставок', 'Купим ваше устройство', 'Диагностика консоли', 'Чистка от пыли', 'Замена термопасты', 'Прошивка и настройка'];
-        $lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+        $roots = Category::query()
+            ->whereNull('parent_id')
+            ->orderBy('id')
+            ->get();
 
-        for ($i = 1; $i <= 100; $i++) {
-            $service = Service::firstOrCreate(
-                ['slug' => "service-{$i}"],
-                [
-                    'title' => $titles[($i - 1) % count($titles)] . " ({$i})",
-                    'description' => $lorem,
-                    'price' => $i % 3 === 0 ? rand(500, 5000) : null,
-                    'type' => $types[($i - 1) % 2],
-                ]
-            );
+        if ($roots->isEmpty()) {
+            return;
+        }
 
-            // Максимум 5 фото на услугу
-            $service->images()->delete();
-            for ($pos = 0; $pos < 5; $pos++) {
+        $n = 0;
+        foreach ($roots as $category) {
+            for ($i = 1; $i <= self::SERVICES_PER_ROOT_CATEGORY; $i++) {
+                $n++;
+                $slug = 'service-' . $category->slug . '-' . $i;
+                $title = 'Услуга: ' . $category->name . ' — вариант ' . $i;
+                $service = Service::updateOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'category_id' => $category->id,
+                        'title' => $title,
+                        'description' => 'Диагностика, консультация и работы по категории «' . $category->name . '». Срок и стоимость — после осмотра или по фото.',
+                        'content' => $i % 2 === 0
+                            ? "## Как проходит\n\n1. Оставляете заявку или звоните.\n2. Согласовываем время и объём работ.\n3. Выполняем услугу и выдаём результат.\n\nПодробности — в магазине или по телефону."
+                            : null,
+                    ]
+                );
+
+                $service->images()->delete();
                 $service->images()->create([
                     'path' => self::IMAGE,
-                    'is_cover' => $pos === 0,
-                    'position' => $pos,
+                    'is_cover' => true,
+                    'position' => 0,
                 ]);
             }
         }

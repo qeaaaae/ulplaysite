@@ -1,24 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
             <h1 class="text-2xl font-semibold text-stone-900 mb-8">Мои заказы</h1>
 
             @if($purchasedWithoutReview->isNotEmpty())
                 <section class="mb-10 p-6 bg-sky-50 rounded-xl border border-sky-100">
                     <h2 class="text-lg font-semibold text-stone-900 mb-4">Оставить отзыв</h2>
-                    <p class="text-sm text-stone-600 mb-4">Вы можете оставить отзыв на купленные товары и услуги:</p>
+                    <p class="text-sm text-stone-600 mb-4">Вы можете оставить отзыв на купленные товары:</p>
                     <ul class="space-y-2">
                         @foreach($purchasedWithoutReview as $item)
                             <li>
-                                @if($item['type'] === 'product')
-                                    <a href="{{ route('products.show', $item['model']) }}#reviews" class="text-sky-600 hover:underline font-medium">{{ $item['model']->title }}</a>
-                                    <span class="text-stone-500 text-sm"> - товар</span>
-                                @else
-                                    <a href="{{ route('services.show', $item['model']) }}#reviews" class="text-sky-600 hover:underline font-medium">{{ $item['model']->title }}</a>
-                                    <span class="text-stone-500 text-sm"> - услуга</span>
-                                @endif
+                                <a href="{{ route('products.show', $item['model']) }}#reviews" class="text-sky-600 hover:underline font-medium">{{ $item['model']->title }}</a>
+                                <span class="text-stone-500 text-sm"> — товар</span>
                             </li>
                         @endforeach
                     </ul>

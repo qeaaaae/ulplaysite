@@ -129,7 +129,7 @@
                                     <span class="inline-flex min-w-[1.25rem] h-5 px-1.5 ml-auto rounded-full bg-rose-600 text-white text-xs font-semibold items-center justify-center">{{ $notificationsUnreadCount }}</span>
                                 @endif
                             </a>
-                            <a href="{{ route('tickets.my.index') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
+                            <a href="{{ route('support.create') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
                                 <span class="shrink-0 text-stone-500">@svg('heroicon-o-lifebuoy', 'w-5 h-5')</span>
                                 <span class="font-medium">Техподдержка</span>
                             </a>
@@ -220,7 +220,7 @@
                                 </span>
                             @endif
                         </a>
-                        <a href="{{ route('tickets.my.index') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
+                        <a href="{{ route('support.create') }}" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border border-stone-300 text-stone-700 hover:border-sky-400 hover:text-sky-600 text-sm font-medium cursor-pointer">
                             @svg('heroicon-o-lifebuoy', 'w-5 h-5 shrink-0')
                             Техподдержка
                         </a>

@@ -1,16 +1,44 @@
 @extends('layouts.app')
 
+@php
+    $queryParams = array_filter([
+        'q' => request('q'),
+        'sort' => $currentSort ?? 'newest',
+        'category' => $currentCategory?->slug,
+    ], fn ($v) => $v !== null && $v !== '');
+@endphp
+
 @section('content')
     <div
-        class="py-8 md:py-12"
+        class="py-4"
         x-data="{
             loading: false,
+            loadingMore: false,
             abortController: null,
-            async load(url) {
+            infiniteObserver: null,
+            productsIndexUrl: @js(route('products.index')),
+            activeCategorySlug: @js($currentCategory?->slug ?? ''),
+            openParents: @json(array_fill_keys($expandParentIds ?? [], true)),
+            toggleParent(id) {
+                this.openParents = { ...this.openParents, [id]: !this.openParents[id] };
+            },
+            buildProductsListUrl(sortKey, categorySlugOverride = null) {
+                const u = new URL(this.productsIndexUrl, window.location.origin);
+                const params = new URLSearchParams();
+                const categorySlug = categorySlugOverride !== null ? categorySlugOverride : this.activeCategorySlug;
+                if (categorySlug) params.set('category', categorySlug);
+                const qInput = this.$el.querySelector('form[method=\'GET\'][action*=\'/products\'] input[name=\'q\']');
+                if (qInput && qInput.value.trim()) params.set('q', qInput.value.trim());
+                params.set('sort', sortKey || 'newest');
+                const qs = params.toString();
+                return u.pathname + (qs ? '?' + qs : '');
+            },
+            async load(url, append = false) {
                 if (!url) return;
                 if (this.abortController) this.abortController.abort();
                 this.abortController = new AbortController();
                 this.loading = true;
+                this.loadingMore = append;
                 try {
                     const res = await fetch(url, {
                         method: 'GET',
@@ -23,51 +51,106 @@
                     const data = await res.json().catch(() => ({}));
                     if (res.ok && data?.result && data?.html) {
                         const el = document.getElementById('products-results');
-                        if (el) el.innerHTML = data.html;
+                        if (!el) return;
+
+                        if (!append) {
+                            el.innerHTML = data.html;
+                        } else {
+                            const tmp = document.createElement('div');
+                            tmp.innerHTML = data.html;
+
+                            const currentGrid = el.querySelector('#products-grid');
+                            const newGrid = tmp.querySelector('#products-grid');
+                            if (currentGrid && newGrid) {
+                                currentGrid.append(...Array.from(newGrid.children));
+                            }
+
+                            const currentSentinel = el.querySelector('#products-infinite-sentinel');
+                            const newSentinel = tmp.querySelector('#products-infinite-sentinel');
+                            if (newSentinel) {
+                                if (currentSentinel) currentSentinel.replaceWith(newSentinel);
+                                else el.appendChild(newSentinel);
+                            } else if (currentSentinel) {
+                                currentSentinel.remove();
+                            }
+                        }
+
+                        try {
+                            const u = new URL(url, window.location.origin);
+                            this.activeCategorySlug = u.searchParams.get('category') || '';
+                        } catch (e) {
+                            /* ignore */
+                        }
+
+                        queueMicrotask(() => this.setupInfiniteScroll());
                     }
                 } catch (e) {
-                    // Ignore aborts
                     if (e?.name !== 'AbortError') console.error(e);
                 } finally {
                     this.loading = false;
+                    this.loadingMore = false;
                 }
+            },
+            setupInfiniteScroll() {
+                if (this.infiniteObserver) {
+                    this.infiniteObserver.disconnect();
+                    this.infiniteObserver = null;
+                }
+                const resultsEl = document.getElementById('products-results');
+                if (!resultsEl) return;
+                const sentinel = resultsEl.querySelector('#products-infinite-sentinel');
+                if (!sentinel) return;
+                const nextUrl = sentinel.dataset.nextUrl || '';
+                if (!nextUrl) return;
+                this.infiniteObserver = new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            if (!entry.isIntersecting) continue;
+                            if (this.loading) continue;
+                            const u = entry.target?.dataset?.nextUrl || '';
+                            if (!u) continue;
+                            this.infiniteObserver?.disconnect();
+                            this.infiniteObserver = null;
+                            this.load(u, true);
+                            break;
+                        }
+                    },
+                    { root: null, rootMargin: '480px 0px 0px 0px', threshold: 0 }
+                );
+                this.infiniteObserver.observe(sentinel);
             },
             init() {
                 const root = this.$el;
 
-                // Filters (category/sort) are rendered as TomSelect-enhanced selects.
-                root.querySelectorAll('select[data-ajax-products-filter]').forEach((sel) => {
-                    if (sel.tomselect?.on) {
-                        sel.tomselect.on('change', (value) => this.load(value));
-                    }
-                    sel.addEventListener('change', (e) => this.load(e.target.value));
+                root.addEventListener('change', (e) => {
+                    const sel = e.target?.closest?.('select[data-products-sort]');
+                    if (!sel) return;
+                    const sortKey = sel.value;
+                    if (!sortKey) return;
+                    this.load(this.buildProductsListUrl(sortKey));
                 });
 
-                // Search submit should update results without full page reload.
+                root.querySelectorAll('[data-ajax-products]').forEach((a) => {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const sortSelect = root.querySelector('select[data-products-sort]');
+                        const sortKey = sortSelect?.value || 'newest';
+                        const categorySlug = a.dataset.categorySlug || '';
+                        this.load(this.buildProductsListUrl(sortKey, categorySlug));
+                    });
+                });
+
                 const searchForm = root.querySelector('form[method=\'GET\'][action*=\'/products\']');
                 if (searchForm) {
                     searchForm.addEventListener('submit', (e) => {
                         e.preventDefault();
-                        const formData = new FormData(searchForm);
-                        const params = new URLSearchParams(formData);
-                        const url = searchForm.action + '?' + params.toString();
-                        this.load(url);
+                        const sortSelect = root.querySelector('select[data-products-sort]');
+                        const sortKey = sortSelect?.value || 'newest';
+                        this.load(this.buildProductsListUrl(sortKey));
                     });
                 }
 
-                // Pagination links should update results too.
-                const resultsEl = document.getElementById('products-results');
-                if (resultsEl) {
-                    resultsEl.addEventListener('click', (e) => {
-                        const a = e.target?.closest?.('a');
-                        if (!a) return;
-                        if (!a.closest('[data-products-pagination]')) return;
-                        const href = a.getAttribute('href');
-                        if (!href) return;
-                        e.preventDefault();
-                        this.load(href);
-                    });
-                }
+                this.setupInfiniteScroll();
             }
         }"
         x-init="init()"
@@ -89,67 +172,65 @@
             </div>
 
             @php
-                $filterBase = array_filter(['category' => $currentCategory?->slug, 'q' => request('q')]);
                 $selectClass = 'h-11 w-full sm:min-w-[240px] sm:max-w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 appearance-none bg-no-repeat pr-9 bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center]';
             @endphp
-            <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 p-4 sm:p-5 mb-6 sm:mb-8 bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-visible">
-                <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 md:gap-6">
-                    @if($categories->isNotEmpty())
-                        <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                            <span class="text-sm font-medium text-stone-600 sm:shrink-0">Категория</span>
+
+            <div class="flex flex-col gap-8 lg:flex-row lg:items-stretch">
+                @include('partials.category-filter-sidebar', [
+                    'categoryTree' => $categoryTree,
+                    'routeName' => 'products.index',
+                    'queryParams' => $queryParams,
+                    'expandParentIds' => $expandParentIds ?? [],
+                    'type' => 'products',
+                ])
+
+                <div class="min-w-0 flex-1 flex flex-col gap-6">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 p-4 sm:p-5 bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-sm overflow-visible">
+                        <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 sm:min-w-0">
+                            <span class="text-sm font-medium text-stone-600 sm:shrink-0">Сортировка</span>
                             <select
                                 data-enhance="tom-select"
-                                data-ajax-products-filter
+                                data-products-sort
                                 class="{{ $selectClass }}"
                                 style="background-image:url('data:image/svg+xml,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3e%3cpath stroke=%22%2378716c%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22M6 8l4 4 4-4%22/%3e%3c/svg%3e')"
                             >
-                                <option value="{{ route('products.index', array_merge($filterBase, ['sort' => $currentSort ?? 'newest'])) }}" {{ !$currentCategory ? 'selected' : '' }}>Все категории</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ route('products.index', array_merge($filterBase, ['category' => $cat->slug, 'sort' => $currentSort ?? 'newest'])) }}" {{ ($currentCategory && $currentCategory->id === $cat->id) ? 'selected' : '' }}>
-                                        {{ $cat->name }}{{ isset($cat->products_count) ? ' (' . $cat->products_count . ')' : '' }}
-                                    </option>
-                                @endforeach
+                                <option value="popular" {{ ($currentSort ?? '') === 'popular' ? 'selected' : '' }}>Сначала популярные</option>
+                                <option value="relevance" {{ ($currentSort ?? '') === 'relevance' ? 'selected' : '' }}>По релевантности</option>
+                                <option value="newest" {{ ($currentSort ?? 'newest') === 'newest' ? 'selected' : '' }}>Сначала новые</option>
+                                <option value="price_asc" {{ ($currentSort ?? '') === 'price_asc' ? 'selected' : '' }}>Сначала дешёвые</option>
+                                <option value="price_desc" {{ ($currentSort ?? '') === 'price_desc' ? 'selected' : '' }}>Сначала дорогие</option>
+                                <option value="rating" {{ ($currentSort ?? '') === 'rating' ? 'selected' : '' }}>С высокой оценкой</option>
                             </select>
                         </div>
-                    @endif
-                    <div class="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                        <span class="text-sm font-medium text-stone-600 sm:shrink-0">Сортировка</span>
-                        <select
-                            data-enhance="tom-select"
-                            data-ajax-products-filter
-                            class="{{ $selectClass }}"
-                            style="background-image:url('data:image/svg+xml,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3e%3cpath stroke=%22%2378716c%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22M6 8l4 4 4-4%22/%3e%3c/svg%3e')"
-                        >
-                            @php $sortBase = array_merge($filterBase, ['category' => $currentCategory?->slug]); @endphp
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'popular'])) }}" {{ ($currentSort ?? '') === 'popular' ? 'selected' : '' }}>Сначала популярные</option>
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'relevance'])) }}" {{ ($currentSort ?? '') === 'relevance' ? 'selected' : '' }}>По релевантности</option>
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'newest'])) }}" {{ ($currentSort ?? 'newest') === 'newest' ? 'selected' : '' }}>Сначала новые</option>
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'price_asc'])) }}" {{ ($currentSort ?? '') === 'price_asc' ? 'selected' : '' }}>Сначала дешёвые</option>
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'price_desc'])) }}" {{ ($currentSort ?? '') === 'price_desc' ? 'selected' : '' }}>Сначала дорогие</option>
-                            <option value="{{ route('products.index', array_merge($sortBase, ['sort' => 'rating'])) }}" {{ ($currentSort ?? '') === 'rating' ? 'selected' : '' }}>С высокой оценкой</option>
-                        </select>
+                        <x-ui.search-form
+                            action="{{ route('products.index') }}"
+                            placeholder="Поиск..."
+                            :value="request('q')"
+                            :hiddens="array_filter(['category' => $currentCategory?->slug, 'sort' => $currentSort ?? 'newest'])"
+                            formClass="h-11 w-full sm:flex-1 sm:min-w-0"
+                        />
                     </div>
-                </div>
-                <x-ui.search-form
-                    action="{{ route('products.index') }}"
-                    placeholder="Поиск..."
-                    :value="request('q')"
-                    :hiddens="array_filter(['category' => $currentCategory?->slug, 'sort' => $currentSort ?? 'newest'])"
-                    formClass="h-11 w-full sm:flex-1 sm:min-w-0"
-                />
-            </div>
 
-            <div class="relative">
-                <div
-                    x-show="loading"
-                    x-cloak
-                    class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10"
-                >
-                    <div class="text-stone-600 text-sm">Загрузка...</div>
-                </div>
-
-                <div id="products-results">
-                    @include('products._results', ['products' => $products, 'cartProductIds' => $cartProductIds ?? []])
+                    <div class="relative">
+                        <div id="products-results">
+                            @include('products._results', ['products' => $products, 'cartProductIds' => $cartProductIds ?? []])
+                        </div>
+                        <div
+                            x-show="loadingMore"
+                            x-cloak
+                            x-transition.opacity.duration.200ms
+                            class="flex justify-center py-8 mt-1"
+                            role="status"
+                            aria-live="polite"
+                            aria-busy="true"
+                            aria-label="Загрузка"
+                        >
+                            <span
+                                class="inline-block h-12 w-12 shrink-0 rounded-full border-4 border-stone-200 border-t-sky-600 animate-spin [animation-duration:0.85s]"
+                                aria-hidden="true"
+                            ></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

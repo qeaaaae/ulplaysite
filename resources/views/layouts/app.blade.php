@@ -32,6 +32,19 @@
         dialogMessage: '',
         dialogShowCancel: false,
         dialogCallback: null,
+        supportTicketModalOpen: false,
+        supportTicketServiceId: null,
+        supportTicketModalTitle: '',
+        openSupportTicketModal(detail) {
+            const d = detail || {};
+            this.supportTicketServiceId = d.serviceId != null ? d.serviceId : null;
+            this.supportTicketModalTitle = d.title ? ('Вопрос по услуге: ' + d.title) : 'Вопрос по услуге';
+            this.supportTicketModalOpen = true;
+        },
+        closeSupportTicketModal() {
+            this.supportTicketModalOpen = false;
+            this.supportTicketServiceId = null;
+        },
         openAuthModal(type) { this.authModalType = type; this.authModalOpen = true; this.authErrors = {}; },
         closeAuthModal() { this.authModalOpen = false; this.authErrors = {}; },
         openAlert(message, title) {
@@ -112,7 +125,8 @@
         }
     }"
          x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')"
-         @keydown.escape.window="userMenuOpen = false">
+         x-on:open-support-ticket-modal.window="openSupportTicketModal($event.detail)"
+         @keydown.escape.window="userMenuOpen = false; if (supportTicketModalOpen) closeSupportTicketModal()">
         @php
             $needsEmailVerify = auth()->check()
                 && !auth()->user()->hasVerifiedEmail();
@@ -156,6 +170,10 @@
         @include('partials.footer')
 
         @include('partials.auth-modal')
+
+        @auth
+            <x-support-ticket-modal />
+        @endauth
 
         <x-ui.dialog />
     </div>

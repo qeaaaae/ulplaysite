@@ -25,8 +25,11 @@ class HomeController extends Controller
         $servicesCount = 3;
         $newsCount = 4;
 
-        $categories = Category::with('images')->withCount('products')
-            ->orderByDesc('is_featured')
+        $categories = Category::query()
+            ->whereNotNull('parent_id')
+            ->with(['parent', 'images'])
+            ->withCount('products')
+            ->orderByDesc('products_count')
             ->orderBy('name')
             ->take(6)
             ->get();
@@ -41,7 +44,7 @@ class HomeController extends Controller
                 ->take($newProductsCount)
                 ->get(),
             'recommendedProducts' => $this->getRecommendedProducts($recommendedProductsCount),
-            'services' => Service::with('images')->withAvg('reviews', 'rating')->withCount('reviews')->latest()->take($servicesCount)->get(),
+            'services' => Service::with(['images', 'category'])->latest()->take($servicesCount)->get(),
             'news' => News::with(['author', 'images'])
                 ->withCount(['comments', 'views'])
                 ->whereNotNull('published_at')

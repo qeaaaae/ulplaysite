@@ -21,7 +21,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">ID</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Название</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Тип</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Категория</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
@@ -30,7 +30,7 @@
                         <tr class="hover:bg-stone-50/50">
                             <td class="px-4 py-3 text-sm">{{ $s->id }}</td>
                             <td class="px-4 py-3 font-medium">{{ $s->title }}</td>
-                            <td class="px-4 py-3">{{ $s->type === 'repair' ? 'Ремонт' : 'Покупка' }}</td>
+                            <td class="px-4 py-3 text-stone-600">{{ $s->category?->name ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <x-admin.action-buttons :edit-href="route('admin.services.edit', $s)" :delete-action="route('admin.services.destroy', $s)" />
                             </td>
@@ -47,7 +47,7 @@
                 <div class="flex justify-between items-center gap-3">
                     <div>
                         <p class="font-medium">{{ $s->title }}</p>
-                        <p class="text-sm text-stone-500">{{ $s->type === 'repair' ? 'Ремонт' : 'Покупка' }}</p>
+                        <p class="text-sm text-stone-500">{{ $s->category?->name ?? 'Без категории' }}</p>
                     </div>
                     <div class="shrink-0">
                         <x-admin.action-buttons :edit-href="route('admin.services.edit', $s)" :delete-action="route('admin.services.destroy', $s)" />

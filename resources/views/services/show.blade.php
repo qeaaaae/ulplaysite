@@ -15,7 +15,7 @@
                 $thumbs = $cover ? $images->filter(fn ($img) => $img->id !== $cover->id) : $images;
             @endphp
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 pb-10">
                 <div>
                     @if($cover)
                         <div class="aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden bg-stone-50">
@@ -36,78 +36,50 @@
                     @endif
                 </div>
                 <div class="flex flex-col">
-                    <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900 mb-2">{{ $service->title }}</h1>
-
-                    @php
-                        $reviews = $reviews ?? $service->reviews;
-                        $avgRating = $reviews->isEmpty() ? 0 : (float) $reviews->avg('rating');
-                        $reviewsCount = $reviews->count();
-                    @endphp
-                    <div class="flex flex-wrap items-center gap-3 mb-4">
-                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg">
-                            <span class="flex gap-0.5 text-xl text-sky-600 leading-none" aria-hidden="true">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @php
-                                        $fill = $avgRating >= $i ? 100 : ($avgRating > $i - 1 ? (int) round(($avgRating - ($i - 1)) * 100) : 0);
-                                    @endphp
-                                    <span class="relative inline-block">
-                                        <span class="text-stone-200">★</span>
-                                        @if($fill > 0)
-                                            <span class="absolute left-0 top-0 h-full overflow-hidden text-sky-600" data-star-fill="{{ $fill }}">
-                                                <span class="inline-block" data-inner-star-fill="{{ $fill < 100 ? round(10000 / $fill) : 100 }}">★</span>
-                                            </span>
-                                        @endif
-                                    </span>
-                                @endfor
-                            </span>
-                            <span class="font-semibold text-stone-900 tabular-nums">{{ number_format($avgRating, 1, ',', '') }}</span>
-                        </div>
-                        @if($reviewsCount > 0)
-                            <a href="#reviews" class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-sky-600 transition-colors">
-                                {{ $reviewsCount }} @if($reviewsCount === 1)отзыв@elseif($reviewsCount >= 2 && $reviewsCount <= 4)отзыва@else отзывов @endif
-                                @svg('heroicon-o-chevron-down', 'w-4 h-4')
-                            </a>
-                        @else
-                            <span class="text-stone-400 text-sm">Нет отзывов</span>
-                        @endif
-                    </div>
+                    @if($service->category)
+                        <p class="text-sm text-stone-500 mb-1">
+                            <a href="{{ route('services.index', ['category' => $service->category->slug]) }}" class="text-sky-600 hover:underline">{{ $service->category->name }}</a>
+                        </p>
+                    @endif
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900 mb-4">{{ $service->title }}</h1>
 
                     @if($service->description)
-                        <p class="text-stone-600 leading-relaxed mb-4">{{ $service->description }}</p>
+                        <p class="text-stone-600 leading-relaxed mb-6">{{ $service->description }}</p>
                     @endif
 
-                    <div class="pt-4 border-t border-stone-200">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-stone-50/80 border border-stone-200/80" data-purchase-block>
-                            @if($service->price)
-                                <div class="flex items-baseline gap-2 flex-wrap">
-                                    <span class="text-2xl sm:text-3xl font-bold text-stone-900">от {{ number_format($service->price, 0, ',', ' ') }} ₽</span>
-                                </div>
-                            @endif
-                            @if(in_array($service->id, $cartServiceIds ?? []))
-                                @if(auth()->check())
-                                    <x-ui.button href="{{ route('cart.index') }}" variant="outline" size="lg" class="sm:shrink-0">
-                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                        В корзине
-                                    </x-ui.button>
-                                @else
-                                    <x-ui.button type="button" variant="outline" size="lg" class="sm:shrink-0" @click="openAuthModal('login')">
-                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                        В корзине
-                                    </x-ui.button>
-                                @endif
-                            @else
-                                <form action="{{ route('cart.add-service', $service) }}" method="POST" data-ajax-cart-add data-cart-url="{{ route('cart.index') }}" data-service-id="{{ $service->id }}" class="sm:shrink-0">
-                                    @csrf
-                                    <x-ui.button type="submit" variant="primary" size="lg" class="cart-add-btn w-full sm:w-auto">
-                                        @svg('heroicon-o-shopping-cart', 'w-5 h-5')
-                                        В корзину
-                                    </x-ui.button>
-                                </form>
-                            @endif
-                        </div>
+                    <div class="mt-auto pt-4 border-t border-stone-200">
+                        @auth
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-sky-600 text-white font-semibold text-sm hover:bg-sky-700 transition-colors shadow-sm w-full sm:w-auto"
+                                @click="$dispatch('open-support-ticket-modal', { serviceId: {{ $service->id }}, title: @js($service->title) })"
+                            >
+                                @svg('heroicon-o-chat-bubble-left-right', 'w-5 h-5')
+                                Узнать подробнее
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-sky-600 text-white font-semibold text-sm hover:bg-sky-700 transition-colors shadow-sm w-full sm:w-auto"
+                                @click="openAuthModal('login')"
+                            >
+                                @svg('heroicon-o-chat-bubble-left-right', 'w-5 h-5')
+                                Узнать подробнее
+                            </button>
+                            <p class="text-stone-500 text-sm mt-2">Войдите, чтобы задать вопрос по услуге</p>
+                        @endauth
                     </div>
                 </div>
             </div>
+
+            @if($service->content)
+                <section class="border-t border-stone-200 pt-10 pb-12">
+                    <h2 class="text-xl font-semibold text-stone-900 mb-6">Как проходит услуга</h2>
+                    <div class="prose prose-stone max-w-none prose-headings:font-semibold prose-a:text-sky-600 prose-img:rounded-lg">
+                        {!! \Illuminate\Support\Str::markdown($service->content) !!}
+                    </div>
+                </section>
+            @endif
 
             @if(($similarServices ?? collect())->isNotEmpty())
                 <section class="mt-10 pt-8 border-t border-stone-200 overflow-hidden">
@@ -119,14 +91,6 @@
                     </div>
                 </section>
             @endif
-
-            <x-reviews-block
-                :reviewable="$service"
-                :reviews="$reviews ?? $service->reviews"
-                :can-review="$canReview ?? false"
-                store-route="reviews.store.service"
-                :store-route-param="$service"
-            />
         </div>
     </div>
 @endsection

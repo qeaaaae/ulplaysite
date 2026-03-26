@@ -29,7 +29,9 @@ class CommentController extends Controller
             $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
             $commentsQuery->orderBy('created_at', $sortDir);
         }
-        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page)->withQueryString();
+        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page);
+        $comments->setPath(route('comments.index', $news));
+        $comments = $comments->withQueryString();
 
         return response()->json([
             'result' => true,
@@ -71,6 +73,8 @@ class CommentController extends Controller
 
         if ($request->wantsJson()) {
             $comments = $news->comments()->with(['user', 'helpfulVotes'])->orderByDesc('created_at')->paginate(10, ['*'], 'comments_page');
+            $comments->setPath(route('comments.index', $news));
+            $comments = $comments->withQueryString();
 
             return response()->json([
                 'result' => true,
@@ -132,7 +136,9 @@ class CommentController extends Controller
                 $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
                 $commentsQuery->orderBy('created_at', $sortDir);
             }
-            $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page)->withQueryString();
+            $comments = $commentsQuery->paginate(10, ['*'], 'comments_page', $page);
+            $comments->setPath(route('comments.index', $news));
+            $comments = $comments->withQueryString();
 
             return response()->json([
                 'result' => true,

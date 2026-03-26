@@ -12,8 +12,7 @@ class ProductionDatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
-            RealisticUserSeeder::class,
-            CategorySeeder::class,
+            ConsoleCategorySeeder::class,
         ]);
     }
 }

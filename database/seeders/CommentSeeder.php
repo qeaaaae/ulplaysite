@@ -12,6 +12,11 @@ use Illuminate\Database\Seeder;
 
 class CommentSeeder extends Seeder
 {
+    /** От 20 до 30 комментариев на каждую новость. */
+    private const MIN_COMMENTS_PER_NEWS = 20;
+
+    private const MAX_COMMENTS_PER_NEWS = 30;
+
     public function run(): void
     {
         $users = User::where('is_admin', false)->get();
@@ -30,9 +35,9 @@ class CommentSeeder extends Seeder
         ];
 
         foreach ($newsIds as $newsId) {
-            $commentCount = min(20, $users->count());
-            $selectedUsers = $users->shuffle()->take($commentCount);
-            foreach ($selectedUsers as $user) {
+            $commentCount = random_int(self::MIN_COMMENTS_PER_NEWS, self::MAX_COMMENTS_PER_NEWS);
+            for ($c = 0; $c < $commentCount; $c++) {
+                $user = $users->random();
                 $daysAgo = random_int(0, 30);
                 $createdAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
                 Comment::create([

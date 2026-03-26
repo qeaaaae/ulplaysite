@@ -40,24 +40,35 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
                 <x-ui.input name="title" label="Название" label-icon="heroicon-o-document-text" value="{{ old('title', $service->title) }}" required :error="$errors->first('title')" />
                 <x-ui.input name="slug" label="Ярлык" label-icon="heroicon-o-link" value="{{ old('slug', $service->slug) }}" :error="$errors->first('slug')" />
-                <x-ui.input type="number" name="price" label="Цена (₽)" label-icon="heroicon-o-currency-dollar" value="{{ old('price', $service->price) }}" step="0.01" :error="$errors->first('price')" />
-                <div class="flex flex-col">
+                <div class="lg:col-span-2 flex flex-col">
                     <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
-                        @svg('heroicon-o-cog-6-tooth', 'w-4 h-4 text-sky-500 shrink-0')
-                        Тип
+                        @svg('heroicon-o-squares-2x2', 'w-4 h-4 text-sky-500 shrink-0')
+                        Категория
                     </label>
-                    <select name="type" data-enhance="tom-select" class="w-full h-11 px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150" required>
-                        <option value="repair" {{ old('type', $service->type) === 'repair' ? 'selected' : '' }}>Ремонт</option>
-                        <option value="buy" {{ old('type', $service->type) === 'buy' ? 'selected' : '' }}>Покупка</option>
+                    <select name="category_id" data-enhance="tom-select" class="w-full h-11 px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150">
+                        <option value="">— без категории —</option>
+                        @foreach($categories ?? [] as $cat)
+                            <option value="{{ $cat->id }}" {{ (string) old('category_id', $service->category_id) === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
                     </select>
+                    @if($errors->has('category_id'))
+                        <p class="mt-1 text-sm text-rose-600">{{ $errors->first('category_id') }}</p>
+                    @endif
                 </div>
             </div>
             <div class="mt-4 flex flex-col">
                 <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
                     @svg('heroicon-o-document', 'w-4 h-4 text-sky-500 shrink-0')
-                    Описание
+                    Краткое описание
                 </label>
-                <textarea name="description" rows="3" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y" placeholder="Краткое описание услуги">{{ old('description', $service->description) }}</textarea>
+                <textarea name="description" rows="3" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y" placeholder="Анонс для карточки и списка">{{ old('description', $service->description) }}</textarea>
+            </div>
+            <div class="mt-4 flex flex-col">
+                <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
+                    @svg('heroicon-o-document-text', 'w-4 h-4 text-sky-500 shrink-0')
+                    Подробно: как проходит услуга (Markdown)
+                </label>
+                <textarea name="content" rows="12" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y font-mono text-sm" placeholder="Заголовки, списки, ссылки — в формате Markdown">{{ old('content', $service->content) }}</textarea>
             </div>
         </x-admin.form-section>
 

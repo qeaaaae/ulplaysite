@@ -25,7 +25,7 @@ class ProductFactory extends Factory
             'slug' => Str::slug($title) . '-' . fake()->unique()->numberBetween(1, 99999),
             'description' => fake()->optional()->paragraph(),
             'price' => fake()->randomFloat(2, 100, 5000),
-            'category_id' => Category::factory(),
+            'category_id' => fn () => Category::factory()->child()->create()->id,
             'in_stock' => true,
             'stock' => fake()->numberBetween(1, 99),
             'discount_percent' => fake()->optional(0.3)->numberBetween(5, 50),

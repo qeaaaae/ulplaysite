@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
             <h1 class="text-2xl font-semibold text-stone-900 mb-8">Личный кабинет</h1>
 

@@ -35,7 +35,7 @@ class OrderService
                 $total += $subtotal;
                 $orderItems[] = [
                     'product_id' => $cartItem->product_id,
-                    'service_id' => $cartItem->service_id,
+                    'service_id' => null,
                     'quantity' => $cartItem->quantity,
                     'price' => $price,
                 ];

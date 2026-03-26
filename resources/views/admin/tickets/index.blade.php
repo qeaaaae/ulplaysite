@@ -70,6 +70,10 @@
                         <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded mt-2 {{ $type?->badgeClass() ?? 'bg-stone-100 text-stone-700' }}">
                             {{ $type?->label() ?? '—' }}
                         </span>
+                        @if($ticket->service)
+                            <span class="text-stone-300">·</span>
+                            <span class="text-sky-700 truncate max-w-[10rem]" title="{{ $ticket->service->title }}">{{ \Illuminate\Support\Str::limit($ticket->service->title, 24) }}</span>
+                        @endif
                     </div>
                 </div>
                 {{-- ПК версия: оригинальная сетка --}}
@@ -98,6 +102,10 @@
                         </span>
                         <span class="text-stone-300">·</span>
                         <span>{{ $ticket->images->count() }} фото</span>
+                        @if($ticket->service)
+                            <span class="text-stone-300">·</span>
+                            <span class="text-sky-700 truncate max-w-[12rem]" title="{{ $ticket->service->title }}">{{ \Illuminate\Support\Str::limit($ticket->service->title, 28) }}</span>
+                        @endif
                     </div>
                 </div>
                 <div class="shrink-0 flex items-center gap-2">

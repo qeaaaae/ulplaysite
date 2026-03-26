@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
             <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
                 <div class="p-6 border-b border-stone-200">

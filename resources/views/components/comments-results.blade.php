@@ -10,7 +10,7 @@
 @if($commentsList->isEmpty())
     <p class="text-stone-500 text-sm">Пока ничего нет.</p>
 @else
-    <ul class="space-y-3">
+    <ul id="comments-grid" class="space-y-3">
         @foreach($commentsList as $comment)
             @php
                 $canEdit = auth()->check() && $comment->isEditableBy(auth()->user());
@@ -125,7 +125,12 @@
             </li>
         @endforeach
     </ul>
-    @if($isPaginated && $comments->hasPages())
-        <div class="mt-4" data-comments-pagination>{{ $comments->withPath(route('comments.index', ['news' => $news]))->withQueryString()->links() }}</div>
+    @if($isPaginated && $comments->hasMorePages())
+        <div
+            id="comments-infinite-sentinel"
+            data-next-url="{{ $comments->nextPageUrl() }}"
+            class="h-1 w-full shrink-0 pointer-events-none mt-2"
+            aria-hidden="true"
+        ></div>
     @endif
 @endif

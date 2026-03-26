@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             <div class="mb-6 sm:mb-8">
                 <x-ui.section-heading tag="h1" icon="heroicon-o-magnifying-glass" class="mb-0">

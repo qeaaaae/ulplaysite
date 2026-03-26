@@ -65,9 +65,8 @@
                             <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900 mb-2">{{ $product->title }}</h1>
 
                             @php
-                                $reviews = $reviews ?? $product->reviews;
-                                $avgRating = $reviews->isEmpty() ? 0 : (float) $reviews->avg('rating');
-                                $reviewsCount = $reviews->count();
+                                $avgRating = (float) ($product->reviews_avg_rating ?? 0);
+                                $reviewsCount = (int) ($product->reviews_count ?? 0);
                             @endphp
                             <div class="flex flex-wrap items-center gap-3 mb-4">
                                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg">
@@ -144,7 +143,7 @@
 
                     <x-reviews-block
                         :reviewable="$product"
-                        :reviews="$reviews ?? $product->reviews"
+                        :reviews="$reviews"
                         :can-review="$canReview ?? false"
                         store-route="reviews.store.product"
                         :store-route-param="$product"

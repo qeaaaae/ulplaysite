@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreServiceRequest;
 use App\Http\Requests\Admin\UpdateServiceRequest;
+use App\Models\Category;
 use App\Models\Service;
 use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,8 @@ class ServiceController extends Controller
     {
         $q = (string) $request->input('q', '');
         $like = '%' . StrHelper::escapeForLike($q) . '%';
-        $services = Service::when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', $like)->orWhere('slug', 'like', $like)))
+        $services = Service::with('category')
+            ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', $like)->orWhere('slug', 'like', $like)))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -28,7 +30,10 @@ class ServiceController extends Controller
 
     public function create(): View
     {
-        return view('admin.services.form', ['service' => new Service()]);
+        return view('admin.services.form', [
+            'service' => new Service(),
+            'categories' => Category::query()->whereNull('parent_id')->orderBy('name')->get(),
+        ]);
     }
 
     public function store(StoreServiceRequest $request): RedirectResponse
@@ -55,7 +60,10 @@ class ServiceController extends Controller
 
     public function edit(Service $service): View
     {
-        return view('admin.services.form', ['service' => $service]);
+        return view('admin.services.form', [
+            'service' => $service->load('images'),
+            'categories' => Category::query()->whereNull('parent_id')->orderBy('name')->get(),
+        ]);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse

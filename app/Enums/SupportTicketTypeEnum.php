@@ -12,6 +12,7 @@ enum SupportTicketTypeEnum: string
     case SERVICE_REPAIR = 'service_repair';
     case RETURN_EXCHANGE = 'return_exchange';
     case SUGGESTION = 'suggestion';
+    case SERVICE_INQUIRY = 'service_inquiry';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum SupportTicketTypeEnum: string
             self::SERVICE_REPAIR => 'Услуги/ремонт',
             self::RETURN_EXCHANGE => 'Возврат/обмен',
             self::SUGGESTION => 'Предложение/пожелание',
+            self::SERVICE_INQUIRY => 'Вопрос по услуге',
         };
     }
 
@@ -34,6 +36,7 @@ enum SupportTicketTypeEnum: string
             self::SERVICE_REPAIR => 'bg-violet-100 text-violet-700',
             self::RETURN_EXCHANGE => 'bg-orange-100 text-orange-700',
             self::SUGGESTION => 'bg-emerald-100 text-emerald-700',
+            self::SERVICE_INQUIRY => 'bg-indigo-100 text-indigo-800',
         };
     }
 
@@ -46,6 +49,7 @@ enum SupportTicketTypeEnum: string
             self::SERVICE_REPAIR => '#7c3aed',
             self::RETURN_EXCHANGE => '#c2410c',
             self::SUGGESTION => '#047857',
+            self::SERVICE_INQUIRY => '#3730a3',
         };
     }
 }

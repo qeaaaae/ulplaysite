@@ -7,7 +7,6 @@ namespace Database\Seeders;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Models\Service;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -20,9 +19,8 @@ class OrderSeeder extends Seeder
     {
         $users = User::where('is_admin', false)->limit(25)->get();
         $products = Product::where('in_stock', true)->get();
-        $services = Service::all();
 
-        if ($products->isEmpty() && $services->isEmpty()) {
+        if ($products->isEmpty()) {
             return;
         }
 
@@ -31,7 +29,7 @@ class OrderSeeder extends Seeder
 
         for ($i = 0; $i < $ordersToCreate * 2 && $created < $ordersToCreate; $i++) {
             $user = $users->random();
-            $items = $this->makeItems($products, $services);
+            $items = $this->makeItems($products);
             if ($items === []) {
                 continue;
             }
@@ -67,8 +65,8 @@ class OrderSeeder extends Seeder
             foreach ($items as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item['product_id'] ?? null,
-                    'service_id' => $item['service_id'] ?? null,
+                    'product_id' => $item['product_id'],
+                    'service_id' => null,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
@@ -77,29 +75,17 @@ class OrderSeeder extends Seeder
         }
     }
 
-    /** @return list<array{product_id: null, service_id: int, quantity: int, price: float, subtotal: float}>|list<array{product_id: int, service_id: null, quantity: int, price: float, subtotal: float}> */
-    private function makeItems($products, $services): array
+    /** @return list<array{product_id: int, quantity: int, price: float, subtotal: float}> */
+    private function makeItems($products): array
     {
         $items = [];
         $count = random_int(1, 5);
-        $haveProducts = $products->isNotEmpty();
-        $haveServices = $services->isNotEmpty();
 
         for ($i = 0; $i < $count; $i++) {
-            if ($haveProducts && (!$haveServices || random_int(0, 1) === 0)) {
-                $product = $products->random();
-                $qty = random_int(1, 2);
-                $price = (float) $product->price;
-                $items[] = ['product_id' => $product->id, 'service_id' => null, 'quantity' => $qty, 'price' => $price, 'subtotal' => $price * $qty];
-            } elseif ($haveServices) {
-                $service = $services->random();
-                $qty = 1;
-                $price = (float) ($service->price ?? 0);
-                if ($price <= 0) {
-                    $price = 500.0;
-                }
-                $items[] = ['product_id' => null, 'service_id' => $service->id, 'quantity' => $qty, 'price' => $price, 'subtotal' => $price * $qty];
-            }
+            $product = $products->random();
+            $qty = random_int(1, 2);
+            $price = (float) $product->price;
+            $items[] = ['product_id' => $product->id, 'quantity' => $qty, 'price' => $price, 'subtotal' => $price * $qty];
         }
 
         return $items;

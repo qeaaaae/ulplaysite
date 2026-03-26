@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -46,18 +47,18 @@ class ServiceControllerTest extends TestCase
 
         $response = $this->post(route('admin.services.store'), []);
 
-        $response->assertSessionHasErrors(['title', 'type']);
+        $response->assertSessionHasErrors(['title']);
     }
 
     public function test_store_creates_service(): void
     {
         $this->actingAsAdmin();
+        $root = Category::factory()->create();
 
         $response = $this->post(route('admin.services.store'), [
             'title' => 'New Service',
             'description' => 'Desc',
-            'price' => 500,
-            'type' => 'repair',
+            'category_id' => $root->id,
         ]);
 
         $response->assertRedirect(route('admin.services.index'));
@@ -72,8 +73,7 @@ class ServiceControllerTest extends TestCase
         $response = $this->patch(route('admin.services.update', $service), [
             'title' => 'Updated Service',
             'description' => $service->description,
-            'price' => $service->price,
-            'type' => $service->type,
+            'category_id' => $service->category_id,
         ]);
 
         $response->assertRedirect(route('admin.services.index'));
@@ -95,7 +95,7 @@ class ServiceControllerTest extends TestCase
     {
         Storage::fake('public');
         $this->actingAsAdmin();
-        $service = Service::factory()->create(['type' => 'repair']);
+        $service = Service::factory()->create();
         for ($i = 0; $i < 5; $i++) {
             $service->images()->create([
                 'path' => "services/img{$i}.jpg",
@@ -109,8 +109,7 @@ class ServiceControllerTest extends TestCase
         $response = $this->patch(route('admin.services.update', $service), [
             'title' => $service->title,
             'description' => $service->description,
-            'price' => $service->price,
-            'type' => $service->type,
+            'category_id' => $service->category_id,
             'images' => [$newImage],
         ]);
 
@@ -121,7 +120,7 @@ class ServiceControllerTest extends TestCase
     {
         Storage::fake('public');
         $this->actingAsAdmin();
-        $service = Service::factory()->create(['type' => 'repair']);
+        $service = Service::factory()->create();
         $img1 = $service->images()->create(['path' => 'services/a.jpg', 'is_cover' => true, 'position' => 0]);
         $img2 = $service->images()->create(['path' => 'services/b.jpg', 'is_cover' => false, 'position' => 1]);
 
@@ -130,8 +129,7 @@ class ServiceControllerTest extends TestCase
         $response = $this->patch(route('admin.services.update', $service), [
             'title' => $service->title,
             'description' => $service->description,
-            'price' => $service->price,
-            'type' => $service->type,
+            'category_id' => $service->category_id,
             'delete_images' => [$img1->id],
             'images' => [$newImage],
         ]);

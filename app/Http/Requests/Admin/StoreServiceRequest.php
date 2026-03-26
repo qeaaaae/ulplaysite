@@ -20,9 +20,12 @@ class StoreServiceRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string'],
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(fn ($q) => $q->whereNull('parent_id')),
+            ],
             'description' => ['nullable', 'string'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'type' => ['required', 'in:repair,buy'],
+            'content' => ['nullable', 'string'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:4096'],
         ];

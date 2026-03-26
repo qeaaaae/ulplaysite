@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/{product:slug}/reviews', [\App\Http\Controllers\ReviewController::class, 'index'])->name('reviews.index.product');
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
@@ -43,7 +44,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index')->middleware('verified_if_auth');
 Route::post('/cart/product/{product}', [\App\Http\Controllers\CartController::class, 'addProduct'])->name('cart.add-product')->middleware(['throttle:cart', 'verified_if_auth']);
-Route::post('/cart/service/{service}', [\App\Http\Controllers\CartController::class, 'addService'])->name('cart.add-service')->middleware(['throttle:cart', 'verified_if_auth']);
 Route::patch('/cart/{cartItem}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update')->middleware(['throttle:cart', 'verified_if_auth']);
 Route::delete('/cart/{cartItem}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove')->middleware(['throttle:cart', 'verified_if_auth']);
 Route::post('/cart/clear', [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear')->middleware(['throttle:cart', 'verified_if_auth']);
@@ -57,7 +57,6 @@ Route::middleware(['auth', 'verified_if_auth'])->group(function () {
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update')->middleware('throttle:profile');
     Route::get('/my-orders', [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
     Route::post('/products/{product}/reviews', [\App\Http\Controllers\ReviewController::class, 'storeProduct'])->name('reviews.store.product')->middleware('throttle:reviews');
-    Route::post('/services/{service}/reviews', [\App\Http\Controllers\ReviewController::class, 'storeService'])->name('reviews.store.service')->middleware('throttle:reviews');
     Route::post('/news/{news:slug}/comments', [\App\Http\Controllers\CommentController::class, 'store'])->name('comments.store')->middleware('throttle:reviews');
     Route::patch('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'update'])->name('comments.update')->middleware('throttle:reviews');
     Route::delete('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy')->middleware('throttle:reviews');

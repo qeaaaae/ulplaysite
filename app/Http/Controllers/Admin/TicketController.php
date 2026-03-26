@@ -19,7 +19,7 @@ class TicketController extends Controller
 {
     public function index(Request $request): View
     {
-        $tickets = SupportTicket::with(['user', 'images'])
+        $tickets = SupportTicket::with(['user', 'images', 'service'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
             ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
             ->when($request->filled('q'), function ($q) use ($request): void {
@@ -39,7 +39,7 @@ class TicketController extends Controller
 
     public function show(SupportTicket $ticket): View
     {
-        $ticket->load(['user', 'images', 'messages.senderUser']);
+        $ticket->load(['user', 'images', 'messages.senderUser', 'service']);
 
         return view('admin.tickets.show', ['ticket' => $ticket]);
     }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <h1 class="text-2xl font-semibold text-stone-900">Уведомления</h1>

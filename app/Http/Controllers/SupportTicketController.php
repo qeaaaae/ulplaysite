@@ -24,7 +24,7 @@ class SupportTicketController extends Controller
 
         $tickets = SupportTicket::query()
             ->forUser($user->id)
-            ->with(['images'])
+            ->with(['images', 'service'])
             ->withCount('messages')
             ->orderByDesc('updated_at')
             ->paginate(10);
@@ -38,7 +38,7 @@ class SupportTicketController extends Controller
     {
         $this->authorize('view', $ticket);
 
-        $ticket->load(['images', 'messages.senderUser']);
+        $ticket->load(['images', 'messages.senderUser', 'service']);
 
         UserNotification::query()
             ->where('user_id', $request->user()->id)
@@ -57,6 +57,7 @@ class SupportTicketController extends Controller
 
         $ticket = SupportTicket::create([
             'user_id' => $request->user()->id,
+            'service_id' => $validated['service_id'] ?? null,
             'type' => $validated['type'],
             'title' => $validated['title'],
             'description' => $validated['description'],

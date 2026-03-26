@@ -51,16 +51,17 @@ class SearchController extends Controller
                 ->limit(6)
                 ->get();
 
-            $services = Service::with('images')
-                ->withAvg('reviews', 'rating')
-                ->withCount('reviews')
+            $services = Service::with(['images', 'category'])
                 ->where(function ($builder) use ($tokens) {
                     foreach ($tokens as $token) {
                         $escaped = StrHelper::escapeForLike($token);
                         $builder->where(function ($q1) use ($escaped) {
                             $q1->where('title', 'like', "%{$escaped}%")
                                 ->orWhere('description', 'like', "%{$escaped}%")
-                                ->orWhere('type', 'like', "%{$escaped}%");
+                                ->orWhere('content', 'like', "%{$escaped}%")
+                                ->orWhereHas('category', function ($q2) use ($escaped) {
+                                    $q2->where('name', 'like', "%{$escaped}%");
+                                });
                         });
                     }
                 })

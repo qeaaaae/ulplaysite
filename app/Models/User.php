@@ -84,15 +84,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->exists();
     }
 
-    public function hasPurchasedService(\App\Models\Service $service): bool
-    {
-        return OrderItem::query()
-            ->where('service_id', $service->id)
-            ->whereHas('order', fn ($q) => $q->where('user_id', $this->id)->whereIn('status', ['paid', 'processing', 'shipped', 'completed']))
-            ->exists();
-    }
-
-    /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
+    /** @return \Illuminate\Support\Collection<int, array{type: 'product', model: Product}> */
     public function getPurchasedWithoutReview(): \Illuminate\Support\Collection
     {
         return \Illuminate\Support\Facades\Cache::remember(
@@ -102,7 +94,7 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
-    /** @return \Illuminate\Support\Collection<int, array{type: 'product'|'service', model: Product|Service}> */
+    /** @return \Illuminate\Support\Collection<int, array{type: 'product', model: Product}> */
     private function loadPurchasedWithoutReview(): \Illuminate\Support\Collection
     {
         $userId = (int) $this->getKey();
@@ -117,24 +109,10 @@ class User extends Authenticatable implements MustVerifyEmail
             ->pluck('product_id')
             ->all();
 
-        $serviceIds = OrderItem::query()
-            ->select('service_id')
-            ->whereNotNull('service_id')
-            ->whereHas('order', $orderSubquery)
-            ->whereNotIn('service_id', Review::where('user_id', $userId)->where('reviewable_type', Service::class)->select('reviewable_id'))
-            ->distinct()
-            ->pluck('service_id')
-            ->all();
-
         $items = collect();
         if ($productIds !== []) {
             foreach (Product::select('id', 'title', 'slug')->whereIn('id', $productIds)->get() as $product) {
                 $items->push(['type' => 'product', 'model' => $product]);
-            }
-        }
-        if ($serviceIds !== []) {
-            foreach (Service::select('id', 'title', 'slug')->whereIn('id', $serviceIds)->get() as $service) {
-                $items->push(['type' => 'service', 'model' => $service]);
             }
         }
 

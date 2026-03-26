@@ -17,12 +17,15 @@
     data-comments-sort="{{ $currentSort }}"
     x-data="{
         loading: false,
+        loadingMore: false,
         abortController: null,
-        async load(url) {
+        infiniteObserver: null,
+        async load(url, append = false) {
             if (!url) return;
             if (this.abortController) this.abortController.abort();
             this.abortController = new AbortController();
-            this.loading = true;
+            this.loading = !append;
+            this.loadingMore = append;
             try {
                 const res = await fetch(url, {
                     method: 'GET',
@@ -32,16 +35,69 @@
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data?.result && data?.html) {
                     const el = document.getElementById('comments-results');
-                    if (el) {
+                    if (!el) return;
+
+                    if (!append) {
                         el.innerHTML = data.html;
                         if (window.Alpine?.initTree) window.Alpine.initTree(el);
+                    } else {
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = data.html;
+
+                        const currentGrid = el.querySelector('#comments-grid');
+                        const newGrid = tmp.querySelector('#comments-grid');
+                        if (currentGrid && newGrid) {
+                            currentGrid.append(...Array.from(newGrid.children));
+                        }
+
+                        const currentSentinel = el.querySelector('#comments-infinite-sentinel');
+                        const newSentinel = tmp.querySelector('#comments-infinite-sentinel');
+                        if (newSentinel) {
+                            if (currentSentinel) currentSentinel.replaceWith(newSentinel);
+                            else el.appendChild(newSentinel);
+                        } else if (currentSentinel) {
+                            currentSentinel.remove();
+                        }
+
+                        if (window.Alpine?.initTree) window.Alpine.initTree(el);
                     }
+
+                    queueMicrotask(() => this.setupInfiniteScroll());
                 }
             } catch (e) {
                 if (e?.name !== 'AbortError') console.error(e);
             } finally {
                 this.loading = false;
+                this.loadingMore = false;
             }
+        },
+        setupInfiniteScroll() {
+            if (this.infiniteObserver) {
+                this.infiniteObserver.disconnect();
+                this.infiniteObserver = null;
+            }
+            const resultsEl = document.getElementById('comments-results');
+            if (!resultsEl) return;
+            const sentinel = resultsEl.querySelector('#comments-infinite-sentinel');
+            if (!sentinel) return;
+            const nextUrl = sentinel.dataset.nextUrl || '';
+            if (!nextUrl) return;
+            this.infiniteObserver = new IntersectionObserver(
+                (entries) => {
+                    for (const entry of entries) {
+                        if (!entry.isIntersecting) continue;
+                        if (this.loading || this.loadingMore) continue;
+                        const u = entry.target?.dataset?.nextUrl || '';
+                        if (!u) continue;
+                        this.infiniteObserver?.disconnect();
+                        this.infiniteObserver = null;
+                        this.load(u, true);
+                        break;
+                    }
+                },
+                { root: null, rootMargin: '480px 0px 0px 0px', threshold: 0 }
+            );
+            this.infiniteObserver.observe(sentinel);
         },
         init() {
             const root = this.$el;
@@ -49,14 +105,7 @@
                 if (sel.tomselect?.on) sel.tomselect.on('change', (value) => this.load(value));
                 sel.addEventListener('change', (e) => this.load(e.target.value));
             });
-            root.addEventListener('click', (e) => {
-                const a = e.target?.closest?.('a');
-                if (!a || !a.closest('[data-comments-pagination]')) return;
-                const href = a.getAttribute('href');
-                if (!href) return;
-                e.preventDefault();
-                this.load(href);
-            });
+            this.setupInfiniteScroll();
         }
     }"
     x-init="init()"
@@ -138,11 +187,23 @@
     @endif
 
     <div class="relative">
-        <div x-show="loading" x-cloak class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-xl z-10">
-            <div class="text-stone-600 text-sm">Загрузка...</div>
-        </div>
         <div id="comments-results">
             <x-comments-results :news="$news" :comments="$comments" :can-comment="$canComment" />
+        </div>
+        <div
+            x-show="loading || loadingMore"
+            x-cloak
+            x-transition.opacity.duration.200ms
+            class="flex justify-center py-6 mt-1"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+            aria-label="Загрузка"
+        >
+            <span
+                class="inline-block h-10 w-10 shrink-0 rounded-full border-4 border-stone-200 border-t-sky-600 animate-spin [animation-duration:0.85s]"
+                aria-hidden="true"
+            ></span>
         </div>
     </div>
 </div>

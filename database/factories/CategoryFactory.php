@@ -27,4 +27,16 @@ class CategoryFactory extends Factory
             'is_featured' => false,
         ];
     }
+
+    /** Дочерняя категория (для товаров). */
+    public function child(?Category $parent = null): static
+    {
+        return $this->state(function (array $attributes) use ($parent) {
+            $p = $parent ?? Category::factory()->create();
+
+            return [
+                'parent_id' => $p->id,
+            ];
+        });
+    }
 }

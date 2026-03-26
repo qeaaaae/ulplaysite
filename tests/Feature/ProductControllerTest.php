@@ -21,7 +21,7 @@ class ProductControllerTest extends TestCase
 
     public function test_index_filters_by_category(): void
     {
-        $category = Category::factory()->create();
+        $category = Category::factory()->child()->create();
         Product::factory()->create(['category_id' => $category->id]);
 
         $response = $this->get(route('products.index', ['category' => $category->slug]));
@@ -56,5 +56,16 @@ class ProductControllerTest extends TestCase
         $response = $this->get(route('products.index', ['sort' => 'price_asc']));
 
         $response->assertStatus(200);
+    }
+
+    public function test_reviews_index_returns_json_when_wants_json(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->getJson(route('reviews.index.product', $product));
+
+        $response->assertOk();
+        $response->assertJson(['result' => true]);
+        $response->assertJsonStructure(['html']);
     }
 }

@@ -16,6 +16,16 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    /** Только дочерние категории (поколения / линейки) — для товаров. */
+    private function productLeafCategories()
+    {
+        return Category::query()
+            ->whereNotNull('parent_id')
+            ->with('parent')
+            ->orderBy('name')
+            ->get();
+    }
+
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
@@ -34,7 +44,7 @@ class ProductController extends Controller
     {
         return view('admin.products.form', [
             'product' => new Product(),
-            'categories' => Category::getCachedAll(),
+            'categories' => $this->productLeafCategories(),
         ]);
     }
 
@@ -64,7 +74,7 @@ class ProductController extends Controller
     {
         return view('admin.products.form', [
             'product' => $product,
-            'categories' => Category::getCachedAll(),
+            'categories' => $this->productLeafCategories(),
         ]);
     }
 

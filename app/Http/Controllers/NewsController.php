@@ -38,7 +38,7 @@ class NewsController extends Controller
         }
 
         $news = $newsQuery
-            ->paginate(10)
+            ->paginate(12)
             ->withQueryString();
 
         if ($request->wantsJson()) {
@@ -65,7 +65,9 @@ class NewsController extends Controller
             $sortDir = $sort === 'oldest' ? 'asc' : 'desc';
             $commentsQuery->orderBy('created_at', $sortDir);
         }
-        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page')->withQueryString();
+        $comments = $commentsQuery->paginate(10, ['*'], 'comments_page');
+        $comments->setPath(route('comments.index', $news));
+        $comments = $comments->withQueryString();
 
         if ($user = Auth::user()) {
             NewsView::firstOrCreate([

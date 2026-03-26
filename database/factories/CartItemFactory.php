@@ -6,7 +6,6 @@ namespace Database\Factories;
 
 use App\Models\CartItem;
 use App\Models\Product;
-use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +22,6 @@ class CartItemFactory extends Factory
             'session_id' => fake()->uuid(),
             'user_id' => null,
             'product_id' => Product::factory(),
-            'service_id' => null,
             'quantity' => fake()->numberBetween(1, 5),
         ];
     }
@@ -32,16 +30,6 @@ class CartItemFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'product_id' => $product->id,
-            'service_id' => null,
-            'quantity' => $quantity,
-        ]);
-    }
-
-    public function forService(Service $service, int $quantity = 1): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'product_id' => null,
-            'service_id' => $service->id,
             'quantity' => $quantity,
         ]);
     }

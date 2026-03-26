@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\SupportTicketTypeEnum;
+use App\Models\Service;
 use App\Models\SupportTicket;
 use App\Models\UserNotification;
 use App\Models\User;
@@ -32,8 +33,14 @@ class SupportTicketSeeder extends Seeder
             $status = fake()->randomElement(self::STATUSES);
             $user = $users->isNotEmpty() ? $users->random() : null;
 
+            $serviceId = null;
+            if ($type === SupportTicketTypeEnum::SERVICE_INQUIRY) {
+                $serviceId = Service::query()->inRandomOrder()->value('id');
+            }
+
             $ticket = SupportTicket::create([
                 'user_id' => $user?->id,
+                'service_id' => $serviceId,
                 'type' => $type->value,
                 'title' => $this->titleFor($type, $i),
                 'description' => fake()->paragraphs(asText: true),
@@ -96,7 +103,9 @@ class SupportTicketSeeder extends Seeder
             SupportTicketTypeEnum::SERVICE_REPAIR => "Заявка по ремонту #{$index}",
             SupportTicketTypeEnum::RETURN_EXCHANGE => "Возврат/обмен #{$index}",
             SupportTicketTypeEnum::SUGGESTION => "Предложение по улучшению #{$index}",
+            SupportTicketTypeEnum::SERVICE_INQUIRY => "Вопрос по услуге #{$index}",
         };
     }
 }
+
 

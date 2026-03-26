@@ -11,19 +11,15 @@
             <div class="space-y-3 sm:space-y-4 mb-6 md:mb-8">
                 @foreach($items as $item)
                     @php
-                        $maxQty = $item->product_id && $item->product ? max(0, (int) $item->product->stock) : 99;
+                        $maxQty = max(0, (int) $item->product->stock);
                     @endphp
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-stone-200 shadow-sm">
                         <div class="w-full sm:w-24 h-40 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
-                            @if($item->product)
-                                <img src="{{ $item->product->image }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
-                            @else
-                                <img src="{{ $item->service->image }}" alt="{{ $item->service->title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
-                            @endif
+                            <img src="{{ $item->product->image }}" alt="{{ $item->product->title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">
                             <div class="flex-1 min-w-0">
-                                <a href="{{ $item->product ? route('products.show', $item->product) : route('services.show', $item->service) }}" class="font-medium text-stone-900 hover:text-sky-600 line-clamp-2">
+                                <a href="{{ route('products.show', $item->product) }}" class="font-medium text-stone-900 hover:text-sky-600 line-clamp-2">
                                     {{ $item->title }}
                                 </a>
                                 <p class="text-sm text-stone-500 mt-0.5">

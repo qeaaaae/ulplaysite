@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -22,7 +23,10 @@ class StoreProductRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(fn ($q) => $q->whereNotNull('parent_id')),
+            ],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:4096'],
             'in_stock' => ['nullable'],

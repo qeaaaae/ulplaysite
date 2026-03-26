@@ -16,7 +16,6 @@ class CartItem extends Model
         'session_id',
         'user_id',
         'product_id',
-        'service_id',
         'quantity',
     ];
 
@@ -37,21 +36,14 @@ class CartItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function service(): BelongsTo
-    {
-        return $this->belongsTo(Service::class);
-    }
-
     public function getPriceAttribute(): float
     {
-        if ($this->product_id) {
-            $price = $this->product->price;
-            if ($this->product->discount_percent) {
-                $price *= (100 - $this->product->discount_percent) / 100;
-            }
-            return (float) $price;
+        $price = $this->product->price;
+        if ($this->product->discount_percent) {
+            $price *= (100 - $this->product->discount_percent) / 100;
         }
-        return (float) ($this->service->price ?? 0);
+
+        return (float) $price;
     }
 
     public function getSubtotalAttribute(): float
@@ -61,8 +53,6 @@ class CartItem extends Model
 
     public function getTitleAttribute(): string
     {
-        return $this->product_id
-            ? $this->product->title
-            : $this->service->title;
+        return $this->product->title;
     }
 }

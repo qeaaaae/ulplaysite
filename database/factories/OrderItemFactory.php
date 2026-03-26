@@ -46,7 +46,7 @@ class OrderItemFactory extends Factory
             'product_id' => null,
             'service_id' => $service->id,
             'quantity' => $quantity,
-            'price' => $service->price,
+            'price' => 1000,
         ]);
     }
 

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-6 sm:py-8 md:py-12">
+    <div class="py-4">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 space-y-6">
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <div class="min-w-0">
@@ -39,6 +39,19 @@
                     Сообщений: {{ $ticket->messages->count() }}
                 </span>
             </div>
+
+            @if($ticket->service)
+                <div class="flex flex-wrap items-center gap-2 p-4 rounded-xl bg-sky-50 border border-sky-100/80">
+                    @svg('heroicon-o-wrench-screwdriver', 'w-5 h-5 text-sky-600 shrink-0')
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-medium text-stone-500 uppercase tracking-wide">Страница услуги</p>
+                        <a href="{{ route('services.show', $ticket->service) }}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-sky-700 hover:text-sky-900 hover:underline inline-flex items-center gap-1.5 break-words">
+                            {{ $ticket->service->title }}
+                            @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4 shrink-0')
+                        </a>
+                    </div>
+                </div>
+            @endif
 
             @if($ticket->images->isEmpty())
                 <p class="text-sm text-stone-500">Фото не приложены</p>

@@ -56,7 +56,7 @@ class ProductControllerTest extends TestCase
     public function test_store_creates_product(): void
     {
         $this->actingAsAdmin();
-        $category = Category::factory()->create();
+        $category = Category::factory()->child()->create();
 
         $response = $this->post(route('admin.products.store'), [
             'title' => 'New Product',
@@ -75,7 +75,7 @@ class ProductControllerTest extends TestCase
     {
         \Illuminate\Support\Facades\Storage::fake('public');
         $this->actingAsAdmin();
-        $category = Category::factory()->create();
+        $category = Category::factory()->child()->create();
         $image = \Illuminate\Http\UploadedFile::fake()->image('product.jpg', 200, 200);
 
         $response = $this->post(route('admin.products.store'), [

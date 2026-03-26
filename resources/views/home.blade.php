@@ -76,7 +76,7 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr] gap-3 sm:gap-4 md:gap-5 auto-rows-[minmax(120px,1fr)] lg:auto-rows-[minmax(140px,1fr)]">
                 @foreach($categories as $index => $category)
                     @php
-                        $isFeatured = (bool) ($category->is_featured ?? $category['is_featured'] ?? false);
+                        $isFeatured = (bool) ($category->parent?->is_featured ?? $category->is_featured ?? $category['is_featured'] ?? false);
                         $visibilityClass = match ($index) {
                             4 => 'hidden md:block',
                             5 => 'hidden md:block lg:hidden',

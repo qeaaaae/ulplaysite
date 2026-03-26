@@ -12,6 +12,11 @@ use Illuminate\Database\Seeder;
 
 class ReviewSeeder extends Seeder
 {
+    /** От 10 до 20 отзывов на каждый товар (разные пользователи). */
+    private const MIN_REVIEWS_PER_PRODUCT = 10;
+
+    private const MAX_REVIEWS_PER_PRODUCT = 20;
+
     public function run(): void
     {
         $users = User::where('is_admin', false)->get();
@@ -20,6 +25,13 @@ class ReviewSeeder extends Seeder
         if (count($productIds) < 1 || $users->isEmpty()) {
             return;
         }
+
+        Review::query()
+            ->where('reviewable_type', Product::class)
+            ->get()
+            ->each(fn (Review $review) => $review->imagesRelation()->delete());
+
+        Review::query()->where('reviewable_type', Product::class)->delete();
 
         $texts = [
             'Всё понравилось, рекомендую.',
@@ -33,8 +45,12 @@ class ReviewSeeder extends Seeder
         ];
 
         foreach ($productIds as $productId) {
-            $reviewsCount = min(10, $users->count());
-            $selectedUsers = $users->shuffle()->take($reviewsCount);
+            $cap = min(random_int(self::MIN_REVIEWS_PER_PRODUCT, self::MAX_REVIEWS_PER_PRODUCT), $users->count());
+            if ($cap < 1) {
+                continue;
+            }
+
+            $selectedUsers = $users->shuffle()->take($cap);
             foreach ($selectedUsers as $user) {
                 $daysAgo = random_int(0, 45);
                 $createdAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
@@ -48,7 +64,6 @@ class ReviewSeeder extends Seeder
                     'updated_at' => $createdAt,
                 ]);
 
-                // До 3 фото у отзыва
                 $imagesCount = random_int(0, 3);
                 for ($pos = 0; $pos < $imagesCount; $pos++) {
                     $review->imagesRelation()->create([
