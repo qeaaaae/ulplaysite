@@ -9,7 +9,7 @@
 @if($isPaginated ? $reviews->isEmpty() : $reviews->isEmpty())
     <p class="text-stone-500 text-sm">Пока ничего нет.</p>
 @else
-    <ul id="reviews-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <ul id="reviews-grid" class="grid grid-cols-1 gap-4">
         @foreach($isPaginated ? $reviews->getCollection() : $reviews as $review)
             <li class="p-4 bg-white rounded-xl border border-stone-200 shadow-sm hover:border-stone-300 transition-colors">
                 <div class="flex flex-wrap items-center gap-2 mb-1">

@@ -13,6 +13,34 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    private function resolvePostAuthRedirect(Request $request): string
+    {
+        $fallback = route('home');
+        $referer = (string) $request->headers->get('referer', '');
+        if ($referer === '') {
+            return $fallback;
+        }
+
+        $parts = parse_url($referer);
+        if (!is_array($parts)) {
+            return $fallback;
+        }
+
+        $host = $parts['host'] ?? '';
+        if ($host !== '' && $host !== (string) $request->getHost()) {
+            return $fallback;
+        }
+
+        $path = (string) ($parts['path'] ?? '/');
+        if (in_array($path, ['/login', '/register'], true)) {
+            return $fallback;
+        }
+
+        $query = isset($parts['query']) && $parts['query'] !== '' ? ('?' . $parts['query']) : '';
+
+        return $path . $query;
+    }
+
     public function login(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $guestSessionId = session()->getId();
@@ -48,10 +76,11 @@ class AuthController extends Controller
                 }
             }
             $request->session()->regenerate();
+            $redirectFallback = $this->resolvePostAuthRedirect($request);
             if ($request->expectsJson()) {
-                return response()->json(['redirect' => redirect()->intended(route('home'))->getTargetUrl()]);
+                return response()->json(['redirect' => redirect()->intended($redirectFallback)->getTargetUrl()]);
             }
-            return redirect()->intended(route('home'));
+            return redirect()->intended($redirectFallback);
         }
 
         if ($request->expectsJson()) {

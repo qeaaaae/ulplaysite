@@ -1,7 +1,102 @@
 @extends('layouts.app')
 
 @section('content')
-    <div>
+    <div
+        x-data="{
+            reviewsModalOpen: false,
+            loadingReviews: false,
+            loadingMoreReviews: false,
+            abortController: null,
+            infiniteObserver: null,
+            reviewsIndexUrl: @js(route('reviews.index.product', $product)),
+            openReviewsModal() {
+                this.reviewsModalOpen = true;
+                queueMicrotask(() => this.setupReviewsInfiniteScroll());
+            },
+            closeReviewsModal() {
+                this.reviewsModalOpen = false;
+                if (this.infiniteObserver) {
+                    this.infiniteObserver.disconnect();
+                    this.infiniteObserver = null;
+                }
+            },
+            async loadReviews(url, append = false) {
+                if (!url) return;
+                if (this.abortController) this.abortController.abort();
+                this.abortController = new AbortController();
+                this.loadingReviews = !append;
+                this.loadingMoreReviews = append;
+                try {
+                    const res = await fetch(url, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                        signal: this.abortController.signal,
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.result && data?.html) {
+                        const el = document.getElementById('reviews-modal-results');
+                        if (!el) return;
+                        if (!append) {
+                            el.innerHTML = data.html;
+                        } else {
+                            const tmp = document.createElement('div');
+                            tmp.innerHTML = data.html;
+                            const currentGrid = el.querySelector('#reviews-grid');
+                            const newGrid = tmp.querySelector('#reviews-grid');
+                            if (currentGrid && newGrid) {
+                                currentGrid.append(...Array.from(newGrid.children));
+                            }
+                            const currentSentinel = el.querySelector('#reviews-infinite-sentinel');
+                            const newSentinel = tmp.querySelector('#reviews-infinite-sentinel');
+                            if (newSentinel) {
+                                if (currentSentinel) currentSentinel.replaceWith(newSentinel);
+                                else el.appendChild(newSentinel);
+                            } else if (currentSentinel) {
+                                currentSentinel.remove();
+                            }
+                        }
+                        queueMicrotask(() => this.setupReviewsInfiniteScroll());
+                    }
+                } catch (e) {
+                    if (e?.name !== 'AbortError') console.error(e);
+                } finally {
+                    this.loadingReviews = false;
+                    this.loadingMoreReviews = false;
+                }
+            },
+            setupReviewsInfiniteScroll() {
+                if (!this.reviewsModalOpen) return;
+                if (this.infiniteObserver) {
+                    this.infiniteObserver.disconnect();
+                    this.infiniteObserver = null;
+                }
+                const resultsEl = document.getElementById('reviews-modal-results');
+                if (!resultsEl) return;
+                const sentinel = resultsEl.querySelector('#reviews-infinite-sentinel');
+                if (!sentinel) return;
+                const nextUrl = sentinel.dataset.nextUrl || '';
+                if (!nextUrl) return;
+                const modalScroll = document.getElementById('reviews-modal-scroll');
+                this.infiniteObserver = new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            if (!entry.isIntersecting) continue;
+                            if (this.loadingReviews || this.loadingMoreReviews) continue;
+                            const u = entry.target?.dataset?.nextUrl || '';
+                            if (!u) continue;
+                            this.infiniteObserver?.disconnect();
+                            this.infiniteObserver = null;
+                            this.loadReviews(u, true);
+                            break;
+                        }
+                    },
+                    { root: modalScroll, rootMargin: '320px 0px 0px 0px', threshold: 0 }
+                );
+                this.infiniteObserver.observe(sentinel);
+            }
+        }"
+        @keydown.escape.window="if (reviewsModalOpen) closeReviewsModal()"
+    >
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
             @php
                 $categoryTrail = [];
@@ -36,30 +131,28 @@
                 $hasSimilar = ($similarProducts ?? collect())->isNotEmpty();
             @endphp
 
-            <div class="@if($hasSimilar) lg:grid lg:grid-cols-[7fr_3fr] lg:gap-5 xl:gap-6 @endif">
-                <div class="min-w-0">
-                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
+            <div class="min-w-0">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
                         <div>
-                            @if($cover)
-                                <div class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50">
-                                    <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}">
-                                        <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
-                                    </a>
-                                </div>
-                            @endif
+                            <div class="lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:gap-3">
+                                @if($cover)
+                                    <div class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50 lg:col-start-2 lg:row-start-1">
+                                        <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}">
+                                            <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
+                                        </a>
+                                    </div>
+                                @endif
 
-                            @if($thumbs->count() > 0)
-                                <div class="mt-3 relative overflow-hidden">
-                                    <div class="flex gap-2">
+                                @if($thumbs->count() > 0)
+                                    <div class="mt-3 lg:mt-0 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 lg:flex lg:flex-col gap-2 lg:overflow-y-auto pr-0 lg:pr-1 lg:col-start-1 lg:row-start-1">
                                         @foreach($thumbs as $image)
-                                            <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}" class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 shrink-0">
+                                            <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}" class="block w-full aspect-square lg:min-h-[84px] lg:flex-1 rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
                                                 <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover">
                                             </a>
                                         @endforeach
                                     </div>
-                                    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-r from-transparent to-white pointer-events-none" aria-hidden="true"></div>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <h1 class="text-2xl sm:text-3xl font-semibold text-stone-900 mb-2">{{ $product->title }}</h1>
@@ -88,10 +181,10 @@
                                     <span class="font-semibold text-stone-900 tabular-nums">{{ number_format($avgRating, 1, ',', '') }}</span>
                                 </div>
                                 @if($reviewsCount > 0)
-                                    <a href="#reviews" class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-sky-600 transition-colors">
+                                    <button type="button" @click="openReviewsModal()" class="inline-flex items-center gap-1.5 text-sm text-stone-600 hover:text-sky-600 transition-colors cursor-pointer">
                                         {{ $reviewsCount }} @if($reviewsCount === 1)отзыв@elseif($reviewsCount >= 2 && $reviewsCount <= 4)отзыва@else отзывов @endif
                                         @svg('heroicon-o-chevron-down', 'w-4 h-4')
-                                    </a>
+                                    </button>
                                 @else
                                     <span class="text-stone-400 text-sm">Нет отзывов</span>
                                 @endif
@@ -139,43 +232,74 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <x-reviews-block
-                        :reviewable="$product"
-                        :reviews="$reviews"
-                        :can-review="$canReview ?? false"
-                        store-route="reviews.store.product"
-                        :store-route-param="$product"
-                    />
                 </div>
-
-                @if($hasSimilar)
-                    <aside class="lg:sticky lg:top-4 lg:self-start mt-10 lg:mt-0 pt-8 lg:pt-0 border-t lg:border-t-0 border-stone-200">
-                        <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-4">Похожие товары</x-ui.section-heading>
-                        <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-1 lg:gap-4">
-                            @foreach($similarProducts as $similar)
-                                <div class="min-w-0">
-                                    @include('components.product-card', ['product' => $similar, 'cartProductIds' => $cartProductIds ?? []])
-                                </div>
-                            @endforeach
-                        </div>
-                        <a href="{{ $product->category ? route('products.index', ['category' => $product->category->slug]) : route('products.index') }}" class="mt-6 inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
-                            @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
-                            {{ $product->category ? $product->category->name : 'В каталог' }}
-                        </a>
-                    </aside>
-                @endif
             </div>
 
-            @if(!$hasSimilar)
-                <footer class="mt-12 pt-8 border-t border-stone-200">
-                    <a href="{{ route('products.index') }}" class="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
-                        @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
-                        В каталог
-                    </a>
-                </footer>
+            @if($hasSimilar)
+                <section class="mt-10 border-t border-stone-200">
+                    <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-4">Похожие товары</x-ui.section-heading>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                        @foreach($similarProducts as $similar)
+                            <div class="min-w-0">
+                                @include('components.product-card', ['product' => $similar, 'cartProductIds' => $cartProductIds ?? []])
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
             @endif
+
+            <footer class="mt-12 border-t border-stone-200">
+                <a href="{{ $product->category ? route('products.index', ['category' => $product->category->slug]) : route('products.index') }}" class="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
+                    @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
+                    {{ $product->category ? $product->category->name : 'В каталог' }}
+                </a>
+            </footer>
+        </div>
+
+        <div
+            x-show="reviewsModalOpen"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[180] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-reviews-modal-title"
+        >
+            <div class="absolute inset-0" @click="closeReviewsModal()" aria-hidden="true"></div>
+            <div class="relative w-full max-w-3xl bg-white rounded-2xl border border-stone-200 shadow-xl" @click.stop>
+                <div class="px-5 sm:px-6 py-4 border-b border-stone-200 flex items-center justify-between gap-3">
+                    <h2 id="product-reviews-modal-title" class="text-lg font-semibold text-stone-900 inline-flex items-center gap-2">
+                        @svg('heroicon-o-star', 'w-5 h-5 text-sky-500')
+                        Отзывы о товаре
+                    </h2>
+                    <button type="button" @click="closeReviewsModal()" class="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer" aria-label="Закрыть">
+                        @svg('heroicon-o-x-mark', 'w-5 h-5')
+                    </button>
+                </div>
+
+                <div id="reviews-modal-scroll" class="max-h-[72vh] overflow-y-auto p-4 sm:p-6 ulplay-scrollbar-sky">
+                    <div id="reviews-modal-results">
+                        <x-reviews-list :reviews="$reviews" />
+                    </div>
+                    <div
+                        x-show="loadingReviews || loadingMoreReviews"
+                        x-cloak
+                        x-transition.opacity.duration.200ms
+                        class="flex justify-center py-6 mt-1"
+                        role="status"
+                        aria-live="polite"
+                        aria-busy="true"
+                        aria-label="Загрузка"
+                    >
+                        <span class="inline-block h-10 w-10 shrink-0 rounded-full border-4 border-stone-200 border-t-sky-600 animate-spin [animation-duration:0.85s]" aria-hidden="true"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection

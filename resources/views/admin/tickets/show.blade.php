@@ -83,13 +83,15 @@
                         </span>
                     </div>
                     @if($ticket->service)
-                        <div class="pt-2 mt-2 border-t border-stone-100">
-                            <span class="text-stone-500">Страница услуги:</span>
-                            <a href="{{ route('services.show', $ticket->service) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-sky-600 hover:text-sky-800 hover:underline font-medium break-all">
-                                {{ $ticket->service->title }}
-                                @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4 shrink-0')
-                            </a>
-                            <p class="text-xs text-stone-400 mt-1 break-all">{{ route('services.show', $ticket->service) }}</p>
+                        <div class="flex flex-wrap items-center gap-2 p-4 rounded-xl bg-sky-50 border border-sky-100/80 mt-2">
+                            @svg('heroicon-o-wrench-screwdriver', 'w-5 h-5 text-sky-600 shrink-0')
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-medium text-stone-500 uppercase tracking-wide">Страница услуги</p>
+                                <a href="{{ route('services.show', $ticket->service) }}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-sky-700 hover:text-sky-900 hover:underline inline-flex items-center gap-1.5 break-words">
+                                    {{ $ticket->service->title }}
+                                    @svg('heroicon-o-arrow-top-right-on-square', 'w-4 h-4 shrink-0')
+                                </a>
+                            </div>
                         </div>
                     @endif
                 </div>

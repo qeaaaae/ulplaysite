@@ -150,7 +150,7 @@ class ProductController extends Controller
             ->orderByDesc('reviews_avg_rating')
             ->orderByDesc('reviews_count')
             ->orderByRaw('ABS(price - ?) asc', [$product->price])
-            ->limit(3)
+            ->limit(4)
             ->get();
 
         return view('products.show', [

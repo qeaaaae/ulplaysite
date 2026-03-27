@@ -76,7 +76,7 @@
                 </div>
 
                 @if(($similarNews ?? collect())->isNotEmpty())
-                    <aside class="md:sticky md:top-4 md:self-start mt-10 md:mt-0 pt-8 md:pt-0 border-t md:border-t-0 border-stone-200">
+                    <aside class="md:sticky md:top-4 md:self-start mt-10 md:mt-0 border-t md:border-t-0 border-stone-200">
                         <x-ui.section-heading icon="heroicon-o-newspaper" class="mb-4">Похожие новости</x-ui.section-heading>
                         <div class="space-y-3 sm:space-y-4">
                             @foreach($similarNews as $item)
@@ -94,7 +94,7 @@
             </div>
 
             @if(($similarNews ?? collect())->isEmpty())
-                <footer class="mt-12 pt-8 border-t border-stone-200">
+                <footer class="mt-12 border-t border-stone-200">
                     <a href="{{ route('news.index') }}" class="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
                         @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
                         Все новости

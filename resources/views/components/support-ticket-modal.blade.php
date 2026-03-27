@@ -47,11 +47,13 @@
             class="space-y-4"
         >
             @csrf
-            <input type="hidden" name="type" value="{{ $defaultType }}">
+            <input type="hidden" name="type" x-bind:value="supportTicketType ?? '{{ $defaultType }}'" value="{{ $defaultType }}">
             <input type="hidden" name="service_id" x-bind:value="supportTicketServiceId ?? ''">
 
             <div>
-                <label for="support-modal-title" class="block text-sm font-medium text-stone-700 mb-1.5">Тема</label>
+                <label for="support-modal-title" class="block text-sm font-medium text-stone-700 mb-1.5">
+                    Тема <span class="text-rose-500" aria-hidden="true">*</span>
+                </label>
                 <input
                     type="text"
                     id="support-modal-title"
@@ -64,7 +66,9 @@
             </div>
 
             <div>
-                <label for="support-modal-desc" class="block text-sm font-medium text-stone-700 mb-1.5">Сообщение</label>
+                <label for="support-modal-desc" class="block text-sm font-medium text-stone-700 mb-1.5">
+                    Сообщение <span class="text-rose-500" aria-hidden="true">*</span>
+                </label>
                 <textarea
                     id="support-modal-desc"
                     name="description"

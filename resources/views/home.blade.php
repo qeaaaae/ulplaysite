@@ -73,24 +73,38 @@
                     <span class="inline-flex transition-transform duration-200 group-hover:translate-x-1">@svg('heroicon-o-arrow-right', 'w-4 h-4')</span>
                 </a>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr] gap-3 sm:gap-4 md:gap-5 auto-rows-[minmax(120px,1fr)] lg:auto-rows-[minmax(140px,1fr)]">
-                @foreach($categories as $index => $category)
-                    @php
-                        $isFeatured = (bool) ($category->parent?->is_featured ?? $category->is_featured ?? $category['is_featured'] ?? false);
-                        $visibilityClass = match ($index) {
-                            4 => 'hidden md:block',
-                            5 => 'hidden md:block lg:hidden',
-                            default => '',
-                        };
-                    @endphp
-                    <div class="{{ $isFeatured ? 'lg:col-span-1 lg:row-span-2' : '' }} {{ $visibilityClass }}">
+            <div class="hidden min-[821px]:grid min-[821px]:grid-cols-1 lg:min-[821px]:grid-cols-[1.7fr_1fr_1fr] gap-3 sm:gap-4 md:gap-5">
+                @if(($categories->first()) !== null)
+                    <div class="lg:col-span-1">
                         @include('components.category-card', [
-                            'category' => $category,
-                            'featured' => $isFeatured,
+                            'category' => $categories->first(),
+                            'featured' => true,
                         ])
                     </div>
-                @endforeach
+                @endif
+
+                @if($categories->count() > 1)
+                    <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
+                        @foreach($categories->slice(1, 4) as $category)
+                            @include('components.category-card', [
+                                'category' => $category,
+                                'featured' => false,
+                            ])
+                        @endforeach
+                    </div>
+                @endif
             </div>
+
+            @if(($categoriesMobile ?? collect())->isNotEmpty())
+                <div class="grid min-[821px]:hidden grid-cols-2 gap-3 sm:gap-4">
+                    @foreach($categoriesMobile as $category)
+                        @include('components.category-card', [
+                            'category' => $category,
+                            'featured' => false,
+                        ])
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
     @endif

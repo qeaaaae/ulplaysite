@@ -34,16 +34,28 @@
         dialogCallback: null,
         supportTicketModalOpen: false,
         supportTicketServiceId: null,
+        supportTicketType: '{{ \App\Enums\SupportTicketTypeEnum::SERVICE_INQUIRY->value }}',
         supportTicketModalTitle: '',
         openSupportTicketModal(detail) {
             const d = detail || {};
+            const type = d.type || '{{ \App\Enums\SupportTicketTypeEnum::SERVICE_INQUIRY->value }}';
             this.supportTicketServiceId = d.serviceId != null ? d.serviceId : null;
-            this.supportTicketModalTitle = d.title ? ('Вопрос по услуге: ' + d.title) : 'Вопрос по услуге';
+            this.supportTicketType = type;
+            if (d.title) {
+                this.supportTicketModalTitle = type === '{{ \App\Enums\SupportTicketTypeEnum::SUGGESTION->value }}'
+                    ? d.title
+                    : ('Вопрос по услуге: ' + d.title);
+            } else {
+                this.supportTicketModalTitle = type === '{{ \App\Enums\SupportTicketTypeEnum::SUGGESTION->value }}'
+                    ? 'Предложение товара'
+                    : 'Вопрос по услуге';
+            }
             this.supportTicketModalOpen = true;
         },
         closeSupportTicketModal() {
             this.supportTicketModalOpen = false;
             this.supportTicketServiceId = null;
+            this.supportTicketType = '{{ \App\Enums\SupportTicketTypeEnum::SERVICE_INQUIRY->value }}';
         },
         openAuthModal(type) { this.authModalType = type; this.authModalOpen = true; this.authErrors = {}; },
         closeAuthModal() { this.authModalOpen = false; this.authErrors = {}; },

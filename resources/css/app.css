@@ -90,6 +90,22 @@ h6 {
 .site-footer {
     contain: layout paint;
     isolation: isolate;
+    position: relative;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Маскируем редкие артефакты рендера по нижней границе футера */
+.site-footer::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: #292524;
+    pointer-events: none;
 }
 
 [x-cloak] {
@@ -439,6 +455,31 @@ h6 {
 
 .ts-dropdown-content {
     max-height: min(280px, 60vh);
+}
+
+/* Кастомный скроллбар для модалки отзывов */
+.ulplay-scrollbar-sky {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 165, 233, 0.65) #e2e8f0;
+}
+
+.ulplay-scrollbar-sky::-webkit-scrollbar {
+    width: 10px;
+}
+
+.ulplay-scrollbar-sky::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 9999px;
+}
+
+.ulplay-scrollbar-sky::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.7) 0%, rgba(2, 132, 199, 0.7) 100%);
+    border-radius: 9999px;
+    border: 2px solid #e2e8f0;
+}
+
+.ulplay-scrollbar-sky::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.8) 0%, rgba(3, 105, 161, 0.8) 100%);
 }
 
 /* Design tokens */

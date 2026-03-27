@@ -149,6 +149,25 @@
                         {{ $services->total() }} услуг
                     </p>
                 </div>
+                @auth
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-colors text-sm font-medium cursor-pointer"
+                        @click="$dispatch('open-support-ticket-modal', { type: '{{ \App\Enums\SupportTicketTypeEnum::SUGGESTION->value }}', title: 'Предложение товара' })"
+                    >
+                        @svg('heroicon-o-light-bulb', 'w-4 h-4')
+                        Предложить товар
+                    </button>
+                @else
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-colors text-sm font-medium cursor-pointer"
+                        @click="$dispatch('open-auth-modal', { type: 'login' })"
+                    >
+                        @svg('heroicon-o-light-bulb', 'w-4 h-4')
+                        Предложить товар
+                    </button>
+                @endauth
             </div>
 
             <div class="flex flex-col gap-8 lg:flex-row lg:items-stretch">

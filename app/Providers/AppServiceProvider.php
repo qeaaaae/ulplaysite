@@ -80,8 +80,8 @@ class AppServiceProvider extends ServiceProvider
                 'footerData' => $view->getData()['footerData'] ?? config('site.footer', [
                     'company' => ['name' => 'UlPlay', 'description' => 'Интернет-магазин игровых консолей и аксессуаров в Ульяновске', 'phone' => '+7(927)988-88-70', 'email' => 'info@ulplay.com'],
                     'categories' => [
-                        ['name' => 'PlayStation', 'url' => '/products?category=playstation'],
-                        ['name' => 'Xbox', 'url' => '/products?category=xbox'],
+                        ['name' => 'PlayStation', 'url' => '/products'],
+                        ['name' => 'Xbox', 'url' => '/products'],
                         ['name' => 'Аксессуары', 'url' => '/products?category=accessories'],
                         ['name' => 'Игры', 'url' => '/products?category=games'],
                     ],

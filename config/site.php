@@ -13,8 +13,8 @@ return [
             'visit_notice' => 'Просим вас заблаговременно уведомить о планируемом визите в связи с возможными изменениями в графике работы.',
         ],
         'categories' => [
-            ['name' => 'PlayStation', 'url' => '/products?category=playstation'],
-            ['name' => 'Xbox', 'url' => '/products?category=xbox'],
+            ['name' => 'PlayStation', 'url' => '/products'],
+            ['name' => 'Xbox', 'url' => '/products'],
             ['name' => 'Аксессуары', 'url' => '/products?category=accessories'],
             ['name' => 'Игры', 'url' => '/products?category=games'],
         ],

@@ -25,19 +25,46 @@ class HomeController extends Controller
         $servicesCount = 3;
         $newsCount = 4;
 
-        $categories = Category::query()
+        $baseCategoriesQuery = Category::query()
             ->whereNotNull('parent_id')
             ->with(['parent', 'images'])
             ->withCount('products')
             ->orderByDesc('products_count')
+            ->orderByDesc('is_featured')
             ->orderBy('name')
-            ->take(6)
             ->get();
+
+        $featuredCategory = $baseCategoriesQuery
+            ->first(fn (Category $category): bool => (bool) $category->is_featured);
+
+        $topCategories = $baseCategoriesQuery
+            ->when(
+                $featuredCategory !== null,
+                fn (Collection $collection): Collection => $collection->reject(
+                    fn (Category $category): bool => $category->id === $featuredCategory->id
+                )
+            )
+            ->take($featuredCategory !== null ? 4 : 5)
+            ->values();
+
+        $categories = collect();
+        if ($featuredCategory !== null) {
+            $categories->push($featuredCategory);
+        }
+        $categories = $categories
+            ->merge($topCategories)
+            ->take(5)
+            ->values();
+
+        $categoriesMobile = $baseCategoriesQuery
+            ->take(6)
+            ->values();
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
 
         return view('home', [
             'banners' => Banner::getCachedActive(),
             'categories' => $categories,
+            'categoriesMobile' => $categoriesMobile,
             'newProducts' => Product::with('images')->new()
                 ->inStock()
                 ->latest()

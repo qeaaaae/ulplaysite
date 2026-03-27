@@ -11,148 +11,11 @@
 @section('content')
     <div
         class="py-4"
-        x-data="{
-            loading: false,
-            loadingMore: false,
-            abortController: null,
-            infiniteObserver: null,
+        x-data="productsCatalog({
             productsIndexUrl: @js(route('products.index')),
             activeCategorySlug: @js($currentCategory?->slug ?? ''),
-            openParents: @json(array_fill_keys($expandParentIds ?? [], true)),
-            toggleParent(id) {
-                this.openParents = { ...this.openParents, [id]: !this.openParents[id] };
-            },
-            buildProductsListUrl(sortKey, categorySlugOverride = null) {
-                const u = new URL(this.productsIndexUrl, window.location.origin);
-                const params = new URLSearchParams();
-                const categorySlug = categorySlugOverride !== null ? categorySlugOverride : this.activeCategorySlug;
-                if (categorySlug) params.set('category', categorySlug);
-                const qInput = this.$el.querySelector('form[method=\'GET\'][action*=\'/products\'] input[name=\'q\']');
-                if (qInput && qInput.value.trim()) params.set('q', qInput.value.trim());
-                params.set('sort', sortKey || 'newest');
-                const qs = params.toString();
-                return u.pathname + (qs ? '?' + qs : '');
-            },
-            async load(url, append = false) {
-                if (!url) return;
-                if (this.abortController) this.abortController.abort();
-                this.abortController = new AbortController();
-                this.loading = true;
-                this.loadingMore = append;
-                try {
-                    const res = await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                        signal: this.abortController.signal,
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (res.ok && data?.result && data?.html) {
-                        const el = document.getElementById('products-results');
-                        if (!el) return;
-
-                        if (!append) {
-                            el.innerHTML = data.html;
-                        } else {
-                            const tmp = document.createElement('div');
-                            tmp.innerHTML = data.html;
-
-                            const currentGrid = el.querySelector('#products-grid');
-                            const newGrid = tmp.querySelector('#products-grid');
-                            if (currentGrid && newGrid) {
-                                currentGrid.append(...Array.from(newGrid.children));
-                            }
-
-                            const currentSentinel = el.querySelector('#products-infinite-sentinel');
-                            const newSentinel = tmp.querySelector('#products-infinite-sentinel');
-                            if (newSentinel) {
-                                if (currentSentinel) currentSentinel.replaceWith(newSentinel);
-                                else el.appendChild(newSentinel);
-                            } else if (currentSentinel) {
-                                currentSentinel.remove();
-                            }
-                        }
-
-                        try {
-                            const u = new URL(url, window.location.origin);
-                            this.activeCategorySlug = u.searchParams.get('category') || '';
-                        } catch (e) {
-                            /* ignore */
-                        }
-
-                        queueMicrotask(() => this.setupInfiniteScroll());
-                    }
-                } catch (e) {
-                    if (e?.name !== 'AbortError') console.error(e);
-                } finally {
-                    this.loading = false;
-                    this.loadingMore = false;
-                }
-            },
-            setupInfiniteScroll() {
-                if (this.infiniteObserver) {
-                    this.infiniteObserver.disconnect();
-                    this.infiniteObserver = null;
-                }
-                const resultsEl = document.getElementById('products-results');
-                if (!resultsEl) return;
-                const sentinel = resultsEl.querySelector('#products-infinite-sentinel');
-                if (!sentinel) return;
-                const nextUrl = sentinel.dataset.nextUrl || '';
-                if (!nextUrl) return;
-                this.infiniteObserver = new IntersectionObserver(
-                    (entries) => {
-                        for (const entry of entries) {
-                            if (!entry.isIntersecting) continue;
-                            if (this.loading) continue;
-                            const u = entry.target?.dataset?.nextUrl || '';
-                            if (!u) continue;
-                            this.infiniteObserver?.disconnect();
-                            this.infiniteObserver = null;
-                            this.load(u, true);
-                            break;
-                        }
-                    },
-                    { root: null, rootMargin: '480px 0px 0px 0px', threshold: 0 }
-                );
-                this.infiniteObserver.observe(sentinel);
-            },
-            init() {
-                const root = this.$el;
-
-                root.addEventListener('change', (e) => {
-                    const sel = e.target?.closest?.('select[data-products-sort]');
-                    if (!sel) return;
-                    const sortKey = sel.value;
-                    if (!sortKey) return;
-                    this.load(this.buildProductsListUrl(sortKey));
-                });
-
-                root.querySelectorAll('[data-ajax-products]').forEach((a) => {
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const sortSelect = root.querySelector('select[data-products-sort]');
-                        const sortKey = sortSelect?.value || 'newest';
-                        const categorySlug = a.dataset.categorySlug || '';
-                        this.load(this.buildProductsListUrl(sortKey, categorySlug));
-                    });
-                });
-
-                const searchForm = root.querySelector('form[method=\'GET\'][action*=\'/products\']');
-                if (searchForm) {
-                    searchForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        const sortSelect = root.querySelector('select[data-products-sort]');
-                        const sortKey = sortSelect?.value || 'newest';
-                        this.load(this.buildProductsListUrl(sortKey));
-                    });
-                }
-
-                this.setupInfiniteScroll();
-            }
-        }"
+            openParents: @js(array_fill_keys($expandParentIds ?? [], true)),
+        })"
         x-init="init()"
     >
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8">
@@ -236,3 +99,143 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    function productsCatalog(config) {
+        return {
+            loading: false,
+            loadingMore: false,
+            abortController: null,
+            infiniteObserver: null,
+            productsIndexUrl: config.productsIndexUrl,
+            activeCategorySlug: config.activeCategorySlug || '',
+            openParents: config.openParents || {},
+            toggleParent(id) {
+                this.openParents = { ...this.openParents, [id]: !this.openParents[id] };
+            },
+            buildProductsListUrl(sortKey, categorySlugOverride = null) {
+                const u = new URL(this.productsIndexUrl, window.location.origin);
+                const params = new URLSearchParams();
+                const categorySlug = categorySlugOverride !== null ? categorySlugOverride : this.activeCategorySlug;
+                if (categorySlug) params.set('category', categorySlug);
+                const qInput = this.$el.querySelector("form[method='GET'][action*='/products'] input[name='q']");
+                if (qInput && qInput.value.trim()) params.set('q', qInput.value.trim());
+                params.set('sort', sortKey || 'newest');
+                const qs = params.toString();
+                return u.pathname + (qs ? '?' + qs : '');
+            },
+            async load(url, append = false) {
+                if (!url) return;
+                if (this.abortController) this.abortController.abort();
+                this.abortController = new AbortController();
+                this.loading = true;
+                this.loadingMore = append;
+                try {
+                    const res = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        signal: this.abortController.signal,
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data?.result && data?.html) {
+                        const el = document.getElementById('products-results');
+                        if (!el) return;
+                        if (!append) {
+                            el.innerHTML = data.html;
+                        } else {
+                            const tmp = document.createElement('div');
+                            tmp.innerHTML = data.html;
+                            const currentGrid = el.querySelector('#products-grid');
+                            const newGrid = tmp.querySelector('#products-grid');
+                            if (currentGrid && newGrid) {
+                                currentGrid.append(...Array.from(newGrid.children));
+                            }
+                            const currentSentinel = el.querySelector('#products-infinite-sentinel');
+                            const newSentinel = tmp.querySelector('#products-infinite-sentinel');
+                            if (newSentinel) {
+                                if (currentSentinel) currentSentinel.replaceWith(newSentinel);
+                                else el.appendChild(newSentinel);
+                            } else if (currentSentinel) {
+                                currentSentinel.remove();
+                            }
+                        }
+                        try {
+                            const u = new URL(url, window.location.origin);
+                            this.activeCategorySlug = u.searchParams.get('category') || '';
+                        } catch (e) {
+                            // ignore URL parse issues
+                        }
+                        queueMicrotask(() => this.setupInfiniteScroll());
+                    }
+                } catch (e) {
+                    if (e?.name !== 'AbortError') console.error(e);
+                } finally {
+                    this.loading = false;
+                    this.loadingMore = false;
+                }
+            },
+            setupInfiniteScroll() {
+                if (this.infiniteObserver) {
+                    this.infiniteObserver.disconnect();
+                    this.infiniteObserver = null;
+                }
+                const resultsEl = document.getElementById('products-results');
+                if (!resultsEl) return;
+                const sentinel = resultsEl.querySelector('#products-infinite-sentinel');
+                if (!sentinel) return;
+                const nextUrl = sentinel.dataset.nextUrl || '';
+                if (!nextUrl) return;
+                this.infiniteObserver = new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            if (!entry.isIntersecting) continue;
+                            if (this.loading) continue;
+                            const u = entry.target?.dataset?.nextUrl || '';
+                            if (!u) continue;
+                            this.infiniteObserver?.disconnect();
+                            this.infiniteObserver = null;
+                            this.load(u, true);
+                            break;
+                        }
+                    },
+                    { root: null, rootMargin: '480px 0px 0px 0px', threshold: 0 }
+                );
+                this.infiniteObserver.observe(sentinel);
+            },
+            init() {
+                const root = this.$el;
+                root.addEventListener('change', (e) => {
+                    const sel = e.target?.closest?.('select[data-products-sort]');
+                    if (!sel) return;
+                    const sortKey = sel.value;
+                    if (!sortKey) return;
+                    this.load(this.buildProductsListUrl(sortKey));
+                });
+                root.querySelectorAll('[data-ajax-products]').forEach((a) => {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const sortSelect = root.querySelector('select[data-products-sort]');
+                        const sortKey = sortSelect?.value || 'newest';
+                        const categorySlug = a.dataset.categorySlug || '';
+                        this.load(this.buildProductsListUrl(sortKey, categorySlug));
+                    });
+                });
+                const searchForm = root.querySelector("form[method='GET'][action*='/products']");
+                if (searchForm) {
+                    searchForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const sortSelect = root.querySelector('select[data-products-sort]');
+                        const sortKey = sortSelect?.value || 'newest';
+                        this.load(this.buildProductsListUrl(sortKey));
+                    });
+                }
+                this.setupInfiniteScroll();
+            },
+        };
+    }
+</script>
+@endpush
