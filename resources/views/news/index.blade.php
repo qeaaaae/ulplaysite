@@ -8,7 +8,7 @@
             loadingMore: false,
             abortController: null,
             infiniteObserver: null,
-            newsIndexUrl: @js(route('news.index')),
+            newsIndexUrl: {{ \Illuminate\Support\Js::from(route('news.index')) }},
             buildNewsListUrl() {
                 const u = new URL(this.newsIndexUrl, window.location.origin);
                 const params = new URLSearchParams();

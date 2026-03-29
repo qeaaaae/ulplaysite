@@ -23,7 +23,7 @@
     x-data="{
         filename: '',
         newPreviews: [],
-        existingUrl: @js($existingUrl),
+        existingUrl: {{ \Illuminate\Support\Js::from($existingUrl) }},
         maxPreviews: {{ $max }},
         handleChange(event) {
             const files = Array.from(event.target.files || []);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBannerRequest;
 use App\Http\Requests\Admin\UpdateBannerRequest;
 use App\Models\Banner;
+use App\Services\ImageService;
 use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,9 @@ use Illuminate\View\View;
 
 class BannerController extends Controller
 {
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
@@ -39,7 +43,7 @@ class BannerController extends Controller
 
         if ($request->hasFile('image')) {
             $banner->images()->create([
-                'path' => $request->file('image')->store('banners', 'public'),
+                'path' => $this->imageService->store($request->file('image'), 'banners'),
                 'is_cover' => true,
                 'position' => 0,
             ]);
@@ -59,7 +63,7 @@ class BannerController extends Controller
         if ($request->hasFile('image')) {
             $banner->images()->delete();
             $banner->images()->create([
-                'path' => $request->file('image')->store('banners', 'public'),
+                'path' => $this->imageService->store($request->file('image'), 'banners'),
                 'is_cover' => true,
                 'position' => 0,
             ]);

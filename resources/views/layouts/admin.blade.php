@@ -15,7 +15,7 @@
         <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
     @endif
 </head>
-<body class="bg-stone-100 text-stone-900 font-sans antialiased" x-data="{
+<body class="ulplay-admin bg-stone-100 text-stone-900 font-sans antialiased" x-data="{
     sidebarOpen: false,
     dialogOpen: false,
     dialogTitle: 'Подтверждение',
@@ -40,8 +40,34 @@
     cancelDialog() {
         if (this.dialogCallback) this.dialogCallback(false);
         this.closeDialog();
+    },
+    promptOpen: false,
+    promptTitle: '',
+    promptValue: '',
+    promptPlaceholder: '',
+    promptResolve: null,
+    openPrompt(title, defaultValue, placeholder) {
+        this.promptTitle = title || '';
+        this.promptValue = defaultValue || '';
+        this.promptPlaceholder = placeholder || '';
+        this.promptOpen = true;
+        this.$nextTick(() => { this.$refs.promptInput?.focus(); this.$refs.promptInput?.select(); });
+        return new Promise((resolve) => { this.promptResolve = resolve; });
+    },
+    confirmPrompt() {
+        if (this.promptResolve) this.promptResolve(this.promptValue);
+        this.promptResolve = null;
+        this.promptOpen = false;
+    },
+    cancelPrompt() {
+        if (this.promptResolve) this.promptResolve(null);
+        this.promptResolve = null;
+        this.promptOpen = false;
     }
-}" x-init="(function(d){ window.ulplayConfirm = function(msg, cb, title) { d.openConfirm(msg, cb, title); }; })($data)">
+}" x-init="(function(d){
+    window.ulplayConfirm = function(msg, cb, title) { d.openConfirm(msg, cb, title); };
+    window.ulplayPrompt = function(title, defaultValue, placeholder) { return d.openPrompt(title, defaultValue, placeholder); };
+})($data)">
     <div class="flex min-h-screen">
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
              class="fixed inset-0 z-40 bg-stone-900/50 lg:hidden" x-transition:enter="transition-opacity ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-in" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
@@ -111,7 +137,7 @@
                 </a>
             </div>
         </aside>
-        <div class="flex-1 flex flex-col min-w-0 lg:min-w-auto">
+        <div class="flex-1 flex flex-col min-w-0">
             <header class="sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-white border-b border-stone-200 lg:hidden">
                 <button @click="sidebarOpen = true" class="p-2 -ml-2 rounded-md hover:bg-stone-100" aria-label="Меню">
                     @svg('heroicon-o-bars-3', 'w-6 h-6 text-stone-600')

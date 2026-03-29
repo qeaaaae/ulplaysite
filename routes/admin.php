@@ -25,6 +25,8 @@ Route::middleware(['auth', 'verified', 'admin', 'throttle:admin'])->prefix('admi
     Route::post('push-subscription', [\App\Http\Controllers\Admin\PushSubscriptionController::class, 'store'])->name('push-subscription.store');
     Route::post('push-subscription/test', [\App\Http\Controllers\Admin\PushSubscriptionController::class, 'test'])->name('push-subscription.test');
 
+    Route::post('upload/image', [\App\Http\Controllers\Admin\UploadController::class, 'image'])->name('upload.image');
+
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('services', ServiceController::class);

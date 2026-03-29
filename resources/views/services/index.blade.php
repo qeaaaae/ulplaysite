@@ -15,9 +15,9 @@
             loadingMore: false,
             abortController: null,
             infiniteObserver: null,
-            servicesIndexUrl: @js(route('services.index')),
-            activeCategorySlug: @js($currentCategory?->slug ?? ''),
-            openParents: @json(array_fill_keys($expandParentIds ?? [], true)),
+            servicesIndexUrl: {{ \Illuminate\Support\Js::from(route('services.index')) }},
+            activeCategorySlug: {{ \Illuminate\Support\Js::from($currentCategory?->slug ?? '') }},
+            openParents: {{ \Illuminate\Support\Js::from(array_fill_keys($expandParentIds ?? [], true)) }},
             toggleParent(id) {
                 this.openParents = { ...this.openParents, [id]: !this.openParents[id] };
             },

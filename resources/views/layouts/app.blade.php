@@ -32,6 +32,11 @@
         dialogMessage: '',
         dialogShowCancel: false,
         dialogCallback: null,
+        promptOpen: false,
+        promptTitle: '',
+        promptPlaceholder: '',
+        promptValue: '',
+        promptResolve: null,
         supportTicketModalOpen: false,
         supportTicketServiceId: null,
         supportTicketType: '{{ \App\Enums\SupportTicketTypeEnum::SERVICE_INQUIRY->value }}',
@@ -85,9 +90,45 @@
             if (this.dialogCallback) this.dialogCallback(false);
             this.closeDialog();
         },
+        openPrompt(title, placeholder, defaultValue, resolve) {
+            this.promptTitle = title || '';
+            this.promptPlaceholder = placeholder || '';
+            this.promptValue = defaultValue != null ? String(defaultValue) : '';
+            this.promptResolve = resolve;
+            this.promptOpen = true;
+            this.$nextTick(() => {
+                const el = this.$refs.promptInput;
+                if (el) {
+                    el.focus();
+                    try { el.select(); } catch (e) {}
+                }
+            });
+        },
+        confirmPrompt() {
+            const fn = this.promptResolve;
+            const v = (this.promptValue || '').trim();
+            this.promptResolve = null;
+            this.promptOpen = false;
+            this.promptValue = '';
+            if (typeof fn === 'function') {
+                fn(v);
+            }
+        },
+        cancelPrompt() {
+            const fn = this.promptResolve;
+            this.promptResolve = null;
+            this.promptOpen = false;
+            this.promptValue = '';
+            if (typeof fn === 'function') {
+                fn(null);
+            }
+        },
         init() {
             window.ulplayAlert = (msg, title) => this.openAlert(msg, title);
             window.ulplayConfirm = (msg, callback, title) => this.openConfirm(msg, callback, title);
+            window.ulplayPrompt = (title, placeholder, defaultValue) => new Promise((resolve) => {
+                this.openPrompt(title, placeholder, defaultValue, resolve);
+            });
         },
         async submitAuthForm(form) {
             const ctx = this;
@@ -138,7 +179,7 @@
     }"
          x-on:open-auth-modal.window="openAuthModal($event.detail?.type || 'login')"
          x-on:open-support-ticket-modal.window="openSupportTicketModal($event.detail)"
-         @keydown.escape.window="userMenuOpen = false; if (supportTicketModalOpen) closeSupportTicketModal()">
+         @keydown.escape.window="userMenuOpen = false; if (promptOpen) cancelPrompt(); else if (supportTicketModalOpen) closeSupportTicketModal()">
         @php
             $needsEmailVerify = auth()->check()
                 && !auth()->user()->hasVerifiedEmail();

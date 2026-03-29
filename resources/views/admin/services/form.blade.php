@@ -71,7 +71,7 @@
                     @svg('heroicon-o-document-text', 'w-4 h-4 text-sky-500 shrink-0')
                     Подробно: как проходит услуга (Markdown)
                 </label>
-                <textarea name="content" rows="12" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y font-mono text-sm" placeholder="Заголовки, списки, ссылки — в формате Markdown">{{ old('content', $service->content) }}</textarea>
+                <textarea name="content" rows="12" data-markdown-editor data-upload-url="{{ route('admin.upload.image') }}" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y font-mono text-sm" placeholder="Заголовки, списки, ссылки — в формате Markdown">{{ old('content', $service->content) }}</textarea>
             </div>
         </x-admin.form-section>
 

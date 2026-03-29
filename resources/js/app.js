@@ -1144,3 +1144,227 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// EasyMDE — markdown editor for admin forms
+document.addEventListener('DOMContentLoaded', () => {
+    const textareas = document.querySelectorAll('[data-markdown-editor]');
+    if (!textareas.length) return;
+
+    import('easymde').then(({ default: EasyMDE }) => {
+        import('@fortawesome/fontawesome-free/css/all.min.css');
+        import('easymde/dist/easymde.min.css');
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        function uploadFileToServer(file, uploadUrl, csrfToken) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            return fetch(uploadUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData,
+            })
+            .then((res) => {
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then((json) => json.data.filePath);
+        }
+
+        function trackUploadedImage(textarea, filePath) {
+            const form = textarea.closest('form');
+            if (form) {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'uploaded_content_images[]';
+                hidden.value = filePath;
+                form.appendChild(hidden);
+            }
+        }
+
+        textareas.forEach((textarea) => {
+            const uploadUrl = textarea.getAttribute('data-upload-url') || '';
+
+            const imageUploadButton = {
+                name: 'upload-image',
+                action: (editor) => {
+                    if (!uploadUrl) return;
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/png, image/jpeg, image/gif, image/webp';
+                    fileInput.addEventListener('change', () => {
+                        const file = fileInput.files?.[0];
+                        if (!file) return;
+                        uploadFileToServer(file, uploadUrl, csrfToken)
+                            .then((filePath) => {
+                                const cm = editor.codemirror;
+                                const pos = cm.getCursor();
+                                cm.replaceRange(`![${file.name}](${filePath})\n`, pos);
+                                trackUploadedImage(textarea, filePath);
+                            })
+                            .catch(() => {
+                                window.notyf?.error('Ошибка загрузки изображения');
+                            });
+                    });
+                    fileInput.click();
+                },
+                className: 'fa fa-image',
+                title: 'Загрузить изображение',
+            };
+
+            const insertTableButton = {
+                name: 'insert-table',
+                action: (editor) => {
+                    const cm = editor.codemirror;
+                    const pos = cm.getCursor();
+                    const table = [
+                        '',
+                        '| Заголовок 1 | Заголовок 2 | Заголовок 3 |',
+                        '| --- | --- | --- |',
+                        '|  |  |  |',
+                        '|  |  |  |',
+                        '',
+                    ].join('\n');
+                    cm.replaceRange(table, pos);
+                    cm.setCursor({ line: pos.line + 1, ch: 2 });
+                    cm.focus();
+                },
+                className: 'fa fa-table',
+                title: 'Вставить таблицу',
+            };
+
+            const insertLinkButton = {
+                name: 'insert-link',
+                action: async (editor) => {
+                    const cm = editor.codemirror;
+                    const selectedText = cm.getSelection();
+                    const prompt = window.ulplayPrompt || window.prompt?.bind(window);
+
+                    const url = await prompt('Введите URL', 'https://', 'https://example.com');
+                    if (!url) return;
+
+                    let linkText = selectedText;
+                    if (!linkText) {
+                        linkText = await prompt('Текст ссылки', '', 'Нажмите сюда');
+                    }
+                    linkText = linkText || url;
+
+                    cm.replaceSelection(`[${linkText}](${url})`);
+                    cm.focus();
+                },
+                className: 'fa fa-link',
+                title: 'Вставить ссылку',
+            };
+
+            const colorPresets = [
+                { label: 'Красный', value: '#e11d48' },
+                { label: 'Оранжевый', value: '#ea580c' },
+                { label: 'Жёлтый', value: '#ca8a04' },
+                { label: 'Зелёный', value: '#16a34a' },
+                { label: 'Голубой', value: '#0284c7' },
+                { label: 'Синий', value: '#2563eb' },
+                { label: 'Фиолетовый', value: '#9333ea' },
+                { label: 'Серый', value: '#78716c' },
+            ];
+
+            const textColorButton = {
+                name: 'text-color',
+                action: (editor) => {
+                    const btn = editor.toolbarElements['text-color'];
+                    if (!btn) return;
+
+                    const existing = btn.querySelector('.mde-color-dropdown');
+                    if (existing) { existing.remove(); return; }
+
+                    const dropdown = document.createElement('div');
+                    dropdown.className = 'mde-color-dropdown';
+                    dropdown.style.cssText = 'position:absolute;top:100%;left:0;z-index:100;background:#fff;border:1px solid #d6d3d1;border-radius:8px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);min-width:160px;';
+
+                    colorPresets.forEach(({ label, value }) => {
+                        const swatch = document.createElement('button');
+                        swatch.type = 'button';
+                        swatch.title = label;
+                        swatch.style.cssText = `width:30px;height:30px;border-radius:6px;border:2px solid #e7e5e4;background:${value};cursor:pointer;transition:transform 0.1s,border-color 0.1s;`;
+                        swatch.addEventListener('mouseenter', () => { swatch.style.transform = 'scale(1.15)'; swatch.style.borderColor = '#0284c7'; });
+                        swatch.addEventListener('mouseleave', () => { swatch.style.transform = 'scale(1)'; swatch.style.borderColor = '#e7e5e4'; });
+                        swatch.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const cm = editor.codemirror;
+                            const selected = cm.getSelection();
+                            if (selected) {
+                                cm.replaceSelection(`{color:${value}}${selected}{/color}`);
+                            } else {
+                                const pos = cm.getCursor();
+                                cm.replaceRange(`{color:${value}}текст{/color}`, pos);
+                            }
+                            cm.focus();
+                            dropdown.remove();
+                        });
+                        dropdown.appendChild(swatch);
+                    });
+
+                    btn.style.position = 'relative';
+                    btn.appendChild(dropdown);
+
+                    const close = (e) => { if (!btn.contains(e.target)) { dropdown.remove(); document.removeEventListener('click', close); } };
+                    setTimeout(() => document.addEventListener('click', close), 0);
+                },
+                className: 'fa fa-palette',
+                title: 'Цвет текста',
+            };
+
+            const editorConfig = {
+                element: textarea,
+                autoDownloadFontAwesome: false,
+                spellChecker: false,
+                autofocus: false,
+                status: ['lines', 'words'],
+                placeholder: textarea.getAttribute('placeholder') || '',
+                sideBySideFullscreen: false,
+                previewRender: (text) => {
+                    const parent = editorConfig.element?.parentNode;
+                    const easyMDE = parent?._easyMDE;
+                    let html = easyMDE ? easyMDE.markdown(text) : text;
+                    return html.replace(
+                        /\{color:(#[0-9a-fA-F]{3,6}|[a-zA-Z]{3,20})\}(.*?)\{\/color\}/gs,
+                        '<span style="color:$1">$2</span>'
+                    );
+                },
+                toolbar: [
+                    'undo', 'redo', '|',
+                    'bold', 'italic', 'strikethrough', 'heading', 'heading-smaller', 'heading-bigger', '|',
+                    'unordered-list', 'ordered-list', 'quote', '|',
+                    insertLinkButton, imageUploadButton, insertTableButton, 'horizontal-rule', 'code', textColorButton, '|',
+                    'preview', 'side-by-side', '|',
+                    'guide',
+                ],
+                minHeight: '400px',
+            };
+
+            if (uploadUrl) {
+                editorConfig.uploadImage = true;
+                editorConfig.imageMaxSize = 4 * 1024 * 1024;
+                editorConfig.imageAccept = 'image/png, image/jpeg, image/gif, image/webp';
+                editorConfig.imageUploadFunction = (file, onSuccess, onError) => {
+                    uploadFileToServer(file, uploadUrl, csrfToken)
+                        .then((filePath) => {
+                            onSuccess(filePath);
+                            trackUploadedImage(textarea, filePath);
+                        })
+                        .catch(() => {
+                            onError('Ошибка загрузки изображения');
+                        });
+                };
+            }
+
+            const editor = new EasyMDE(editorConfig);
+            textarea.parentNode._easyMDE = editor;
+            EasyMDE.toggleSideBySide(editor);
+        });
+    });
+});

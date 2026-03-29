@@ -18,8 +18,11 @@
         "@alpinejs/collapse": "^3.15.8",
         "@fontsource/exo-2": "^5.2.8",
         "@fontsource/manrope": "^5.2.8",
+        "@fortawesome/fontawesome-free": "^7.2.0",
+        "@tailwindcss/typography": "^0.5.19",
         "alpinejs": "^3.15.8",
         "chart.js": "^4.5.1",
+        "easymde": "^2.20.0",
         "notyf": "^3.10.0",
         "swiper": "^12.1.2",
         "tom-select": "^2.5.2"

@@ -25,6 +25,7 @@ class Product extends Model
         'title',
         'slug',
         'description',
+        'video_url',
         'price',
         'category_id',
         'in_stock',
@@ -64,6 +65,11 @@ class Product extends Model
     {
         $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
         return $image?->url;
+    }
+
+    public function getVideoEmbedUrlAttribute(): ?string
+    {
+        return app(\App\Services\VideoEmbedService::class)->toEmbedUrl($this->video_url);
     }
 
     public function scopeNew(Builder $query): Builder

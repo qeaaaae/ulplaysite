@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Services\ImageService;
 use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,9 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
@@ -43,7 +47,7 @@ class CategoryController extends Controller
 
         if ($request->hasFile('image')) {
             $category->images()->create([
-                'path' => $request->file('image')->store('categories', 'public'),
+                'path' => $this->imageService->store($request->file('image'), 'categories'),
                 'is_cover' => true,
                 'position' => 0,
             ]);
@@ -66,7 +70,7 @@ class CategoryController extends Controller
         if ($request->hasFile('image')) {
             $category->images()->delete();
             $category->images()->create([
-                'path' => $request->file('image')->store('categories', 'public'),
+                'path' => $this->imageService->store($request->file('image'), 'categories'),
                 'is_cover' => true,
                 'position' => 0,
             ]);

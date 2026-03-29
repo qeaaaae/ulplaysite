@@ -23,6 +23,10 @@
                                     {{ $news->author->name }}
                                 </span>
                             @endif
+                            <span class="inline-flex items-center gap-1.5">
+                                @svg('heroicon-o-eye', 'w-4 h-4 text-sky-500')
+                                <span>{{ (int) ($news->views_count ?? 0) }}</span>
+                            </span>
                         </div>
                         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-900 tracking-tight leading-tight">{{ $news->title }}</h1>
                     </header>
@@ -49,10 +53,10 @@
                     @endif
 
                     @if($thumbs->count() > 0)
-                        <div class="mb-6 flex gap-2 overflow-x-auto pb-1">
+                        <div class="mb-6 flex w-full gap-2 lg:overflow-x-auto lg:pb-1">
                             @foreach($thumbs as $image)
-                                <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="news-{{ $news->id }}" class="block w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 shrink-0">
-                                    <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none'">
+                                <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="news-{{ $news->id }}" class="block min-w-0 flex-1 aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-50 lg:h-32 lg:w-32 lg:flex-none lg:shrink-0">
+                                    <img src="{{ $image->url }}" alt="" class="h-full w-full object-cover" onerror="this.onerror=null;this.style.display='none'">
                                 </a>
                             @endforeach
                         </div>
@@ -63,8 +67,8 @@
                     @endif
 
                     @if($news->content)
-                        <div class="prose prose-stone prose-lg max-w-none text-stone-600 leading-relaxed space-y-4">
-                            {!! nl2br(e($news->content)) !!}
+                        <div class="ulplay-markdown-body prose prose-stone max-w-[58.5rem] mx-0 prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
+                            {!! app(\App\Services\MarkdownService::class)->render($news->content) !!}
                         </div>
                     @endif
 
@@ -76,7 +80,7 @@
                 </div>
 
                 @if(($similarNews ?? collect())->isNotEmpty())
-                    <aside class="md:sticky md:top-4 md:self-start mt-10 md:mt-0 border-t md:border-t-0 border-stone-200">
+                    <aside class="md:sticky md:top-4 md:self-start mt-10 md:mt-0 pt-6 md:pt-0 border-t md:border-t-0 border-stone-200">
                         <x-ui.section-heading icon="heroicon-o-newspaper" class="mb-4">Похожие новости</x-ui.section-heading>
                         <div class="space-y-3 sm:space-y-4">
                             @foreach($similarNews as $item)
@@ -94,7 +98,7 @@
             </div>
 
             @if(($similarNews ?? collect())->isEmpty())
-                <footer class="mt-12 border-t border-stone-200">
+                <footer class="mt-12 pt-6 border-t border-stone-200">
                     <a href="{{ route('news.index') }}" class="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
                         @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
                         Все новости

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreNewsRequest;
 use App\Http\Requests\Admin\UpdateNewsRequest;
 use App\Models\News;
+use App\Services\ImageService;
 use App\Support\StrHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,11 @@ use Illuminate\View\View;
 
 class NewsController extends Controller
 {
+    use Concerns\CleansUpContentImages;
+
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
@@ -43,11 +49,13 @@ class NewsController extends Controller
         /** @var News $news */
         $news = News::create($validated);
 
+        $this->cleanupUnusedContentImages($request, $news->content);
+
         if (! empty($images)) {
             $news->images()->delete();
             foreach (array_slice($images, 0, 5) as $index => $file) {
                 $news->images()->create([
-                    'path' => $file->store('news', 'public'),
+                    'path' => $this->imageService->store($file, 'news'),
                     'is_cover' => $index === 0,
                     'position' => $index,
                 ]);
@@ -77,6 +85,8 @@ class NewsController extends Controller
         unset($validated['images']);
         $news->update($validated);
 
+        $this->cleanupUnusedContentImages($request, $news->content);
+
         if (! empty($deleteIds)) {
             $news->images()->whereIn('id', $deleteIds)->delete();
         }
@@ -94,7 +104,7 @@ class NewsController extends Controller
                 $startPosition = (int) $news->images()->max('position') + 1;
                 foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
                     $news->images()->create([
-                        'path' => $file->store('news', 'public'),
+                        'path' => $this->imageService->store($file, 'news'),
                         'is_cover' => $existing === 0 && $offset === 0,
                         'position' => $startPosition + $offset,
                     ]);

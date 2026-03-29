@@ -8,7 +8,7 @@
             loadingMoreReviews: false,
             abortController: null,
             infiniteObserver: null,
-            reviewsIndexUrl: @js(route('reviews.index.product', $product)),
+            reviewsIndexUrl: {{ \Illuminate\Support\Js::from(route('reviews.index.product', $product)) }},
             openReviewsModal() {
                 this.reviewsModalOpen = true;
                 queueMicrotask(() => this.setupReviewsInfiniteScroll());
@@ -127,29 +127,83 @@
             @php
                 $images = $product->images;
                 $cover = $images->firstWhere('is_cover', true) ?? $images->first();
-                $thumbs = $cover ? $images->filter(fn ($img) => $img->id !== $cover->id) : $images;
+                $videoEmbedUrl = $product->video_embed_url;
+                $hasVideo = !empty($videoEmbedUrl);
+                $totalMedia = $images->count() + ($hasVideo ? 1 : 0);
                 $hasSimilar = ($similarProducts ?? collect())->isNotEmpty();
             @endphp
 
             <div class="min-w-0">
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
-                        <div>
+                        <div
+                            x-data="{
+                                showingVideo: {{ $hasVideo ? 'true' : 'false' }},
+                                activeImageId: {{ $cover ? $cover->id : 'null' }},
+                                activeSrc: {{ \Illuminate\Support\Js::from($cover?->url ?? '') }},
+                                videoEmbedUrl: {{ \Illuminate\Support\Js::from($videoEmbedUrl ?? '') }},
+                                selectPhoto(id, src) {
+                                    this.activeImageId = id;
+                                    this.activeSrc = src;
+                                    this.showingVideo = false;
+                                },
+                                selectVideo() {
+                                    this.showingVideo = true;
+                                },
+                                openLightbox() {
+                                    if (this.showingVideo) return;
+                                    const el = document.getElementById('lb-img-' + this.activeImageId);
+                                    if (el) el.click();
+                                }
+                            }"
+                        >
+                            <div class="sr-only">
+                                @foreach($images as $image)
+                                    <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}" id="lb-img-{{ $image->id }}"></a>
+                                @endforeach
+                            </div>
+
                             <div class="lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:gap-3">
-                                @if($cover)
-                                    <div class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50 lg:col-start-2 lg:row-start-1">
-                                        <a href="{{ $cover->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}">
-                                            <img src="{{ $cover->url }}" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in" onerror="this.onerror=null;this.style.display='none'">
-                                        </a>
+                                @if($cover || $hasVideo)
+                                    <div
+                                        class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50 lg:col-start-2 lg:row-start-1"
+                                    >
+                                        <div x-show="!showingVideo" class="w-full h-full" @click="openLightbox()">
+                                            <img :src="activeSrc" alt="{{ $product->title }}" class="w-full h-full object-cover cursor-zoom-in">
+                                        </div>
+                                        <div x-show="showingVideo" x-cloak class="w-full h-full bg-stone-900">
+                                            <template x-if="showingVideo">
+                                                <iframe :src="videoEmbedUrl" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+                                            </template>
+                                        </div>
                                     </div>
                                 @endif
 
-                                @if($thumbs->count() > 0)
+                                @if($totalMedia > 1)
                                     <div class="mt-3 lg:mt-0 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 lg:flex lg:flex-col gap-2 lg:overflow-y-auto pr-0 lg:pr-1 lg:col-start-1 lg:row-start-1">
-                                        @foreach($thumbs as $image)
-                                            <a href="{{ $image->url }}" data-lightbox="image" data-lightbox-group="product-{{ $product->id }}" class="block w-full aspect-square lg:min-h-[84px] lg:flex-1 rounded-lg overflow-hidden border border-stone-200 bg-stone-50">
+                                        @foreach($images as $image)
+                                            <button
+                                                type="button"
+                                                @click="selectPhoto({{ $image->id }}, {{ \Illuminate\Support\Js::from($image->url) }})"
+                                                class="block w-full aspect-square lg:min-h-[84px] lg:flex-1 rounded-lg overflow-hidden border bg-stone-50 transition-all cursor-pointer outline-none"
+                                                :class="!showingVideo && activeImageId === {{ $image->id }} ? 'border-sky-500 ring-2 ring-sky-500/30' : 'border-stone-200 hover:border-stone-300'"
+                                            >
                                                 <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover">
-                                            </a>
+                                            </button>
                                         @endforeach
+                                        @if($hasVideo)
+                                            <button
+                                                type="button"
+                                                @click="selectVideo()"
+                                                class="relative w-full aspect-square lg:min-h-[84px] lg:flex-1 rounded-lg overflow-hidden border bg-stone-900 transition-all cursor-pointer outline-none"
+                                                :class="showingVideo ? 'border-sky-500 ring-2 ring-sky-500/30' : 'border-stone-700 hover:border-stone-500'"
+                                            >
+                                                <div class="absolute inset-0 flex items-center justify-center">
+                                                    <svg class="w-8 h-8 text-white/80" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M8 5.14v14l11-7-11-7z"/>
+                                                    </svg>
+                                                </div>
+                                            </button>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -237,7 +291,7 @@
 
             @if($hasSimilar)
                 <section class="mt-10 border-t border-stone-200">
-                    <x-ui.section-heading icon="heroicon-o-squares-2x2" class="mb-4">Похожие товары</x-ui.section-heading>
+                    <x-ui.section-heading afterBorder icon="heroicon-o-squares-2x2" class="mb-4">Похожие товары</x-ui.section-heading>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                         @foreach($similarProducts as $similar)
                             <div class="min-w-0">
@@ -248,7 +302,7 @@
                 </section>
             @endif
 
-            <footer class="mt-12 border-t border-stone-200">
+            <footer class="mt-12 pt-6 border-t border-stone-200">
                 <a href="{{ $product->category ? route('products.index', ['category' => $product->category->slug]) : route('products.index') }}" class="inline-flex items-center gap-2 text-sky-600 hover:text-sky-700 font-semibold transition-colors group">
                     @svg('heroicon-o-arrow-left', 'w-5 h-5 group-hover:-translate-x-0.5 transition-transform')
                     {{ $product->category ? $product->category->name : 'В каталог' }}

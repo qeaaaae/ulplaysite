@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 @import '@fontsource/manrope/latin-400.css';
 @import '@fontsource/manrope/latin-500.css';
 @import '@fontsource/manrope/latin-600.css';
@@ -30,6 +31,19 @@
     --ulplay-card-radius: 0.75rem;
     --ulplay-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
     --ulplay-card-shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+    /* Ширина текста markdown на сайте и в превью админки (≈ колонка новости 7/10 от 1420px) */
+    --ulplay-markdown-measure: 58.5rem;
+}
+
+/* В админке превью ограничиваем по viewport, чтобы не ломать вёрстку */
+.ulplay-admin {
+    --ulplay-markdown-measure: max(18rem, min(58.5rem, calc(100vw - 22rem)));
+}
+
+/* Единая типографика тела markdown на сайте */
+.ulplay-markdown-body {
+    font-size: 1rem;
+    line-height: 1.75;
 }
 
 html {
@@ -297,6 +311,37 @@ h6 {
 .form-field.is-invalid .invalid-feedback-icon {
     display: flex !important;
 }
+
+/* type="date": нативная иконка календаря прижата вправо (Chrome, Edge, Safari) */
+.form-field input[type='date'],
+.form-field input[type='datetime-local'] {
+    position: relative;
+}
+
+.form-field input[type='date']::-webkit-calendar-picker-indicator,
+.form-field input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    position: absolute;
+    right: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    margin: 0;
+    opacity: 0.75;
+}
+
+.form-field input[type='date']::-webkit-calendar-picker-indicator:hover,
+.form-field input[type='datetime-local']::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+.form-field.is-invalid input[type='date']::-webkit-calendar-picker-indicator,
+.form-field.is-invalid input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    right: 2.5rem;
+}
+
 .form-field.is-invalid .phone-status-icons {
     display: none !important;
 }
@@ -480,6 +525,608 @@ h6 {
 
 .ulplay-scrollbar-sky::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(14, 165, 233, 0.8) 0%, rgba(3, 105, 161, 0.8) 100%);
+}
+
+/* Prose — стилизация markdown-контента на публичных страницах */
+.prose img {
+    max-width: 100%;
+    height: auto;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+    position: relative;
+    padding-left: 1rem;
+    border-left: 3px solid var(--ulplay-accent, #0284c7);
+    color: #1c1917;
+}
+
+.prose h1 {
+    font-size: 1.625rem;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid #e7e5e4;
+}
+
+.prose h2 {
+    font-size: 1.35rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.6em;
+}
+
+.prose h3 {
+    font-size: 1.125rem;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    border-left-width: 2px;
+}
+
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child {
+    margin-top: 0;
+}
+
+.prose h1 + hr,
+.prose h2 + hr,
+.prose h3 + hr {
+    margin-top: 0.25em;
+    border-color: transparent;
+}
+
+.prose hr {
+    border-top: 1px solid #e7e5e4;
+    margin: 1.75em 0;
+}
+
+.prose hr + p,
+.prose hr + ul,
+.prose hr + ol {
+    margin-top: 0.75em;
+}
+
+.prose a {
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.prose a:hover {
+    text-decoration: underline;
+}
+
+.prose ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.prose ul > li {
+    position: relative;
+    padding-left: 1.5em;
+}
+
+.prose ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0.25em;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ulplay-accent, #0284c7);
+}
+
+.prose ol {
+    list-style: none;
+    padding-left: 0;
+    counter-reset: prose-ol;
+}
+
+.prose ol > li {
+    position: relative;
+    padding-left: 2em;
+    counter-increment: prose-ol;
+}
+
+.prose ol > li::before {
+    content: counter(prose-ol);
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    width: 1.5em;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ulplay-accent, #0284c7);
+    border-radius: 50%;
+}
+
+.prose blockquote {
+    border-left: 3px solid var(--ulplay-accent, #0284c7);
+    background: #f0f9ff;
+    padding: 1em 1.25em;
+    border-radius: 0 8px 8px 0;
+    color: #0c4a6e;
+    font-style: normal;
+    margin: 1.25em 0;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose code:not(pre code) {
+    background: #f5f5f4;
+    border: 1px solid #e7e5e4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #c2410c;
+}
+
+.prose pre {
+    background: #1c1917;
+    color: #e7e5e4;
+    padding: 1em 1.25em;
+    border-radius: 10px;
+    overflow-x: auto;
+    border: 1px solid #292524;
+    margin: 1.25em 0;
+}
+
+.prose pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: 0.875em;
+}
+
+.prose table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e7e5e4;
+    margin: 1.25em 0;
+}
+
+.prose th {
+    background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
+    color: #0c4a6e;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid #bae6fd;
+    font-size: 0.875em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.prose td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f5f5f4;
+}
+
+.prose tr:last-child td {
+    border-bottom: none;
+}
+
+.prose tr:hover td {
+    background: #fafaf9;
+}
+
+/* EasyMDE — подгоняем под админский UI */
+.EasyMDEContainer {
+    max-width: 100%;
+    overflow: visible;
+    border: 1px solid #d6d3d1;
+    border-radius: 8px;
+}
+
+.EasyMDEContainer .CodeMirror {
+    border: none;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.875rem;
+    color: #1c1917;
+    background: #fff;
+}
+
+.EasyMDEContainer .CodeMirror-focused {
+    border: none;
+    box-shadow: none;
+}
+
+.EasyMDEContainer .editor-toolbar {
+    border: none;
+    border-bottom: 1px solid #e7e5e4;
+    border-radius: 0;
+    background: #fafaf9;
+    flex-wrap: wrap;
+    padding: 6px 8px;
+}
+
+.EasyMDEContainer .editor-toolbar button {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    color: #57534e;
+    transition: all 0.15s ease;
+}
+
+.EasyMDEContainer .editor-toolbar button.active,
+.EasyMDEContainer .editor-toolbar button:hover {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: #0369a1;
+}
+
+.EasyMDEContainer .editor-toolbar i.separator {
+    border-left-color: #e7e5e4;
+}
+
+.EasyMDEContainer .editor-statusbar {
+    border: none;
+    border-top: 1px solid #e7e5e4;
+    color: #78716c;
+    font-size: 0.75rem;
+    background: #fafaf9;
+    padding: 4px 12px;
+}
+
+/*
+ * Side-by-side (sideBySideFullscreen: false): EasyMDE вешает .sided--no-fullscreen и flex.
+ * Без явных flex-basis/min-width колонки часто переносятся на новую строку (min-width: auto).
+ */
+.EasyMDEContainer.sided--no-fullscreen {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.EasyMDEContainer.sided--no-fullscreen > .editor-toolbar {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.EasyMDEContainer.sided--no-fullscreen > .editor-statusbar {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.EasyMDEContainer.sided--no-fullscreen .CodeMirror-sided {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box;
+    border-right: 1px solid #e7e5e4 !important;
+}
+
+.EasyMDEContainer.sided--no-fullscreen .editor-preview-side.editor-preview-active-side {
+    flex: 0 0 var(--ulplay-markdown-measure) !important;
+    width: var(--ulplay-markdown-measure) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto !important;
+    display: block !important;
+}
+
+/* Телефон / узкий планшет: редактор сверху, превью снизу */
+@media (max-width: 1023.98px) {
+    .EasyMDEContainer.sided--no-fullscreen {
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        overflow-x: visible;
+    }
+
+    .EasyMDEContainer.sided--no-fullscreen .CodeMirror-sided {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 220px;
+        border-right: none !important;
+        border-bottom: 1px solid #e7e5e4;
+    }
+
+    .EasyMDEContainer.sided--no-fullscreen .editor-preview-side.editor-preview-active-side {
+        flex: 0 0 auto !important;
+        width: calc(100% - 2.5rem) !important;
+        max-width: calc(100% - 2.5rem) !important;
+        min-height: 200px;
+    }
+}
+
+/* Превью: вертикальный padding; боковые отступы — margin (не сужают строку текста, в отличие от padding) */
+.EasyMDEContainer .editor-preview-side {
+    border: none;
+    background: #fff;
+    padding: 1.5rem 0;
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #57534e;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.EasyMDEContainer .editor-preview-active {
+    border: none;
+    background: #fff;
+    padding: 1.5rem 0;
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #57534e;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.EasyMDEContainer .editor-preview-side h1,
+.EasyMDEContainer .editor-preview-side h2,
+.EasyMDEContainer .editor-preview-side h3,
+.EasyMDEContainer .editor-preview-active h1,
+.EasyMDEContainer .editor-preview-active h2,
+.EasyMDEContainer .editor-preview-active h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: #1c1917;
+    position: relative;
+    padding-left: 1rem;
+    border-left: 3px solid var(--ulplay-accent, #0284c7);
+}
+
+.EasyMDEContainer .editor-preview-side h1,
+.EasyMDEContainer .editor-preview-active h1 {
+    font-size: 1.625rem;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid #e7e5e4;
+}
+
+.EasyMDEContainer .editor-preview-side h2,
+.EasyMDEContainer .editor-preview-active h2 {
+    font-size: 1.35rem;
+    margin-top: 1.75em;
+    margin-bottom: 0.6em;
+}
+
+.EasyMDEContainer .editor-preview-side h3,
+.EasyMDEContainer .editor-preview-active h3 {
+    font-size: 1.125rem;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    border-left-width: 2px;
+}
+
+.EasyMDEContainer .editor-preview-side h1:first-child,
+.EasyMDEContainer .editor-preview-active h1:first-child,
+.EasyMDEContainer .editor-preview-side h2:first-child,
+.EasyMDEContainer .editor-preview-active h2:first-child,
+.EasyMDEContainer .editor-preview-side h3:first-child,
+.EasyMDEContainer .editor-preview-active h3:first-child {
+    margin-top: 0;
+}
+
+.EasyMDEContainer .editor-preview-side p,
+.EasyMDEContainer .editor-preview-active p {
+    margin-bottom: 0.75em;
+}
+
+.EasyMDEContainer .editor-preview-side img,
+.EasyMDEContainer .editor-preview-active img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    margin: 0.75em 0;
+}
+
+.EasyMDEContainer .editor-preview-side ul,
+.EasyMDEContainer .editor-preview-active ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.EasyMDEContainer .editor-preview-side ul > li,
+.EasyMDEContainer .editor-preview-active ul > li {
+    position: relative;
+    padding-left: 1.5em;
+    margin-bottom: 0.25em;
+}
+
+.EasyMDEContainer .editor-preview-side ul > li::before,
+.EasyMDEContainer .editor-preview-active ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0.25em;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ulplay-accent, #0284c7);
+}
+
+.EasyMDEContainer .editor-preview-side ol,
+.EasyMDEContainer .editor-preview-active ol {
+    list-style: none;
+    padding-left: 0;
+    counter-reset: preview-ol;
+}
+
+.EasyMDEContainer .editor-preview-side ol > li,
+.EasyMDEContainer .editor-preview-active ol > li {
+    position: relative;
+    padding-left: 2em;
+    margin-bottom: 0.25em;
+    counter-increment: preview-ol;
+}
+
+.EasyMDEContainer .editor-preview-side ol > li::before,
+.EasyMDEContainer .editor-preview-active ol > li::before {
+    content: counter(preview-ol);
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    width: 1.5em;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ulplay-accent, #0284c7);
+    border-radius: 50%;
+}
+
+.EasyMDEContainer .editor-preview-side blockquote,
+.EasyMDEContainer .editor-preview-active blockquote {
+    border-left: 3px solid var(--ulplay-accent, #0284c7);
+    background: #f0f9ff;
+    padding: 1em 1.25em;
+    border-radius: 0 8px 8px 0;
+    color: #0c4a6e;
+    font-style: normal;
+    margin: 1.25em 0;
+}
+
+.EasyMDEContainer .editor-preview-side blockquote p:last-child,
+.EasyMDEContainer .editor-preview-active blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.EasyMDEContainer .editor-preview-side code:not(pre code),
+.EasyMDEContainer .editor-preview-active code:not(pre code) {
+    background: #f5f5f4;
+    border: 1px solid #e7e5e4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #c2410c;
+}
+
+.EasyMDEContainer .editor-preview-side pre,
+.EasyMDEContainer .editor-preview-active pre {
+    background: #1c1917;
+    color: #e7e5e4;
+    padding: 1em 1.25em;
+    border-radius: 10px;
+    overflow-x: auto;
+    border: 1px solid #292524;
+    margin: 1.25em 0;
+}
+
+.EasyMDEContainer .editor-preview-side pre code,
+.EasyMDEContainer .editor-preview-active pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: 0.875em;
+}
+
+.EasyMDEContainer .editor-preview-side a,
+.EasyMDEContainer .editor-preview-active a {
+    color: #0284c7;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.EasyMDEContainer .editor-preview-side a:hover,
+.EasyMDEContainer .editor-preview-active a:hover {
+    text-decoration: underline;
+}
+
+.EasyMDEContainer .editor-preview-side table,
+.EasyMDEContainer .editor-preview-active table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e7e5e4;
+    margin: 1.25em 0;
+}
+
+.EasyMDEContainer .editor-preview-side th,
+.EasyMDEContainer .editor-preview-active th {
+    background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
+    color: #0c4a6e;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid #bae6fd;
+    font-size: 0.875em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.EasyMDEContainer .editor-preview-side td,
+.EasyMDEContainer .editor-preview-active td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f5f5f4;
+}
+
+.EasyMDEContainer .editor-preview-side tr:last-child td,
+.EasyMDEContainer .editor-preview-active tr:last-child td {
+    border-bottom: none;
+}
+
+.EasyMDEContainer .editor-preview-side tr:hover td,
+.EasyMDEContainer .editor-preview-active tr:hover td {
+    background: #fafaf9;
+}
+
+.EasyMDEContainer .editor-preview-side hr,
+.EasyMDEContainer .editor-preview-active hr {
+    border: none;
+    border-top: 1px solid #e7e5e4;
+    margin: 1.75em 0;
+}
+
+.EasyMDEContainer .editor-preview-side h1 + hr,
+.EasyMDEContainer .editor-preview-side h2 + hr,
+.EasyMDEContainer .editor-preview-side h3 + hr,
+.EasyMDEContainer .editor-preview-active h1 + hr,
+.EasyMDEContainer .editor-preview-active h2 + hr,
+.EasyMDEContainer .editor-preview-active h3 + hr {
+    margin-top: 0.25em;
+    border-color: transparent;
+}
+
+.EasyMDEContainer .editor-preview-side hr + p,
+.EasyMDEContainer .editor-preview-side hr + ul,
+.EasyMDEContainer .editor-preview-side hr + ol,
+.EasyMDEContainer .editor-preview-active hr + p,
+.EasyMDEContainer .editor-preview-active hr + ul,
+.EasyMDEContainer .editor-preview-active hr + ol {
+    margin-top: 0.75em;
 }
 
 /* Design tokens */

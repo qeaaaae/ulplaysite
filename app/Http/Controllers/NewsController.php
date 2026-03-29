@@ -74,8 +74,9 @@ class NewsController extends Controller
                 'news_id' => $news->id,
                 'user_id' => $user->id,
             ]);
-            $news->loadCount('views');
         }
+
+        $news->loadCount('views');
 
         $similarNews = News::with(['author', 'images'])
             ->whereNotNull('published_at')

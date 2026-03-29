@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreServiceRequest;
 use App\Http\Requests\Admin\UpdateServiceRequest;
 use App\Models\Category;
 use App\Models\Service;
+use App\Services\ImageService;
 use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,11 @@ use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
+    use Concerns\CleansUpContentImages;
+
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
@@ -45,11 +51,13 @@ class ServiceController extends Controller
         /** @var Service $service */
         $service = Service::create($validated);
 
+        $this->cleanupUnusedContentImages($request, $service->content);
+
         if (! empty($images)) {
             $service->images()->delete();
             foreach (array_slice($images, 0, 5) as $index => $file) {
                 $service->images()->create([
-                    'path' => $file->store('services', 'public'),
+                    'path' => $this->imageService->store($file, 'services'),
                     'is_cover' => $index === 0,
                     'position' => $index,
                 ]);
@@ -74,6 +82,8 @@ class ServiceController extends Controller
         unset($validated['images']);
         $service->update($validated);
 
+        $this->cleanupUnusedContentImages($request, $service->content);
+
         if (! empty($deleteIds)) {
             $service->images()->whereIn('id', $deleteIds)->delete();
         }
@@ -91,7 +101,7 @@ class ServiceController extends Controller
                 $startPosition = (int) $service->images()->max('position') + 1;
                 foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
                     $service->images()->create([
-                        'path' => $file->store('services', 'public'),
+                        'path' => $this->imageService->store($file, 'services'),
                         'is_cover' => $existing === 0 && $offset === 0,
                         'position' => $startPosition + $offset,
                     ]);

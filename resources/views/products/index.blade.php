@@ -12,9 +12,9 @@
     <div
         class="py-4"
         x-data="productsCatalog({
-            productsIndexUrl: @js(route('products.index')),
-            activeCategorySlug: @js($currentCategory?->slug ?? ''),
-            openParents: @js(array_fill_keys($expandParentIds ?? [], true)),
+            productsIndexUrl: {{ \Illuminate\Support\Js::from(route('products.index')) }},
+            activeCategorySlug: {{ \Illuminate\Support\Js::from($currentCategory?->slug ?? '') }},
+            openParents: {{ \Illuminate\Support\Js::from(array_fill_keys($expandParentIds ?? [], true)) }},
         })"
         x-init="init()"
     >

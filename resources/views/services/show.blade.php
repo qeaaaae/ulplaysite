@@ -64,7 +64,7 @@
                                     <button
                                         type="button"
                                         class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-sky-600 text-white font-semibold text-sm hover:bg-sky-700 transition-all shadow-sm hover:shadow-md w-full sm:w-auto cursor-pointer"
-                                        @click="$dispatch('open-support-ticket-modal', { serviceId: {{ $service->id }}, title: @js($service->title) })"
+                                        @click="openSupportTicketModal({ serviceId: {{ $service->id }}, title: {{ \Illuminate\Support\Js::from($service->title) }} })"
                                     >
                                         @svg('heroicon-o-paper-airplane', 'w-4 h-4')
                                         Задать вопрос
@@ -90,8 +90,8 @@
             @if($service->content)
                 <section class="mt-6 rounded-2xl border border-stone-200 bg-white shadow-sm p-5 sm:p-6 md:p-8">
                     <x-ui.section-heading icon="heroicon-o-document-text" class="mb-4">Как проходит услуга</x-ui.section-heading>
-                    <div class="prose prose-stone max-w-none prose-headings:font-semibold prose-a:text-sky-600 prose-img:rounded-lg">
-                        {!! \Illuminate\Support\Str::markdown($service->content) !!}
+                    <div class="ulplay-markdown-body prose prose-stone max-w-[58.5rem] mx-0 prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
+                        {!! app(\App\Services\MarkdownService::class)->render($service->content) !!}
                     </div>
                 </section>
             @endif

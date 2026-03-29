@@ -52,6 +52,9 @@
                     </label>
                     <textarea name="description" rows="3" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y" placeholder="Краткое описание товара">{{ old('description', $product->description) }}</textarea>
                 </div>
+                <div class="mt-4">
+                    <x-ui.input name="video_url" label="Видео (YouTube или Rutube)" label-icon="heroicon-o-video-camera" value="{{ old('video_url', $product->video_url) }}" placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..." :error="$errors->first('video_url')" />
+                </div>
             </x-admin.form-section>
 
             <x-admin.form-section title="Цена, категория и склад" icon="heroicon-o-tag">

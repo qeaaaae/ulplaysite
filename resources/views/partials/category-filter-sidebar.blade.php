@@ -50,7 +50,7 @@
                                 {{ $dataAjax }}
                                 data-category-slug="{{ $root->slug }}"
                                 class="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
-                                :class="activeCategorySlug === @js($root->slug) ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-transparent text-stone-700 hover:bg-stone-50'"
+                                :class="activeCategorySlug === {{ \Illuminate\Support\Js::from($root->slug) }} ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-transparent text-stone-700 hover:bg-stone-50'"
                             >
                                 <span class="min-w-0 truncate">{{ $root->name }}</span>
                                 @if(($root->{$countKey} ?? 0) > 0)
@@ -94,7 +94,7 @@
                                                 {{ $dataAjax }}
                                                 data-category-slug="{{ $child->slug }}"
                                                 class="flex items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-sm transition-colors duration-150"
-                                                :class="activeCategorySlug === @js($child->slug) ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-transparent text-stone-600 hover:bg-stone-50'"
+                                                :class="activeCategorySlug === {{ \Illuminate\Support\Js::from($child->slug) }} ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-transparent text-stone-600 hover:bg-stone-50'"
                                             >
                                                 <span class="min-w-0 truncate">{{ $child->name }}</span>
                                                 <span class="shrink-0 text-xs tabular-nums text-stone-400">{{ $child->{$countKey} }}</span>

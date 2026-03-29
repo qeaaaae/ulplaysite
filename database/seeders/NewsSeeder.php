@@ -8,6 +8,10 @@ use App\Models\News;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * Демо-новости с богатым Markdown: заголовки, таблицы, цветной текст {color:#hex}…{/color},
+ * списки, цитаты, разделители, ссылки и одна общая иллюстрация (как в остальных сидерах).
+ */
 class NewsSeeder extends Seeder
 {
     private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
@@ -15,6 +19,25 @@ class NewsSeeder extends Seeder
     private const VIDEO_URLS = [
         'https://www.youtube.com/watch?v=_3cinfs0wQc',
         'https://rutube.ru/video/ed2b836f13b534207634a433c4d33eb7/?playlist=288871',
+    ];
+
+    /** @var list<array{title: string, description: string}> */
+    private const ANNOUNCEMENTS = [
+        ['title' => 'ULPLAY: новинки недели и хиты продаж', 'description' => 'Подборка консолей и аксессуаров, которые чаще всего заказывают у нас — с краткими пояснениями, без воды.'],
+        ['title' => 'Доставка и самовывоз: что изменилось', 'description' => 'Актуальные сроки, регионы и советы, как отследить заказ. Всё кратко в одном материале.'],
+        ['title' => 'Гайд: как подготовить консоль к жаре', 'description' => 'Пыль, термопаста, вентиляция и привычки эксплуатации — чтобы железо не ушло в троттлинг вовремя.'],
+        ['title' => 'Аксессуары: на что смотреть при покупке', 'description' => 'Зарядки, чехлы, накопители и периферия — чеклист перед добавлением в корзину.'],
+        ['title' => 'Сервис ULPLAY: диагностика и гарантия', 'description' => 'Как проходит приём техники, что входит в диагностику и как читать сроки ремонта.'],
+        ['title' => 'Сравнение линеек: портатив vs стационар', 'description' => 'Таблица по типичным сценариям — дом, дорога, эксклюзивы и бюджет.'],
+        ['title' => 'Ретро и редкие позиции в каталоге', 'description' => 'Почему классика снова в цене и как мы проверяем состояние б/у и восстановленных единиц.'],
+        ['title' => 'Оплата, чеки и возвраты — кратко', 'description' => 'Способы оплат, документы и типовые случаи обмена. Ссылки на разделы сайта внутри текста.'],
+        ['title' => 'Игры и подписки: что выгоднее сейчас', 'description' => 'Без рекламы конкретных магазинов — общая логика выбора между физическими носителями и цифрой.'],
+        ['title' => 'Частые вопросы о заказе из другого города', 'description' => 'Ответы про упаковку, страховку отправления и связь с поддержкой.'],
+        ['title' => 'Обновление витрины: категории и фильтры', 'description' => 'Как быстрее найти нужную консоль или аксессуар на сайте ULPLAY.'],
+        ['title' => 'Забота о геймпадах и контроллерах', 'description' => 'Дрифт стиков, чистка кнопок и когда не стоит откладывать визит в сервис.'],
+        ['title' => 'Новости индустрии — короткая сводка', 'description' => 'Анонсы железа и сервисов, которые могут повлиять на ваш следующий апгрейд.'],
+        ['title' => 'Подарки геймеру: идеи по бюджету', 'description' => 'От недорогих must-have до «вау»-позиций — с ориентирами и аккуратными формулировками.'],
+        ['title' => 'Безопасная покупка б/у: красные флаги', 'description' => 'На что обратить внимание в объявлении и при осмотре, чтобы не купить проблему.'],
     ];
 
     public function run(): void
@@ -27,12 +50,16 @@ class NewsSeeder extends Seeder
             $publishedAt = now()->subDays($daysAgo)->format('Y-m-d H:i:s');
             $videoUrl = $i <= 2 ? self::VIDEO_URLS[$i - 1] : null;
 
+            $meta = self::ANNOUNCEMENTS[($i - 1) % count(self::ANNOUNCEMENTS)];
+            $title = $meta['title'] . ' — выпуск №' . $i;
+            $description = $meta['description'];
+
             $news = News::updateOrCreate(
                 ['slug' => "news-{$i}"],
                 [
-                    'title' => "Новость {$i}: обновления и акции",
-                    'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-                    'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    'title' => $title,
+                    'description' => $description,
+                    'content' => self::markdownBody($i, self::IMAGE),
                     'video_url' => $videoUrl,
                     'author_id' => $authorId,
                     'published_at' => $publishedAt,
@@ -40,13 +67,307 @@ class NewsSeeder extends Seeder
             );
 
             $news->images()->delete();
-            for ($pos = 0; $pos < 5; $pos++) {
-                $news->images()->create([
-                    'path' => self::IMAGE,
-                    'is_cover' => $pos === 0,
-                    'position' => $pos,
-                ]);
-            }
+            $news->images()->create([
+                'path' => self::IMAGE,
+                'is_cover' => true,
+                'position' => 0,
+            ]);
         }
+    }
+
+    private static function markdownBody(int $i, string $imageUrl): string
+    {
+        $variant = ($i - 1) % 10;
+
+        return match ($variant) {
+            0 => self::mdDeliveryTable($i, $imageUrl),
+            1 => self::mdConsoleCareGuide($i, $imageUrl),
+            2 => self::mdSaleSpotlight($i, $imageUrl),
+            3 => self::mdFaqBlocks($i, $imageUrl),
+            4 => self::mdSpecsTable($i, $imageUrl),
+            5 => self::mdLongRead($i, $imageUrl),
+            6 => self::mdChecklistTable($i, $imageUrl),
+            7 => self::mdEventStream($i, $imageUrl),
+            8 => self::mdWarrantyService($i, $imageUrl),
+            default => self::mdCommunityDigest($i, $imageUrl),
+        };
+    }
+
+    private static function img(string $url): string
+    {
+        return '![' . 'ULPLAY — иллюстрация к материалу' . '](' . $url . ')';
+    }
+
+    private static function mdDeliveryTable(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+# Доставка и обработка заказа №{$i}
+
+{$img}
+
+В **ULPLAY** мы стараемся держать сроки прозрачными: {color:#0284c7}заказы, оформленные до обеда{/color}, обычно уходят в работу быстрее.
+
+## Ориентиры по срокам
+
+| Направление | Ориентировочно | Примечание |
+| --- | --- | --- |
+| Крупные города | 1–3 рабочих дня | зависит от службы |
+| Регионы РФ | 3–10 дней | пиковые даты могут добавить +1–2 дня |
+| Самовывоз | по согласованию | уточняйте в [контактах](/contacts) |
+
+> **Совет:** перед оплатой загляните в [корзину](/cart) и проверьте состав заказа.
+
+Подробности об условиях — на странице [доставки](/delivery).
+
+---
+
+*Материал №{$i} в демо-ленте новостей.*
+MD;
+    }
+
+    private static function mdConsoleCareGuide(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+## Гайд: консоль и жара — материал №{$i}
+
+{$img}
+
+Летом и при плотной вентиляции шкафа консоль чаще уходит в троттлинг. Ниже — {color:#b45309}короткий план{/color}, который можно пройти за вечер.
+
+### Шаги
+
+1. **Пыль** — аккуратно пройтись сжатым воздухом по вентиляционным решёткам (не разгоняя кулер сверх меры).
+2. **Положение** — оставьте зазоры со всех сторон; не ставьте приставку вплотную к стене.
+3. **Паузы** — длинные сессии лучше прерывать, если корпус заметно тёплый.
+
+> Цитата дня: *«Профилактика дешевле ремонта»* — так говорят наши мастера в [сервисе](/services).
+
+Дополнительно почитайте [каталог](/products) — там можно подобрать подставки и аксессуары.
+
+#### Итог
+
+Если после чистки шум и перегрев не уходят — имеет смысл записаться на диагностику.
+MD;
+    }
+
+    private static function mdSaleSpotlight(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+### Акцент недели — новость №{$i}
+
+{$img}
+
+{color:#dc2626}Внимание:{/color} в демо-контенте скидки вымышленные; на продакшене замените блок на реальные условия.
+
+**Что обычно входит в «горячие» подборки:**
+
+- хиты продаж и новинки в одном списке;
+- аксессуары к уже купленной консоли;
+- {color:#059669}выгодные комплекты{/color} (консоль + игра / подписка).
+
+1. Добавьте товар в [корзину](/cart).
+2. Оформите заказ.
+3. При вопросах — [поддержка](/support) или [контакты](/contacts).
+
+---
+
+**Жирный акцент** и *курсив* для типографики сохраняем — так проще сканировать текст глазами.
+MD;
+    }
+
+    private static function mdFaqBlocks(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+# Вопросы и ответы — блок {$i}
+
+{$img}
+
+## Как отследить заказ?
+
+После отправки вы получите данные для трекинга там, где оформляли покупку. Если письма нет — загляните в спам или напишите через [контакты](/contacts).
+
+---
+
+## Можно ли изменить состав заказа?
+
+До передачи в доставку — чаще всего да. После — только по правилам возврата; кратко это описано в разделе [доставки](/delivery).
+
+### Мелкий шрифт без уныния
+
+{color:#57534e}Серым в редакторе выделяют второстепенное; на сайте используется тот же синтаксис цветных вставок, что и в админке.{/color}
+
+#### Ещё ссылка
+
+Полный список услуг — [/services](/services).
+MD;
+    }
+
+    private static function mdSpecsTable(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+## Сравнение сценариев — подборка №{$i}
+
+{$img}
+
+Таблица ниже — {color:#0284c7}учебный пример{/color} для демонстрации GFM-таблиц в новости.
+
+| Сценарий | Плюсы | На что обратить внимание |
+| --- | --- | --- |
+| Дом + ТВ | комфорт, большой экран | место и кабели |
+| Портатив | играть в дороге | заряд и кейс |
+| Гибрид | универсальность | баланс автономности |
+
+*Цифры и модели подставьте под свой ассортимент.*
+
+Перейти к товарам: [каталог](/products).
+
+> Разные люди — разные приоритеты; таблица помогает не забыть ни один фактор.
+MD;
+    }
+
+    private static function mdLongRead(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+# Длинное чтение: экосистема и выбор — часть {$i}
+
+{$img}
+
+Иногда покупатель приходит за одной консолью, а уходит с пониманием всей цепочки: **игры**, **подписки**, **аксессуары**, **сервис**. В ULPLAY мы стараемся держать витрину так, чтобы эти звенья были видны сразу.
+
+### Про подписки и диски
+
+Цифра удобна для быстрого старта; коллекционеры любят коробки. {color:#7c3aed}Компромисс всегда личный{/color} — мы лишь подсказываем, где посмотреть актуальный каталог.
+
+### Про сервис
+
+Паять и чистить приятнее, когда знаешь, что запчасть оригинальная или проверенный аналог. Наш блок [услуг](/services) как раз про это.
+
+---
+
+#### Мини-итог
+
+Чем богаче markdown в новости, тем проще проверить вёрстку и стили **prose** на боевом сайте — в том числе для выпуска **№{$i}**.
+MD;
+    }
+
+    private static function mdChecklistTable(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+## Чеклист перед покупкой — лист №{$i}
+
+{$img}
+
+| Шаг | Сделано | Комментарий |
+| --- | :---: | --- |
+| Проверил комплект | ☐ | коробка, кабели |
+| Сверил цену и комплектацию | ☐ | нет скрытых позиций |
+| Прочитал про доставку | ☐ | [доставка](/delivery) |
+| Знаю, куда писать при вопросе | ☐ | [контакты](/contacts) |
+
+{color:#059669}Зелёная метка{/color} в тексте привлекает внимание к «положительным» действиям.
+
+- Можно распечатать таблицу и отмечать ручкой.
+- Можно держать вкладку с [новостями](/news) — там бывают разъяснения.
+
+### Коротко
+
+Чеклисты хорошо смотрятся и в админ-превью, и на публичной странице.
+MD;
+    }
+
+    private static function mdEventStream(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+### Анонс: эфир и активности — событие {$i}
+
+{$img}
+
+{color:#ea580c}Напоминание:{/color} замените даты и ссылки на реальные, когда будете публиковать настоящий анонс.
+
+**План демо-блока:**
+
+1. тизер и обложка;
+2. расписание в списке;
+3. ссылка на [главную](/) или лендинг акции.
+
+---
+
+> Подписчики любят, когда время эфира указано в одном месте и дублируется в календаре.
+
+Удачного стрима и ровного FPS в **№{$i}** выпуске демо-ленты!
+MD;
+    }
+
+    private static function mdWarrantyService(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+## Гарантия и сервис — памятка {$i}
+
+{$img}
+
+**ULPLAY** разделяет {color:#0284c7}гарантию на товар{/color} и {color:#b45309}работы сервиса{/color}. В демо-тексте формулировки обобщённые.
+
+### Типичные пункты
+
+- сроки хранения при ремонте;
+- что считается механическими повреждениями;
+- как передают устройство после диагностики.
+
+| Тема | Куда перейти |
+| --- | --- |
+| Услуги | [/services](/services) |
+| Связь | [/contacts](/contacts) |
+| Заказы в личном кабинете | [/profile](/profile) |
+
+---
+
+*Новость №{$i} — проверка таблиц + списков + цвета в одном материале.*
+MD;
+    }
+
+    private static function mdCommunityDigest(int $i, string $imageUrl): string
+    {
+        $img = self::img($imageUrl);
+
+        return <<<MD
+# Дайджест сообщества — выпуск {$i}
+
+{$img}
+
+Коротко о том, зачем вообще богатый markdown в новостях:
+
+- **Заголовки** структурируют длинный текст.
+- **Таблицы** сравнивают варианты без простыней абзацев.
+- синтаксис **color** (фигурные скобки вокруг цвета) подсвечивает важное;
+- **Ссылки** ведут на [/products](/products), [/news](/news), [/about](/about).
+
+### Цитата
+
+> Хорошая новость читается и на телефоне, и на десктопе — если не перегружать её декором.
+
+#### Разделитель ниже
+
+---
+
+**P.S.** Иллюстрация везде одна и та же — как вы просили, единое фото с сидеров для единообразия демо-данных.
+MD;
     }
 }

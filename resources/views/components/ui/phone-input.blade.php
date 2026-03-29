@@ -23,7 +23,7 @@
     $formatted = $digits ? '+7' . (strlen($digits) >= 1 ? ' (' . substr($digits, 0, 3) : '') . (strlen($digits) >= 4 ? ') ' . substr($digits, 3, 3) : '') . (strlen($digits) >= 7 ? '-' . substr($digits, 6, 2) : '') . (strlen($digits) >= 9 ? '-' . substr($digits, 8, 2) : '') : '';
 @endphp
 
-<div class="form-field{{ $error ? ' is-invalid' : '' }}" x-data="phoneInput(@js($formatted))" x-init="init()">
+<div class="form-field{{ $error ? ' is-invalid' : '' }}" x-data="phoneInput({{ \Illuminate\Support\Js::from($formatted) }})" x-init="init()">
     @if($label)
         <label for="{{ $inputId }}" class="{{ $labelIcon ? 'flex items-center gap-2' : 'block' }} text-sm font-medium text-stone-700 mb-1.5">
             @if($labelIcon)

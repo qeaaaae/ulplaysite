@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ImageService;
 use App\Support\StrHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,9 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
     /** Только дочерние категории (поколения / линейки) — для товаров. */
     private function productLeafCategories()
     {
@@ -61,7 +65,7 @@ class ProductController extends Controller
             $product->images()->delete();
             foreach (array_slice($images, 0, 5) as $index => $file) {
                 $product->images()->create([
-                    'path' => $file->store('products', 'public'),
+                    'path' => $this->imageService->store($file, 'products'),
                     'is_cover' => $index === 0,
                     'position' => $index,
                 ]);
@@ -103,7 +107,7 @@ class ProductController extends Controller
                 $startPosition = (int) $product->images()->max('position') + 1;
                 foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
                     $product->images()->create([
-                        'path' => $file->store('products', 'public'),
+                        'path' => $this->imageService->store($file, 'products'),
                         'is_cover' => $existing === 0 && $offset === 0,
                         'position' => $startPosition + $offset,
                     ]);

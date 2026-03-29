@@ -56,9 +56,9 @@
             <div class="mt-4 flex flex-col">
                 <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
                     @svg('heroicon-o-document-text', 'w-4 h-4 text-sky-500 shrink-0')
-                    Содержание
+                    Содержание (Markdown)
                 </label>
-                <textarea name="content" rows="6" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y min-h-[120px]" placeholder="Полный текст новости">{{ old('content', $news->content) }}</textarea>
+                <textarea name="content" rows="12" data-markdown-editor data-upload-url="{{ route('admin.upload.image') }}" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y font-mono text-sm" placeholder="Заголовки, списки, ссылки — в формате Markdown">{{ old('content', $news->content) }}</textarea>
             </div>
         </x-admin.form-section>
 
