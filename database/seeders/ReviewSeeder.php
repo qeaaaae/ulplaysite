@@ -9,22 +9,21 @@ use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class ReviewSeeder extends Seeder
 {
-    /** От 10 до 20 отзывов на каждый товар (разные пользователи). */
     private const MIN_REVIEWS_PER_PRODUCT = 10;
 
     private const MAX_REVIEWS_PER_PRODUCT = 20;
 
+    private const DAYS_SPREAD = 45;
+
     public function run(): void
     {
-        $users = User::where('is_admin', false)->get();
-        $productIds = Product::pluck('id')->unique()->values()->all();
+        $users = User::query()->where('is_admin', false)->get();
+        $productIds = Product::query()->pluck('id')->unique()->values()->all();
 
-        if (count($productIds) < 1 || $users->isEmpty()) {
+        if ($productIds === [] || $users->isEmpty()) {
             return;
         }
 
@@ -52,34 +51,19 @@ class ReviewSeeder extends Seeder
                 continue;
             }
 
-            $selectedUsers = $users->shuffle()->take($cap);
-            foreach ($selectedUsers as $user) {
-                $daysAgo = random_int(0, 45);
-                // Unix-секунды в прошлое: однозначный момент времени.
-                $secondsAgo = ($daysAgo * 86400) + random_int(0, 86400 - 1);
-                $unixTs = (int) (Carbon::now('UTC')->getTimestamp() - $secondsAgo);
+            foreach ($users->shuffle()->take($cap) as $user) {
+                $secondsAgo = (random_int(0, self::DAYS_SPREAD) * 86400) + random_int(0, 86399);
+                $createdAt = Carbon::createFromTimestampUTC(Carbon::now('UTC')->getTimestamp() - $secondsAgo);
 
-                $driver = Schema::getConnection()->getDriverName();
-                $row = [
+                $review = Review::forceCreate([
                     'reviewable_type' => Product::class,
                     'reviewable_id' => $productId,
                     'user_id' => $user->id,
-                    'rating' => (int) fake()->numberBetween(1, 5),
+                    'rating' => fake()->numberBetween(1, 5),
                     'body' => fake()->optional(0.8)->randomElement($texts),
-                ];
-
-                // MySQL TIMESTAMP + строка даты в ночь DST (напр. 29.03.2026 в EU) → 1292. FROM_UNIXTIME обходит разбор строки.
-                if (in_array($driver, ['mysql', 'mariadb'], true)) {
-                    $row['created_at'] = DB::raw('FROM_UNIXTIME(' . $unixTs . ')');
-                    $row['updated_at'] = DB::raw('FROM_UNIXTIME(' . $unixTs . ')');
-                } else {
-                    $at = Carbon::createFromTimestampUTC($unixTs)->format('Y-m-d H:i:s');
-                    $row['created_at'] = $at;
-                    $row['updated_at'] = $at;
-                }
-
-                $reviewId = DB::table('reviews')->insertGetId($row);
-                $review = Review::query()->findOrFail($reviewId);
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ]);
 
                 $imagesCount = random_int(0, 3);
                 for ($pos = 0; $pos < $imagesCount; $pos++) {

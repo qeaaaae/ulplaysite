@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,10 +14,12 @@ return new class extends Migration
             $table->id();
             $table->morphs('reviewable');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->unsignedTinyInteger('rating'); // 1-5
+            $table->unsignedTinyInteger('rating');
             $table->text('body')->nullable();
-            $table->json('images')->nullable(); // массив путей, макс. 3
-            $table->timestamps();
+            $table->json('images')->nullable();
+            // DATETIME: без конвертации TZ/DST как у TIMESTAMP в MySQL (иначе 1292 в ночь перехода на летнее время).
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

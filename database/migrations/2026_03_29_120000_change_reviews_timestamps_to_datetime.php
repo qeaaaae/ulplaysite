@@ -7,15 +7,25 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * TIMESTAMP в MySQL переводит значение в UTC с учётом time_zone сессии; в ночь перехода на летнее время
- * часть «стеночных» времён недопустима → SQLSTATE 22007 / 1292. DATETIME хранит строку без такой конвертации.
+ * Для баз, созданных до перехода create_reviews на dateTime: меняем TIMESTAMP → DATETIME.
+ * Повторный запуск безопасен (проверка information_schema).
  */
 return new class extends Migration
 {
     public function up(): void
     {
         $driver = Schema::getConnection()->getDriverName();
-        if (! in_array($driver, ['mysql', 'mariadb'], true)) {
+        if (! in_array($driver, ['mysql', 'mariadb'], true) || ! Schema::hasTable('reviews')) {
+            return;
+        }
+
+        $db = Schema::getConnection()->getDatabaseName();
+        $row = DB::selectOne(
+            'SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+            [$db, 'reviews', 'created_at']
+        );
+
+        if ($row === null || strtolower((string) $row->DATA_TYPE) === 'datetime') {
             return;
         }
 
@@ -25,7 +35,17 @@ return new class extends Migration
     public function down(): void
     {
         $driver = Schema::getConnection()->getDriverName();
-        if (! in_array($driver, ['mysql', 'mariadb'], true)) {
+        if (! in_array($driver, ['mysql', 'mariadb'], true) || ! Schema::hasTable('reviews')) {
+            return;
+        }
+
+        $db = Schema::getConnection()->getDatabaseName();
+        $row = DB::selectOne(
+            'SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+            [$db, 'reviews', 'created_at']
+        );
+
+        if ($row === null || strtolower((string) $row->DATA_TYPE) !== 'datetime') {
             return;
         }
 
