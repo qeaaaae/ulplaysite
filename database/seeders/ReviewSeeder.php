@@ -9,6 +9,8 @@ use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ReviewSeeder extends Seeder
 {
@@ -53,18 +55,31 @@ class ReviewSeeder extends Seeder
             $selectedUsers = $users->shuffle()->take($cap);
             foreach ($selectedUsers as $user) {
                 $daysAgo = random_int(0, 45);
-                // Смещение в секундах от текущего UTC-момента — без «дыр» в локальном календаре (TIMESTAMP/DST).
+                // Unix-секунды в прошлое: однозначный момент времени.
                 $secondsAgo = ($daysAgo * 86400) + random_int(0, 86400 - 1);
-                $createdAt = Carbon::createFromTimestampUTC(Carbon::now('UTC')->getTimestamp() - $secondsAgo);
-                $review = Review::forceCreate([
+                $unixTs = (int) (Carbon::now('UTC')->getTimestamp() - $secondsAgo);
+
+                $driver = Schema::getConnection()->getDriverName();
+                $row = [
                     'reviewable_type' => Product::class,
                     'reviewable_id' => $productId,
                     'user_id' => $user->id,
                     'rating' => (int) fake()->numberBetween(1, 5),
                     'body' => fake()->optional(0.8)->randomElement($texts),
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt,
-                ]);
+                ];
+
+                // MySQL TIMESTAMP + строка даты в ночь DST (напр. 29.03.2026 в EU) → 1292. FROM_UNIXTIME обходит разбор строки.
+                if (in_array($driver, ['mysql', 'mariadb'], true)) {
+                    $row['created_at'] = DB::raw('FROM_UNIXTIME(' . $unixTs . ')');
+                    $row['updated_at'] = DB::raw('FROM_UNIXTIME(' . $unixTs . ')');
+                } else {
+                    $at = Carbon::createFromTimestampUTC($unixTs)->format('Y-m-d H:i:s');
+                    $row['created_at'] = $at;
+                    $row['updated_at'] = $at;
+                }
+
+                $reviewId = DB::table('reviews')->insertGetId($row);
+                $review = Review::query()->findOrFail($reviewId);
 
                 $imagesCount = random_int(0, 3);
                 for ($pos = 0; $pos < $imagesCount; $pos++) {
