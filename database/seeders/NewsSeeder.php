@@ -46,8 +46,6 @@ class NewsSeeder extends Seeder
         $authorId = $author?->id ?? 1;
 
         for ($i = 1; $i <= 100; $i++) {
-            $daysAgo = rand(0, 365);
-            $publishedAt = now()->subDays($daysAgo)->format('Y-m-d H:i:s');
             $videoUrl = $i <= 2 ? self::VIDEO_URLS[$i - 1] : null;
 
             $meta = self::ANNOUNCEMENTS[($i - 1) % count(self::ANNOUNCEMENTS)];
@@ -62,7 +60,7 @@ class NewsSeeder extends Seeder
                     'content' => self::markdownBody($i, self::IMAGE),
                     'video_url' => $videoUrl,
                     'author_id' => $authorId,
-                    'published_at' => $publishedAt,
+                    'published_at' => now(),
                 ]
             );
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\User;
-use Carbon\Carbon;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -68,20 +67,12 @@ class RealisticUserSeeder extends Seeder
                     'name' => $name,
                     'password' => Hash::make('password'),
                     'phone' => $phone,
-                    'email_verified_at' => Carbon::now(),
+                    'email_verified_at' => now(),
                     'is_admin' => false,
                     'is_blocked' => $i === 2,
                     'is_bot' => true,
                 ]
             );
-
-            if ($user->wasRecentlyCreated) {
-                $daysAgo = $faker->numberBetween(0, 90);
-                $createdAt = Carbon::now()->subDays($daysAgo)->subHours($faker->numberBetween(0, 23));
-                $user->created_at = $createdAt;
-                $user->updated_at = $createdAt;
-                $user->saveQuietly();
-            }
         }
     }
 }

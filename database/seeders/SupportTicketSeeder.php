@@ -47,8 +47,6 @@ class SupportTicketSeeder extends Seeder
                 'status' => $status,
                 'ip_address' => fake()->ipv4(),
                 'user_agent' => substr((string) fake()->userAgent(), 0, 1000),
-                'created_at' => now()->subDays(random_int(0, 30))->subMinutes(random_int(0, 1440)),
-                'updated_at' => now(),
             ]);
 
             // Author initial message.
@@ -66,7 +64,6 @@ class SupportTicketSeeder extends Seeder
                         'sender_role' => 'admin',
                         'sender_user_id' => $admins->random()->id,
                         'content' => fake()->paragraphs(asText: true),
-                        'created_at' => now()->subDays(random_int(0, 30))->addMinutes($r + 1),
                     ]);
 
                     if ($ticket->user_id !== null) {

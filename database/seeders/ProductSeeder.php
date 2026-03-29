@@ -12,6 +12,9 @@ class ProductSeeder extends Seeder
 {
     private const IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
+    /** Как у новости /news/news-2 (второй URL из NewsSeeder::VIDEO_URLS). */
+    private const VIDEO_URL = 'https://rutube.ru/video/ed2b836f13b534207634a433c4d33eb7/?playlist=288871';
+
     private const PRODUCTS_PER_CHILD_CATEGORY = 10;
 
     private const TITLES = [
@@ -58,6 +61,7 @@ class ProductSeeder extends Seeder
                         'is_new' => $productIndex <= 30,
                         'is_recommended' => $productIndex <= 15,
                         'discount_percent' => $productIndex % 4 === 0 ? rand(5, 20) : null,
+                        'video_url' => self::VIDEO_URL,
                     ]
                 );
 

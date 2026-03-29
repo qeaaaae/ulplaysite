@@ -7,12 +7,10 @@ namespace Database\Seeders;
 use App\Models\Comment;
 use App\Models\News;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class CommentSeeder extends Seeder
 {
-    /** От 20 до 30 комментариев на каждую новость. */
     private const MIN_COMMENTS_PER_NEWS = 20;
 
     private const MAX_COMMENTS_PER_NEWS = 30;
@@ -37,15 +35,10 @@ class CommentSeeder extends Seeder
         foreach ($newsIds as $newsId) {
             $commentCount = random_int(self::MIN_COMMENTS_PER_NEWS, self::MAX_COMMENTS_PER_NEWS);
             for ($c = 0; $c < $commentCount; $c++) {
-                $user = $users->random();
-                $daysAgo = random_int(0, 30);
-                $createdAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
                 Comment::create([
                     'news_id' => $newsId,
-                    'user_id' => $user->id,
+                    'user_id' => $users->random()->id,
                     'body' => fake()->randomElement($texts),
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt,
                 ]);
             }
         }

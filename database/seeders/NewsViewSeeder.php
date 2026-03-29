@@ -7,7 +7,6 @@ namespace Database\Seeders;
 use App\Models\News;
 use App\Models\NewsView;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class NewsViewSeeder extends Seeder
@@ -26,21 +25,14 @@ class NewsViewSeeder extends Seeder
             $viewers = $users->shuffle()->take($viewersCount);
 
             foreach ($viewers as $user) {
-                $daysAgo = random_int(0, 60);
-                $viewedAt = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23));
-
                 NewsView::updateOrCreate(
                     [
                         'news_id' => $news->id,
                         'user_id' => $user->id,
                     ],
-                    [
-                        'created_at' => $viewedAt,
-                        'updated_at' => $viewedAt,
-                    ]
+                    []
                 );
             }
         }
     }
 }
-

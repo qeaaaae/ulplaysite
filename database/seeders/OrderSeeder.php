@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
@@ -38,9 +37,6 @@ class OrderSeeder extends Seeder
             $deliveryCost = $deliveryType === 'pickup' ? 0 : ($subtotal >= 3000 ? 0 : 300);
             $total = $subtotal + $deliveryCost;
 
-            $daysAgo = random_int(0, 60);
-            $orderDate = Carbon::now()->subDays($daysAgo)->subHours(random_int(0, 23))->subMinutes(random_int(0, 59));
-
             $deliveryInfo = [
                 'type' => $deliveryType,
                 'delivery_cost' => $deliveryCost,
@@ -58,8 +54,6 @@ class OrderSeeder extends Seeder
                 'delivery_info' => $deliveryInfo,
                 'payment_info' => ['method' => fake()->randomElement(['cash', 'card'])],
                 'comment' => fake()->optional(0.3)->sentence(6),
-                'created_at' => $orderDate,
-                'updated_at' => $orderDate,
             ]);
 
             foreach ($items as $item) {

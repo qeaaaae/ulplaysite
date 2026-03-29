@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,7 +18,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'Администратор',
                 'password' => Hash::make('password'),
                 'is_admin' => true,
-                'email_verified_at' => Carbon::now(),
+                'email_verified_at' => now(),
             ]
         );
     }
