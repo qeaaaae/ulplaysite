@@ -53,11 +53,9 @@ class ReviewSeeder extends Seeder
             $selectedUsers = $users->shuffle()->take($cap);
             foreach ($selectedUsers as $user) {
                 $daysAgo = random_int(0, 45);
-                // UTC: в зонах с DST subHours() от «сейчас» может дать несуществующее время → MySQL 1292 для TIMESTAMP
-                $createdAt = Carbon::now('UTC')
-                    ->subDays($daysAgo)
-                    ->subHours(random_int(0, 23))
-                    ->subMinutes(random_int(0, 59));
+                // Смещение в секундах от текущего UTC-момента — без «дыр» в локальном календаре (TIMESTAMP/DST).
+                $secondsAgo = ($daysAgo * 86400) + random_int(0, 86400 - 1);
+                $createdAt = Carbon::createFromTimestampUTC(Carbon::now('UTC')->getTimestamp() - $secondsAgo);
                 $review = Review::forceCreate([
                     'reviewable_type' => Product::class,
                     'reviewable_id' => $productId,
