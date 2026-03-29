@@ -7,7 +7,6 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class ReviewSeeder extends Seeder
@@ -15,8 +14,6 @@ class ReviewSeeder extends Seeder
     private const MIN_REVIEWS_PER_PRODUCT = 10;
 
     private const MAX_REVIEWS_PER_PRODUCT = 20;
-
-    private const DAYS_SPREAD = 45;
 
     public function run(): void
     {
@@ -52,17 +49,13 @@ class ReviewSeeder extends Seeder
             }
 
             foreach ($users->shuffle()->take($cap) as $user) {
-                $secondsAgo = (random_int(0, self::DAYS_SPREAD) * 86400) + random_int(0, 86399);
-                $createdAt = Carbon::createFromTimestampUTC(Carbon::now('UTC')->getTimestamp() - $secondsAgo);
-
+                // created_at / updated_at не трогаем — выставит Eloquent (как в обычных записях).
                 $review = Review::forceCreate([
                     'reviewable_type' => Product::class,
                     'reviewable_id' => $productId,
                     'user_id' => $user->id,
                     'rating' => fake()->numberBetween(1, 5),
                     'body' => fake()->optional(0.8)->randomElement($texts),
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt,
                 ]);
 
                 $imagesCount = random_int(0, 3);

@@ -17,9 +17,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating');
             $table->text('body')->nullable();
             $table->json('images')->nullable();
-            // DATETIME: без конвертации TZ/DST как у TIMESTAMP в MySQL (иначе 1292 в ночь перехода на летнее время).
-            $table->dateTime('created_at')->nullable();
-            $table->dateTime('updated_at')->nullable();
+            $table->timestamps();
         });
     }
 
