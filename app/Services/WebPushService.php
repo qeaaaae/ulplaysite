@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\PushSubscription;
+use App\Models\SupportTicket;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
 
@@ -70,6 +71,15 @@ class WebPushService
             'Новый заказ',
             'Заказ ' . $order->order_number . ' на ' . number_format((float) $order->total, 0, ',', ' ') . ' ₽',
             url('/admin/orders/' . $order->id)
+        );
+    }
+
+    public function notifyNewTicket(SupportTicket $ticket): void
+    {
+        $this->sendToAdmins(
+            'Новый тикет',
+            $ticket->title,
+            url('/admin/tickets/' . $ticket->id)
         );
     }
 

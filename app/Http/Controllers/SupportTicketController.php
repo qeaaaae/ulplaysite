@@ -8,6 +8,7 @@ use App\Http\Requests\StoreSupportTicketRequest;
 use App\Models\SupportTicket;
 use App\Models\UserNotification;
 use App\Services\ImageService;
+use App\Services\WebPushService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -85,6 +86,8 @@ class SupportTicketController extends Controller
                 'position' => $index,
             ]);
         }
+
+        app(WebPushService::class)->notifyNewTicket($ticket);
 
         return redirect()->route('tickets.my.index')->with('message', 'Заявка в техподдержку отправлена');
     }
