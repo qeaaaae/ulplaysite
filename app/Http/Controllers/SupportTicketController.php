@@ -7,12 +7,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSupportTicketRequest;
 use App\Models\SupportTicket;
 use App\Models\UserNotification;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SupportTicketController extends Controller
 {
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
+
     public function create(): View
     {
         return view('tickets.create');
@@ -75,7 +80,7 @@ class SupportTicketController extends Controller
 
         foreach (array_values($request->file('images', [])) as $index => $file) {
             $ticket->images()->create([
-                'path' => $file->store('support-tickets', 'public'),
+                'path' => $this->imageService->store($file, 'support-tickets'),
                 'is_cover' => $index === 0,
                 'position' => $index,
             ]);

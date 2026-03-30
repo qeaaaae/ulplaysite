@@ -83,6 +83,12 @@
                     </button>
                 @endif
                 @if($isAuthenticated ?? false)
+                    <a href="{{ route('notifications.index') }}" class="hidden lg:flex relative items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer" title="Уведомления">
+                        @svg('heroicon-o-bell', 'w-5 h-5')
+                        @if(($notificationsUnreadCount ?? 0) > 0)
+                            <span class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-semibold flex items-center justify-center">{{ $notificationsUnreadCount }}</span>
+                        @endif
+                    </a>
                     <form method="POST" action="{{ route('logout') }}" class="lg:hidden inline">
                         @csrf
                         <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-stone-300 text-stone-700 rounded-md hover:border-rose-400 hover:text-rose-600 hover:bg-rose-50/80 transition-colors cursor-pointer">
@@ -100,7 +106,7 @@
                             aria-controls="user-menu-dropdown"
                             class="flex items-center justify-center w-10 h-10 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 focus-visible:ring-offset-0"
                             :class="userMenuOpen ? 'bg-sky-50/90 text-sky-700 ring-1 ring-sky-200/80' : ''"
-                            title="Уведомления, поддержка, профиль и выход"
+                            title="Профиль, поддержка и выход"
                         >
                             @svg('heroicon-o-squares-2x2', 'w-5 h-5')
                         </button>
@@ -121,13 +127,6 @@
                             <a href="{{ route('profile') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
                                 <span class="shrink-0 text-stone-500">@svg('heroicon-o-user-circle', 'w-5 h-5')</span>
                                 <span class="font-medium">Профиль</span>
-                            </a>
-                            <a href="{{ route('notifications.index') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors relative">
-                                <span class="shrink-0 text-stone-500">@svg('heroicon-o-bell', 'w-5 h-5')</span>
-                                <span class="font-medium">Уведомления</span>
-                                @if(($notificationsUnreadCount ?? 0) > 0)
-                                    <span class="inline-flex min-w-[1.25rem] h-5 px-1.5 ml-auto rounded-full bg-rose-600 text-white text-xs font-semibold items-center justify-center">{{ $notificationsUnreadCount }}</span>
-                                @endif
                             </a>
                             <a href="{{ route('support.create') }}" @click="userMenuOpen = false" role="menuitem" class="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors">
                                 <span class="shrink-0 text-stone-500">@svg('heroicon-o-lifebuoy', 'w-5 h-5')</span>
@@ -150,7 +149,7 @@
                     </div>
                 @else
                     <button type="button" @click="openAuthModal('login')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-stone-300 text-stone-700 rounded-md hover:border-sky-400 hover:text-sky-600 hover:bg-sky-50/80 transition-colors cursor-pointer">
-                        @svg('heroicon-o-arrow-right-on-rectangle', 'w-4 h-4')
+                        @svg('heroicon-o-arrow-right-end-on-rectangle', 'w-4 h-4')
                         Войти
                     </button>
                 @endif

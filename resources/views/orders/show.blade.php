@@ -2,10 +2,10 @@
 
 @section('content')
     <div class="py-4">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
-            <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
-                <div class="p-6 border-b border-stone-200">
-                    <h1 class="text-xl font-semibold text-stone-900">Заказ {{ $order->order_number }}</h1>
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-6">
+            <div class="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-stone-100">
+                    <h1 class="section-heading text-xl text-stone-900">Заказ {{ $order->order_number }}</h1>
                     <p class="text-stone-500 text-sm mt-1">{{ $order->created_at->format(config('app.datetime_format')) }} · Статус: {{ match($order->status) {
                         'new' => 'Новый',
                         'paid' => 'Оплачен',
@@ -22,8 +22,8 @@
                         </div>
                     @endif
                 </div>
-                <div class="p-6">
-                    <h2 class="font-medium text-stone-800 mb-3">Состав заказа</h2>
+                <div class="p-5 sm:p-6">
+                    <h2 class="font-semibold text-stone-900 mb-4">Состав заказа</h2>
                     <ul class="space-y-3 mb-6">
                         @foreach($order->items as $item)
                             <li class="flex justify-between">
@@ -39,10 +39,16 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex gap-3">
-                <x-ui.button href="{{ route('home') }}" variant="outline">На главную</x-ui.button>
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <x-ui.button href="{{ route('home') }}" variant="outline" size="lg" class="w-full sm:w-auto justify-center">
+                    @svg('heroicon-o-home', 'w-4 h-4')
+                    На главную
+                </x-ui.button>
                 @auth
-                    <x-ui.button href="{{ route('orders.index') }}" variant="ghost">Мои заказы</x-ui.button>
+                    <x-ui.button href="{{ route('orders.index') }}" variant="primary" size="lg" class="w-full sm:w-auto justify-center">
+                        @svg('heroicon-o-clipboard-document-list', 'w-4 h-4')
+                        Мои заказы
+                    </x-ui.button>
                 @endauth
             </div>
         </div>

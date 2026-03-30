@@ -71,8 +71,14 @@
                             <textarea id="comment-edit-body-{{ $comment->id }}" name="body" rows="3" maxlength="500" required class="w-full min-h-[88px] px-3 py-2.5 text-sm sm:text-base bg-white border border-stone-200 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y transition-colors" placeholder="Комментарий...">{{ $comment->body }}</textarea>
                             <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                                 <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                                <x-ui.button type="submit" variant="primary" size="sm" class="min-h-[44px] sm:min-h-0 px-4 sm:px-3 touch-manipulation">Сохранить</x-ui.button>
-                                <button type="button" @click="editing = false" class="min-h-[44px] sm:min-h-0 px-4 sm:px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-800 border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors touch-manipulation">Отмена</button>
+                                <x-ui.button type="submit" variant="primary" size="sm" class="min-h-[44px] sm:min-h-0 px-4 sm:px-3 touch-manipulation">
+                                    @svg('heroicon-o-check', 'w-4 h-4')
+                                    Сохранить
+                                </x-ui.button>
+                                <button type="button" @click="editing = false" class="inline-flex items-center justify-center gap-2 min-h-[44px] sm:min-h-0 px-4 sm:px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-800 border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors touch-manipulation">
+                                    @svg('heroicon-o-x-mark', 'w-4 h-4')
+                                    Отмена
+                                </button>
                                 </div>
                                 <div class="relative shrink-0">
                                     <button type="button" @click="emojiOpen = !emojiOpen" class="inline-flex items-center justify-center w-11 h-11 sm:w-10 sm:h-10 text-stone-600 hover:text-stone-800 border border-stone-300 rounded-lg hover:bg-white transition-colors cursor-pointer touch-manipulation" title="Эмодзи" aria-label="Вставить эмодзи">

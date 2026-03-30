@@ -17,7 +17,7 @@ class ConvertImagesToWebpCommand extends Command
 
     protected $signature = 'images:convert-webp
         {--dry-run : Показать файлы без конвертации}
-        {--dir= : Конкретная директория (products, news, services, categories, banners)}
+        {--dir= : Конкретная директория (products, news, services, categories, banners, content, reviews, support-tickets)}
         {--delete-originals : Удалить оригиналы после конвертации}';
 
     protected $description = 'Конвертировать существующие изображения (PNG, JPG, JPEG) в WebP с ресайзом';

@@ -84,6 +84,39 @@ Alpine.data('phoneInput', (initial) => ({
     },
 }));
 
+Alpine.data('ordersReviewModal', () => ({
+    reviewModalOpen: false,
+    reviewFormAction: '',
+    productTitle: '',
+    reviewProductId: null,
+    modalKey: 0,
+    openReviewModal(action, title, productId) {
+        this.reviewFormAction = action;
+        this.productTitle = title;
+        this.reviewProductId = productId;
+        this.modalKey += 1;
+        this.reviewModalOpen = true;
+        document.body.classList.add('overflow-hidden');
+    },
+    closeReviewModal() {
+        this.reviewModalOpen = false;
+        document.body.classList.remove('overflow-hidden');
+    },
+    handleReviewSubmitted(productId) {
+        const id = String(productId ?? '');
+        const root = this.$el;
+        const li = root.querySelector(`li[data-product-id="${id}"]`);
+        if (li) {
+            li.remove();
+        }
+        const section = document.getElementById('leave-review');
+        if (section && !section.querySelector('ul li')) {
+            section.remove();
+        }
+        this.closeReviewModal();
+    },
+}));
+
 Alpine.start();
 
 function smoothScrollTo(targetY, duration = 400) {
@@ -1026,6 +1059,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data?.result && data?.html) {
+                if (form.matches('[data-ajax-review-context="orders-modal"]')) {
+                    window.notyf?.success?.(data?.message || 'Спасибо! Ваш отзыв добавлен.');
+                    const pid = form.getAttribute('data-product-id');
+                    window.dispatchEvent(
+                        new CustomEvent('orders-review-submitted', { detail: { productId: pid } })
+                    );
+                    if (btn) restoreButton(btn);
+                    form.reset();
+                    return;
+                }
+
                 const container = document.getElementById('reviews');
                 if (container) {
                     container.outerHTML = data.html;

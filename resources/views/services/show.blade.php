@@ -49,7 +49,7 @@
                             <p class="text-stone-600 leading-relaxed mt-4">{{ $service->description }}</p>
                         @endif
 
-                        <div class="mt-6 rounded-xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm">
+                        <div class="mt-4 rounded-xl border border-stone-200 bg-white p-4 sm:p-5 shadow-sm">
                             <div class="flex items-start gap-3">
                                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-sky-100 text-sky-700 shrink-0">
                                     @svg('heroicon-o-chat-bubble-left-right', 'w-5 h-5')
@@ -89,8 +89,8 @@
 
             @if($service->content)
                 <section class="mt-6 rounded-2xl border border-stone-200 bg-white shadow-sm p-5 sm:p-6 md:p-8">
-                    <x-ui.section-heading icon="heroicon-o-document-text" class="mb-4">Как проходит услуга</x-ui.section-heading>
-                    <div class="ulplay-markdown-body prose prose-stone max-w-[58.5rem] mx-0 prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
+                    <x-ui.section-heading icon="heroicon-o-information-circle" class="mb-4">Информация</x-ui.section-heading>
+                    <div class="ulplay-markdown-body prose prose-stone max-w-none w-full prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
                         {!! app(\App\Services\MarkdownService::class)->render($service->content) !!}
                     </div>
                 </section>

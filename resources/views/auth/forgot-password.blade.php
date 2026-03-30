@@ -20,7 +20,10 @@
                 :error="$errors->first('email')"
             />
             <p class="hidden mt-1.5 text-sm text-rose-600" data-ajax-forgot-error></p>
-            <x-ui.button type="submit" variant="primary" class="w-full">Отправить ссылку</x-ui.button>
+            <x-ui.button type="submit" variant="primary" class="w-full">
+                @svg('heroicon-o-envelope', 'w-4 h-4')
+                Отправить ссылку
+            </x-ui.button>
             <a href="{{ route('home') }}" class="block text-center text-sm text-sky-600 hover:text-sky-700">На главную</a>
         </form>
     </div>

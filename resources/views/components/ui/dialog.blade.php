@@ -26,11 +26,13 @@
             <template x-if="dialogShowCancel">
                 <button type="button" @click="cancelDialog()"
                         class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-stone-300 text-stone-700 hover:bg-stone-50 rounded-md cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-300">
+                    @svg('heroicon-o-x-mark', 'w-4 h-4')
                     Отмена
                 </button>
             </template>
             <button type="button" @click="confirmDialog()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-sky-600 text-white hover:bg-sky-700 rounded-md cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+                @svg('heroicon-o-check', 'w-4 h-4')
                 OK
             </button>
         </div>
@@ -70,10 +72,12 @@
         <div class="flex gap-2 justify-end">
             <button type="button" @click="cancelPrompt()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-stone-300 text-stone-700 hover:bg-stone-50 rounded-md cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-300">
+                @svg('heroicon-o-x-mark', 'w-4 h-4')
                 Отмена
             </button>
             <button type="button" @click="confirmPrompt()"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-sky-600 text-white hover:bg-sky-700 rounded-md cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+                @svg('heroicon-o-check', 'w-4 h-4')
                 OK
             </button>
         </div>

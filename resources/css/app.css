@@ -100,24 +100,40 @@ h6 {
     color: #292524;
 }
 
-/* Футер: изоляция слоя, чтобы убрать артефакты (диагональные линии) при рендеринге */
+/* Страница «О нас»: виджет SmartWidgets на всю ширину карточки */
+.about-sw-widget {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+.about-sw-widget > * {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+.about-sw-widget iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Футер: без overflow-x на самом теге — иначе по спецификации второй оси часто становится auto → полоса прокрутки */
 .site-footer {
-    contain: layout paint;
     isolation: isolate;
     position: relative;
     backface-visibility: hidden;
-    transform: translateZ(0);
-    will-change: transform;
+    overflow: visible;
 }
 
-/* Маскируем редкие артефакты рендера по нижней границе футера */
+/* Маска по нижнему краю — строго внутри футера (bottom:-1px вылезал наружу и давал overflow) */
 .site-footer::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -1px;
-    height: 2px;
+    bottom: 0;
+    height: 1px;
     background: #292524;
     pointer-events: none;
 }
@@ -650,15 +666,36 @@ h6 {
 .prose blockquote {
     border-left: 3px solid var(--ulplay-accent, #0284c7);
     background: #f0f9ff;
-    padding: 1em 1.25em;
+    /* Симметрично по вертикали; prose даёт <p> лишний margin-top — убираем ниже */
+    padding: 0.65rem 1rem 0.7rem;
     border-radius: 0 8px 8px 0;
     color: #0c4a6e;
     font-style: normal;
-    margin: 1.25em 0;
+    margin: 1em 0;
 }
 
-.prose blockquote p:last-child {
+.prose blockquote p {
+    margin-top: 0;
     margin-bottom: 0;
+}
+
+.ulplay-markdown-body.prose blockquote p {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.prose blockquote p + p {
+    margin-top: 0.5em;
+}
+
+.ulplay-markdown-body.prose blockquote p + p {
+    margin-top: 0.5em !important;
+}
+
+.prose h2 + blockquote,
+.prose h3 + blockquote,
+.prose h4 + blockquote {
+    margin-top: 0.65em;
 }
 
 .prose code:not(pre code) {
@@ -1009,16 +1046,22 @@ h6 {
 .EasyMDEContainer .editor-preview-active blockquote {
     border-left: 3px solid var(--ulplay-accent, #0284c7);
     background: #f0f9ff;
-    padding: 1em 1.25em;
+    padding: 0.65rem 1rem 0.7rem;
     border-radius: 0 8px 8px 0;
     color: #0c4a6e;
     font-style: normal;
-    margin: 1.25em 0;
+    margin: 1em 0;
 }
 
-.EasyMDEContainer .editor-preview-side blockquote p:last-child,
-.EasyMDEContainer .editor-preview-active blockquote p:last-child {
+.EasyMDEContainer .editor-preview-side blockquote p,
+.EasyMDEContainer .editor-preview-active blockquote p {
+    margin-top: 0;
     margin-bottom: 0;
+}
+
+.EasyMDEContainer .editor-preview-side blockquote p + p,
+.EasyMDEContainer .editor-preview-active blockquote p + p {
+    margin-top: 0.5em;
 }
 
 .EasyMDEContainer .editor-preview-side code:not(pre code),

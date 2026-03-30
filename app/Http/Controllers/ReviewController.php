@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReviewRequest;
 use App\Models\Product;
 use App\Models\Review;
+use App\Services\ImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Cache;
 
 class ReviewController extends Controller
 {
+    public function __construct(
+        private readonly ImageService $imageService,
+    ) {}
+
     public function index(Request $request, Product $product): JsonResponse
     {
         $reviews = $product->reviews()->with('user')->latest()
@@ -67,7 +72,7 @@ class ReviewController extends Controller
             $files = array_slice($request->file('images'), 0, 3);
             foreach (array_values($files) as $index => $file) {
                 $review->imagesRelation()->create([
-                    'path' => $file->store('reviews', 'public'),
+                    'path' => $this->imageService->store($file, 'reviews'),
                     'is_cover' => $index === 0,
                     'position' => $index,
                 ]);

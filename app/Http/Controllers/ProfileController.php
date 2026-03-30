@@ -14,10 +14,15 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         $orders = $user->orders()->latest()->take(5)->get();
+        $reviews = $user->reviews()
+            ->with(['reviewable', 'imagesRelation'])
+            ->paginate(10)
+            ->fragment('my-reviews');
 
         return view('profile.index', [
             'user' => $user,
             'orders' => $orders,
+            'reviews' => $reviews,
         ]);
     }
 

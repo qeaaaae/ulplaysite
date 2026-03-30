@@ -50,4 +50,35 @@ class Review extends Model
             ->values()
             ->all();
     }
+
+    public function publicReviewableUrl(): ?string
+    {
+        $m = $this->reviewable;
+        if ($m instanceof Product) {
+            return route('products.show', $m) . '#reviews';
+        }
+        if ($m instanceof Service) {
+            return route('services.show', $m);
+        }
+
+        return null;
+    }
+
+    public function reviewableDisplayTitle(): string
+    {
+        return $this->reviewable?->title ?? 'Карточка недоступна';
+    }
+
+    public function reviewableKindLabel(): string
+    {
+        $m = $this->reviewable;
+        if ($m instanceof Product) {
+            return 'товар';
+        }
+        if ($m instanceof Service) {
+            return 'услуга';
+        }
+
+        return '';
+    }
 }

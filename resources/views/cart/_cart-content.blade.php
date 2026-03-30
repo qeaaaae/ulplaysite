@@ -5,7 +5,10 @@
         @if($items->isEmpty())
             <div class="text-center py-12 sm:py-16 bg-white rounded-2xl border border-stone-200 shadow-sm">
                 <p class="text-stone-500 mb-6">Корзина пуста</p>
-                <x-ui.button href="{{ route('products.index') }}" variant="primary">Перейти в каталог</x-ui.button>
+                <x-ui.button href="{{ route('products.index') }}" variant="primary">
+                    @svg('heroicon-o-shopping-bag', 'w-4 h-4')
+                    Перейти в каталог
+                </x-ui.button>
             </div>
         @else
             <div class="space-y-3 sm:space-y-4 mb-6 md:mb-8">
@@ -73,6 +76,7 @@
                         </button>
                     </form>
                     <x-ui.button href="{{ route('checkout') }}" variant="primary" size="lg" class="w-full sm:w-auto justify-center">
+                        @svg('heroicon-o-credit-card', 'w-5 h-5')
                         Оформить заказ
                     </x-ui.button>
                 </div>

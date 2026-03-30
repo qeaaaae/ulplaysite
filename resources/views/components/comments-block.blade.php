@@ -161,7 +161,10 @@
                     }, 1000);
                 }
             }" x-on:comment-cooldown-start.window="startCooldown($event.detail?.seconds ?? 30)">
-                <x-ui.button type="submit" variant="primary" class="flex-1 min-w-0 sm:flex-none sm:min-w-[120px] shrink-0 py-2.5" x-bind:disabled="commentCooldown > 0" x-show="commentCooldown === 0">Отправить</x-ui.button>
+                <x-ui.button type="submit" variant="primary" class="flex-1 min-w-0 sm:flex-none sm:min-w-[120px] shrink-0 py-2.5" x-bind:disabled="commentCooldown > 0" x-show="commentCooldown === 0">
+                    @svg('heroicon-o-paper-airplane', 'w-4 h-4')
+                    Отправить
+                </x-ui.button>
                 <span class="text-sm text-stone-500" x-show="commentCooldown > 0" x-cloak x-transition>
                     Следующий комментарий через <span x-text="commentCooldown"></span> сек.
                 </span>

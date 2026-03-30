@@ -74,13 +74,22 @@ class OrderController extends Controller
 
             $title = $newStatus === 'cancelled' ? 'Заказ отменён' : 'Статус заказа изменён';
 
+            $body = "Заказ {$order->order_number}: {$statusLabel}.";
+            $notificationUrl = route('orders.show', $order);
+
+            if ($newStatus === 'completed') {
+                $title = 'Заказ выполнен';
+                $body = "Заказ {$order->order_number} выполнен. Можете оставить отзыв на купленные товары — раздел «Оставить отзыв» на странице «Мои заказы».";
+                $notificationUrl = route('orders.index') . '#leave-review';
+            }
+
             UserNotification::query()->create([
                 'user_id' => $order->user_id,
                 'type' => 'order_status_changed',
                 'title' => $title,
-                'body' => "Заказ {$order->order_number}: {$statusLabel}.",
+                'body' => $body,
                 'support_ticket_id' => null,
-                'url' => route('orders.show', $order),
+                'url' => $notificationUrl,
                 'read_at' => null,
             ]);
         }

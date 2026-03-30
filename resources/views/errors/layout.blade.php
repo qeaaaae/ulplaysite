@@ -42,14 +42,17 @@
 
                             <div class="flex flex-col sm:flex-row gap-3 justify-center w-full max-w-md">
                                 <x-ui.button href="{{ route('home') }}" variant="primary" size="lg">
+                                    @svg('heroicon-o-home', 'w-5 h-5')
                                     На главную
                                 </x-ui.button>
                                 @if ($statusCode === 404)
                                     <x-ui.button href="{{ route('products.index') }}" variant="outline" size="lg">
+                                        @svg('heroicon-o-shopping-bag', 'w-5 h-5')
                                         В каталог
                                     </x-ui.button>
                                 @else
                                     <x-ui.button href="javascript:history.back()" variant="outline" size="lg">
+                                        @svg('heroicon-o-arrow-uturn-left', 'w-5 h-5')
                                         Назад
                                     </x-ui.button>
                                 @endif

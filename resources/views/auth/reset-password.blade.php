@@ -31,7 +31,10 @@
                     required
                     autocomplete="new-password"
                 />
-                <x-ui.button type="submit" variant="primary" class="w-full">Сохранить пароль</x-ui.button>
+                <x-ui.button type="submit" variant="primary" class="w-full">
+                    @svg('heroicon-o-key', 'w-4 h-4')
+                    Сохранить пароль
+                </x-ui.button>
             </form>
         </div>
     </div>

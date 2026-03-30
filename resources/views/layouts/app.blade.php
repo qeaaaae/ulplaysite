@@ -203,6 +203,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="mt-3">
                         @csrf
                         <x-ui.button type="submit" variant="outline" class="w-full">
+                            @svg('heroicon-o-arrow-right-on-rectangle', 'w-4 h-4')
                             Выйти
                         </x-ui.button>
                     </form>

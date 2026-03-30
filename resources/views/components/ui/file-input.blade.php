@@ -6,6 +6,8 @@
     'existingUrl' => null,
     'maxPreviews' => null,
     'lightboxGroup' => null,
+    /** В overlay/модалках клик по label+sr-only часто не доходит до input — открываем picker через $refs */
+    'pointerOpen' => false,
 ])
 
 @php
@@ -41,20 +43,48 @@
             {{ $label }}
         </label>
     @endif
-    <label for="{{ $inputId }}" class="flex items-center h-11 border border-stone-300 rounded-md bg-white overflow-hidden cursor-pointer hover:border-sky-300 transition-colors focus-within:ring-2 focus-within:ring-sky-500/30 focus-within:border-sky-400 [outline:none] [&:hover]:[outline:none] [&:focus]:[outline:none]">
-        <input
-            type="file"
-            id="{{ $inputId }}"
-            {{ $attributes->except('class', 'id', 'x-on:change')->merge([
-                'class' => 'sr-only [outline:none] [&:focus]:[outline:none] [&:hover]:[outline:none]',
-            ]) }}
-            x-on:change="{{ $changeHandler }}"
+    @php
+        $rowClass = 'flex items-center h-11 border border-stone-300 rounded-md bg-white overflow-hidden cursor-pointer hover:border-sky-300 transition-colors focus-within:ring-2 focus-within:ring-sky-500/30 focus-within:border-sky-400 [outline:none] [&:hover]:[outline:none] [&:focus]:[outline:none]';
+    @endphp
+    @if($pointerOpen)
+        <div
+            class="{{ $rowClass }}"
+            role="button"
+            tabindex="0"
+            @click="$refs.fileInput.click()"
+            @keydown.enter.prevent="$refs.fileInput.click()"
+            @keydown.space.prevent="$refs.fileInput.click()"
         >
-        <span class="flex items-center justify-center h-full px-4 text-sm font-medium text-sky-700 bg-sky-50 shrink-0 hover:bg-sky-100 transition-colors">
-            Выбрать файл{{ $isMultiple ? 'ы' : '' }}
-        </span>
-        <span class="flex-1 flex items-center px-3 text-sm text-stone-500 min-w-0 truncate" x-text="filename || 'Файл не выбран'"></span>
-    </label>
+            <input
+                x-ref="fileInput"
+                type="file"
+                id="{{ $inputId }}"
+                {{ $attributes->except('class', 'id', 'x-on:change')->merge([
+                    'class' => 'sr-only [outline:none] [&:focus]:[outline:none] [&:hover]:[outline:none]',
+                ]) }}
+                x-on:change="{{ $changeHandler }}"
+            >
+            <span class="flex items-center justify-center h-full px-4 text-sm font-medium text-sky-700 bg-sky-50 shrink-0 hover:bg-sky-100 transition-colors pointer-events-none">
+                Выбрать файл{{ $isMultiple ? 'ы' : '' }}
+            </span>
+            <span class="flex-1 flex items-center px-3 text-sm text-stone-500 min-w-0 truncate pointer-events-none" x-text="filename || 'Файл не выбран'"></span>
+        </div>
+    @else
+        <label for="{{ $inputId }}" class="{{ $rowClass }}">
+            <input
+                type="file"
+                id="{{ $inputId }}"
+                {{ $attributes->except('class', 'id', 'x-on:change')->merge([
+                    'class' => 'sr-only [outline:none] [&:focus]:[outline:none] [&:hover]:[outline:none]',
+                ]) }}
+                x-on:change="{{ $changeHandler }}"
+            >
+            <span class="flex items-center justify-center h-full px-4 text-sm font-medium text-sky-700 bg-sky-50 shrink-0 hover:bg-sky-100 transition-colors">
+                Выбрать файл{{ $isMultiple ? 'ы' : '' }}
+            </span>
+            <span class="flex-1 flex items-center px-3 text-sm text-stone-500 min-w-0 truncate" x-text="filename || 'Файл не выбран'"></span>
+        </label>
+    @endif
 
     @if($showPreview)
         <div class="mt-3 space-y-3">

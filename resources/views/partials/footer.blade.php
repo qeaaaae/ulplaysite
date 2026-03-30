@@ -6,9 +6,10 @@
     $links = $footer['links'] ?? [];
     $social = $footer['social'] ?? [];
 @endphp
-<footer class="site-footer shrink-0 mt-16 bg-stone-800 overflow-x-hidden shadow-[0_-1px_0_0_rgba(68,64,60,0.5)] [.page-checkout_&]:mt-0">
+{{-- Не ставить overflow-x-hidden на footer: в паре с overflow-y это даёт в Chrome/Edge лишний вертикальный скролл; горизонт режет body/#app --}}
+<footer class="site-footer shrink-0 mt-16 bg-stone-800 shadow-[0_-1px_0_0_rgba(68,64,60,0.5)] [.page-checkout_&]:mt-0">
     <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8 py-10 sm:py-12 min-w-0">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-5 sm:gap-y-6 sm:gap-x-6 overflow-hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-5 sm:gap-y-6 sm:gap-x-6 min-w-0">
             <div class="min-w-0">
                 <span class="font-heading text-lg font-semibold text-white block mb-3">{{ $company['name'] }}</span>
                 <p class="text-stone-400 text-sm mb-3 leading-relaxed">{{ $company['description'] }}</p>

@@ -94,9 +94,10 @@
             <div class="flex flex-wrap gap-3 justify-end pt-2">
                 <button
                     type="button"
-                    class="inline-flex items-center justify-center px-4 py-2.5 border border-stone-300 rounded-xl text-stone-700 hover:bg-stone-50 text-sm font-medium"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-stone-300 rounded-xl text-stone-700 hover:bg-stone-50 text-sm font-medium"
                     @click="closeSupportTicketModal()"
                 >
+                    @svg('heroicon-o-x-mark', 'w-4 h-4')
                     Отмена
                 </button>
                 <x-ui.button type="submit" variant="primary">

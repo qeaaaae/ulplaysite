@@ -64,7 +64,8 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="submit" :disabled="authLoading"
                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 text-white font-medium rounded-md hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                        <span x-show="authLoading" class="animate-spin">@svg('heroicon-o-arrow-path', 'w-4 h-4')</span>
+                        <span x-show="authLoading" class="animate-spin inline-flex" x-cloak>@svg('heroicon-o-arrow-path', 'w-4 h-4')</span>
+                        <span x-show="!authLoading" class="inline-flex" x-cloak>@svg('heroicon-o-arrow-right-end-on-rectangle', 'w-4 h-4')</span>
                         <span x-text="authLoading ? 'Вход...' : 'Войти'"></span>
                     </button>
                     <a href="{{ route('password.request') }}" class="flex-1 inline-flex items-center justify-center px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-md text-sm font-medium cursor-pointer">Забыли пароль?</a>
@@ -142,7 +143,8 @@
                 </div>
                 <button type="submit" :disabled="authLoading"
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 text-white font-medium rounded-md hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                    <span x-show="authLoading" class="animate-spin">@svg('heroicon-o-arrow-path', 'w-4 h-4')</span>
+                    <span x-show="authLoading" class="animate-spin inline-flex" x-cloak>@svg('heroicon-o-arrow-path', 'w-4 h-4')</span>
+                    <span x-show="!authLoading" class="inline-flex" x-cloak>@svg('heroicon-o-user-plus', 'w-4 h-4')</span>
                     <span x-text="authLoading ? 'Регистрация...' : 'Зарегистрироваться'"></span>
                 </button>
                 <p class="text-sm text-stone-500 text-center pt-2 border-t border-stone-100">

@@ -5,20 +5,20 @@
         $selectClass = 'w-full sm:min-w-[160px] sm:max-w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 appearance-none bg-no-repeat pr-9 bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center]';
         $selectStyle = "background-image:url('data:image/svg+xml,%3csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3e%3cpath stroke=%22%2378716c%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22M6 8l4 4 4-4%22/%3e%3c/svg%3e')";
     @endphp
-    <div class="py-12 max-w-xl mx-auto px-4">
-        <div class="mb-8">
+    <div class="py-4 pb-10 sm:pb-12 max-w-xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-6">
+        <div>
             <a href="{{ url()->previous() }}" class="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700 transition-colors mb-4">
                 @svg('heroicon-o-arrow-left', 'w-4 h-4')
                 Назад
             </a>
             <h1 class="text-2xl font-semibold text-stone-900 flex items-center gap-2">
-                @svg('heroicon-o-lifebuoy', 'w-8 h-8 text-sky-600')
+                @svg('heroicon-o-lifebuoy', 'w-8 h-8 text-sky-600 shrink-0')
                 Техническая поддержка
             </h1>
-            <p class="text-stone-500 text-sm mt-1">Опишите вашу проблему, и мы постараемся помочь как можно скорее</p>
+            <p class="text-stone-500 text-sm mt-2">Опишите вашу проблему, и мы постараемся помочь как можно скорее</p>
         </div>
 
-        <div class="bg-white rounded-xl border border-stone-200 shadow-sm p-6 sm:p-8">
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 sm:p-8">
             <form method="POST" action="{{ route('support-tickets.store') }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
                 <div class="form-field {{ $errors->has('type') ? 'is-invalid' : '' }}">
@@ -85,6 +85,7 @@
 
                 <div class="pt-2 flex flex-wrap gap-3 justify-end">
                     <a href="{{ url()->previous() }}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-stone-300 rounded-xl text-stone-700 hover:bg-stone-50 transition-colors text-sm font-medium">
+                        @svg('heroicon-o-x-mark', 'w-4 h-4')
                         Отмена
                     </a>
                     <x-ui.button type="submit" variant="primary">

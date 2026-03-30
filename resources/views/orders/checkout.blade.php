@@ -168,6 +168,7 @@
                                 </div>
                             </div>
                             <x-ui.button type="submit" variant="primary" size="lg" class="w-full mt-6">
+                                @svg('heroicon-o-check-badge', 'w-5 h-5')
                                 Подтвердить заказ
                             </x-ui.button>
                         </div>
