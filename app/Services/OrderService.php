@@ -7,7 +7,8 @@ namespace App\Services;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Services\WebPushService;
+use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +69,22 @@ class OrderService
                 app(WebPushService::class)->notifyNewOrder($order);
             } catch (\Throwable $e) {
                 report($e);
+            }
+
+            // Дублируем в обычные уведомления для всех админов.
+            $adminIds = User::query()
+                ->where('is_admin', true)
+                ->pluck('id');
+            foreach ($adminIds as $adminId) {
+                UserNotification::query()->create([
+                    'user_id' => $adminId,
+                    'type' => 'admin_new_order',
+                    'title' => 'Новый заказ',
+                    'body' => 'Заказ ' . $order->order_number . ' на ' . number_format((float) $order->total, 0, ',', ' ') . ' ₽',
+                    'support_ticket_id' => null,
+                    'url' => route('admin.orders.show', $order),
+                    'read_at' => null,
+                ]);
             }
 
             if ($order->user_id !== null) {

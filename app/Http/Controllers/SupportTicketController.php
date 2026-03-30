@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSupportTicketRequest;
 use App\Models\SupportTicket;
+use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\ImageService;
 use App\Services\WebPushService;
@@ -88,6 +89,22 @@ class SupportTicketController extends Controller
         }
 
         app(WebPushService::class)->notifyNewTicket($ticket);
+
+        // Дублируем в обычные уведомления для всех админов.
+        $adminIds = User::query()
+            ->where('is_admin', true)
+            ->pluck('id');
+        foreach ($adminIds as $adminId) {
+            UserNotification::query()->create([
+                'user_id' => $adminId,
+                'type' => 'admin_new_ticket',
+                'title' => 'Новый тикет',
+                'body' => $ticket->title,
+                'support_ticket_id' => $ticket->id,
+                'url' => route('admin.tickets.show', $ticket),
+                'read_at' => null,
+            ]);
+        }
 
         return redirect()->route('tickets.my.index')->with('message', 'Заявка в техподдержку отправлена');
     }
