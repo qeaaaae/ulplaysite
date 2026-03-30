@@ -26,7 +26,7 @@ class PushSubscriptionController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        PushSubscription::updateOrCreate(
+        $subscription = PushSubscription::updateOrCreate(
             [
                 'user_id' => $user->id,
                 'endpoint' => $request->endpoint,
@@ -37,6 +37,18 @@ class PushSubscriptionController extends Controller
                 'content_encoding' => $request->input('contentEncoding', 'aes128gcm'),
             ]
         );
+
+        // До 5 устройств на одного админа: оставляем самые свежие подписки.
+        $keepIds = PushSubscription::query()
+            ->where('user_id', $user->id)
+            ->orderByDesc('updated_at')
+            ->limit(5)
+            ->pluck('id');
+
+        PushSubscription::query()
+            ->where('user_id', $user->id)
+            ->whereNotIn('id', $keepIds)
+            ->delete();
 
         return response()->json(['success' => true]);
     }

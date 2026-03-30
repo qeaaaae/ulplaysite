@@ -81,6 +81,7 @@ class WebPushService
         }
         $payload = $this->buildPayload('Тест уведомлений', 'Если вы видите это — пуш работает.');
         $webPush = $this->webPush();
+        $sent = false;
         foreach ($subscriptions as $model) {
             try {
                 $sub = Subscription::create($model->toWebPushSubscription());
@@ -88,12 +89,12 @@ class WebPushService
                 if ($report->isSubscriptionExpired()) {
                     $model->delete();
                 } else {
-                    return true;
+                    $sent = true;
                 }
             } catch (\Throwable $e) {
                 report($e);
             }
         }
-        return false;
+        return $sent;
     }
 }
