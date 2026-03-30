@@ -119,6 +119,19 @@ Alpine.data('ordersReviewModal', () => ({
 
 Alpine.start();
 
+// Push: Chrome не поддерживает кастомный звук в системном уведомлении — SW шлёт postMessage сюда.
+// Во вкладке без взаимодействия с сайтом autoplay может блокироваться; при открытой вкладке ulplay.com звук должен играть.
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        const d = event.data;
+        if (!d || d.type !== 'PLAY_NOTIFICATION_SOUND' || !d.url) return;
+        const audio = new Audio(d.url);
+        audio.volume = 0.6;
+        const p = audio.play();
+        if (p !== undefined) p.catch(() => {});
+    });
+}
+
 function smoothScrollTo(targetY, duration = 400) {
     const startY = window.pageYOffset || document.documentElement.scrollTop;
     const distance = targetY - startY;

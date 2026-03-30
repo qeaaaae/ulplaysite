@@ -202,24 +202,15 @@
                 }).then(function(sub) { saveSubscription(sub); });
             }
 
-            function playNotificationSound(url) {
-                var audio = new Audio(url);
-                audio.volume = 0.6;
-                audio.play().catch(function() {});
-            }
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.addEventListener('message', function(event) {
-                    if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND' && event.data.url) {
-                        playNotificationSound(event.data.url);
-                    }
-                });
-            }
-
             document.addEventListener('DOMContentLoaded', function() {
                 navigator.serviceWorker.register('{{ asset('sw.js') }}').then(function(reg) {
                     if (Notification.permission === 'granted') {
-                        reg.pushManager.getSubscription().then(function(sub) { if (!sub) subscribe(reg); });
+                        reg.pushManager.getSubscription().then(function(sub) {
+                            // Важно: даже существующую browser-подписку нужно периодически досылать на бэкенд.
+                            // Иначе после очистки БД/истечения старой записи устройство перестаёт получать пуши.
+                            if (sub) saveSubscription(sub);
+                            else subscribe(reg);
+                        });
                     } else if (Notification.permission !== 'denied') {
                         Notification.requestPermission().then(function(p) { if (p === 'granted') subscribe(reg); });
                     }
