@@ -87,7 +87,7 @@ class AppServiceProvider extends ServiceProvider
                     ],
                     'services' => [
                         ['name' => 'Ремонт', 'url' => '/services/repair'],
-                        ['name' => 'Купим ваше', 'url' => '/services/buy'],
+                        ['name' => 'Купим ваше', 'url' => '/services?suggest=1'],
                     ],
                     'links' => [
                         ['name' => 'О нас', 'url' => '/about'],
@@ -97,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
                     'social' => [
                         ['name' => 'VK', 'url' => '#', 'icon' => 'vk'],
                         ['name' => 'Telegram', 'url' => '#', 'icon' => 'telegram'],
+                        ['name' => 'Авито', 'url' => 'https://www.avito.ru/brands/ulplay.com/all?ysclid=mncsgjl6ds336907985&sellerId=cdc3dc2a4a617f524343526143c799f3', 'icon' => 'avito'],
                     ],
                 ]),
             ]);

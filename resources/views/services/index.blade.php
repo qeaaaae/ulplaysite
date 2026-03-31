@@ -120,6 +120,13 @@
             init() {
                 const root = this.$el;
 
+                // Открываем модалку при переходе из футера «Купим ваше» (?suggest=1)
+                if (new URLSearchParams(window.location.search).get('suggest') === '1') {
+                    this.$nextTick(() => {
+                        document.getElementById('suggest-product-btn')?.click();
+                    });
+                }
+
                 root.querySelectorAll('[data-ajax-services]').forEach((a) => {
                     a.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -150,23 +157,25 @@
                     </p>
                 </div>
                 @auth
-                    <button
+                    <x-ui.button
                         type="button"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-colors text-sm font-medium cursor-pointer"
+                        variant="primary"
+                        id="suggest-product-btn"
                         @click="$dispatch('open-support-ticket-modal', { type: '{{ \App\Enums\SupportTicketTypeEnum::SUGGESTION->value }}', title: 'Предложение товара' })"
                     >
-                        @svg('heroicon-o-light-bulb', 'w-4 h-4')
+                        @svg('heroicon-o-light-bulb', 'w-4 h-4 text-white')
                         Предложить товар
-                    </button>
+                    </x-ui.button>
                 @else
-                    <button
+                    <x-ui.button
                         type="button"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 hover:border-sky-300 transition-colors text-sm font-medium cursor-pointer"
+                        variant="primary"
+                        id="suggest-product-btn"
                         @click="$dispatch('open-auth-modal', { type: 'login' })"
                     >
-                        @svg('heroicon-o-light-bulb', 'w-4 h-4')
+                        @svg('heroicon-o-light-bulb', 'w-4 h-4 text-white')
                         Предложить товар
-                    </button>
+                    </x-ui.button>
                 @endauth
             </div>
 

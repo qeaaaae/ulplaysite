@@ -325,7 +325,7 @@
             aria-labelledby="product-reviews-modal-title"
         >
             <div class="absolute inset-0" @click="closeReviewsModal()" aria-hidden="true"></div>
-            <div class="relative w-full max-w-3xl bg-white rounded-2xl border border-stone-200 shadow-xl" @click.stop>
+            <div class="relative w-full max-w-3xl bg-white rounded-2xl border border-stone-200 shadow-xl">
                 <div class="px-5 sm:px-6 py-4 border-b border-stone-200 flex items-center justify-between gap-3">
                     <h2 id="product-reviews-modal-title" class="text-lg font-semibold text-stone-900 inline-flex items-center gap-2">
                         @svg('heroicon-o-star', 'w-5 h-5 text-sky-500')

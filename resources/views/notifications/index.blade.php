@@ -40,6 +40,16 @@
                                     'bg-amber-100 text-amber-900',
                                     'Заказ',
                                 ],
+                                $type === 'admin_new_order' => [
+                                    'heroicon-o-shopping-bag',
+                                    'bg-sky-100 text-sky-700',
+                                    'Новый заказ',
+                                ],
+                                $type === 'admin_new_ticket' => [
+                                    'heroicon-o-lifebuoy',
+                                    'bg-amber-100 text-amber-900',
+                                    'Новый тикет',
+                                ],
                                 default => [
                                     'heroicon-o-bell',
                                     'bg-stone-100 text-stone-700',
