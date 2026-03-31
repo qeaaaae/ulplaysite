@@ -20,7 +20,7 @@ return [
         ],
         'services' => [
             ['name' => 'Ремонт', 'url' => '/services/repair'],
-            ['name' => 'Купим ваше', 'url' => '/services/buy'],
+            ['name' => 'Купим ваше', 'url' => '/services?suggest=1'],
         ],
         'links' => [
             ['name' => 'О нас', 'url' => '/about'],
@@ -30,7 +30,7 @@ return [
         'social' => [
             ['name' => 'VK', 'url' => '#', 'icon' => 'vk'],
             ['name' => 'Telegram', 'url' => '#', 'icon' => 'telegram'],
-            ['name' => 'Авито', 'url' => 'https://www.avito.ru/user/7729b55d469973ddcb30209aedcf361b3eb7c348ab1d5d0a12ff7804a1bfa7b3/profile', 'icon' => 'avito'],
+            ['name' => 'Авито', 'url' => 'https://www.avito.ru/brands/ulplay.com/all?ysclid=mncsgjl6ds336907985&sellerId=cdc3dc2a4a617f524343526143c799f3', 'icon' => 'avito'],
         ],
     ],
 ];
