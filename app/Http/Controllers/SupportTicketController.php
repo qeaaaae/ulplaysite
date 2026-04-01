@@ -23,7 +23,7 @@ class SupportTicketController extends Controller
 
     public function create(): View
     {
-        return view('tickets.create');
+        return view('tickets.create', ['metaTitle' => 'Поддержка']);
     }
 
     public function myIndex(Request $request)
@@ -38,6 +38,7 @@ class SupportTicketController extends Controller
             ->paginate(10);
 
         return view('tickets.index', [
+            'metaTitle' => 'Мои обращения',
             'tickets' => $tickets,
         ]);
     }
@@ -55,6 +56,7 @@ class SupportTicketController extends Controller
             ->update(['read_at' => now()]);
 
         return view('tickets.show', [
+            'metaTitle' => "Обращение #{$ticket->id}",
             'ticket' => $ticket,
         ]);
     }

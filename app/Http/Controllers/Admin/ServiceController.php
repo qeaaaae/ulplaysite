@@ -31,12 +31,13 @@ class ServiceController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        return view('admin.services.index', ['services' => $services, 'search' => $q]);
+        return view('admin.services.index', ['metaTitle' => 'Услуги', 'services' => $services, 'search' => $q]);
     }
 
     public function create(): View
     {
         return view('admin.services.form', [
+            'metaTitle' => 'Новая услуга',
             'service' => new Service(),
             'categories' => Category::query()->whereNull('parent_id')->orderBy('name')->get(),
         ]);
@@ -69,6 +70,7 @@ class ServiceController extends Controller
     public function edit(Service $service): View
     {
         return view('admin.services.form', [
+            'metaTitle' => $service->name,
             'service' => $service->load('images'),
             'categories' => Category::query()->whereNull('parent_id')->orderBy('name')->get(),
         ]);

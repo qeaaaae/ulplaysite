@@ -41,12 +41,13 @@ class ProductController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        return view('admin.products.index', ['products' => $products, 'search' => $q]);
+        return view('admin.products.index', ['metaTitle' => 'Товары', 'products' => $products, 'search' => $q]);
     }
 
     public function create(): View
     {
         return view('admin.products.form', [
+            'metaTitle' => 'Новый товар',
             'product' => new Product(),
             'categories' => $this->productLeafCategories(),
         ]);
@@ -77,6 +78,7 @@ class ProductController extends Controller
     public function edit(Product $product): View
     {
         return view('admin.products.form', [
+            'metaTitle' => $product->name,
             'product' => $product,
             'categories' => $this->productLeafCategories(),
         ]);

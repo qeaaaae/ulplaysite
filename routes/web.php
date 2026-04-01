@@ -11,6 +11,9 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Models\News;
+use App\Models\Product;
+use App\Models\Service;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +28,57 @@ Route::get('/news', [NewsController::class, 'index'])->name('news.index');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 Route::get('/news/{news:slug}/comments', [\App\Http\Controllers\CommentController::class, 'index'])->name('comments.index');
 Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.show');
+Route::get('/sitemap.xml', function () {
+    $staticUrls = collect([
+        ['loc' => route('home'), 'lastmod' => now()],
+        ['loc' => route('products.index'), 'lastmod' => now()],
+        ['loc' => route('services.index'), 'lastmod' => now()],
+        ['loc' => route('news.index'), 'lastmod' => now()],
+        ['loc' => route('about'), 'lastmod' => now()],
+        ['loc' => route('delivery'), 'lastmod' => now()],
+        ['loc' => route('contacts'), 'lastmod' => now()],
+        ['loc' => route('gamepad-tester'), 'lastmod' => now()],
+    ]);
+
+    $productUrls = Product::query()
+        ->select(['slug', 'updated_at'])
+        ->where('in_stock', true)
+        ->whereNotNull('slug')
+        ->get()
+        ->map(fn (Product $product): array => [
+            'loc' => route('products.show', $product->slug),
+            'lastmod' => $product->updated_at ?? now(),
+        ]);
+
+    $serviceUrls = Service::query()
+        ->select(['slug', 'updated_at'])
+        ->whereNotNull('slug')
+        ->get()
+        ->map(fn (Service $service): array => [
+            'loc' => route('services.show', $service->slug),
+            'lastmod' => $service->updated_at ?? now(),
+        ]);
+
+    $newsUrls = News::query()
+        ->select(['slug', 'updated_at'])
+        ->whereNotNull('published_at')
+        ->whereNotNull('slug')
+        ->get()
+        ->map(fn (News $news): array => [
+            'loc' => route('news.show', $news->slug),
+            'lastmod' => $news->updated_at ?? now(),
+        ]);
+
+    $urls = $staticUrls
+        ->concat($productUrls)
+        ->concat($serviceUrls)
+        ->concat($newsUrls)
+        ->values();
+
+    $xml = view('sitemap.xml', ['urls' => $urls])->render();
+
+    return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
 
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/delivery', [\App\Http\Controllers\PageController::class, 'delivery'])->name('delivery');
@@ -66,7 +120,7 @@ Route::middleware(['auth', 'verified_if_auth'])->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', function () {
-        return view('auth.verify-email');
+        return view('auth.verify-email', ['metaTitle' => 'Подтверждение email']);
     })->name('verification.notice');
 
     Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
@@ -90,5 +144,5 @@ Route::middleware('auth')->group(function () {
 Route::fallback(function () {
     $exception = new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
 
-    return response()->view('errors.404', ['exception' => $exception], 404);
+    return response()->view('errors.404', ['exception' => $exception, 'metaTitle' => 'Страница не найдена'], 404);
 });

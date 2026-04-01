@@ -25,6 +25,7 @@ class CartController extends Controller
         $total = $this->cart->total();
 
         return view('cart.index', [
+            'metaTitle' => 'Корзина',
             'items' => $items,
             'total' => $total,
         ]);

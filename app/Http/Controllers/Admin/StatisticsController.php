@@ -28,7 +28,7 @@ class StatisticsController extends Controller
     {
         $data = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn () => $this->computeStatistics());
 
-        return view('admin.statistics.index', $data);
+        return view('admin.statistics.index', array_merge($data, ['metaTitle' => 'Статистика']));
     }
 
     /** @return array<string, mixed> */

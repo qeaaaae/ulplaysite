@@ -27,12 +27,12 @@ class BannerController extends Controller
             ->orderBy('id')
             ->paginate(10)
             ->withQueryString();
-        return view('admin.banners.index', ['banners' => $banners, 'search' => $q]);
+        return view('admin.banners.index', ['metaTitle' => 'Баннеры', 'banners' => $banners, 'search' => $q]);
     }
 
     public function create(): View
     {
-        return view('admin.banners.form', ['banner' => new Banner()]);
+        return view('admin.banners.form', ['metaTitle' => 'Новый баннер', 'banner' => new Banner()]);
     }
 
     public function store(StoreBannerRequest $request): RedirectResponse
@@ -54,7 +54,7 @@ class BannerController extends Controller
 
     public function edit(Banner $banner): View
     {
-        return view('admin.banners.form', ['banner' => $banner]);
+        return view('admin.banners.form', ['metaTitle' => $banner->title ?? 'Баннер', 'banner' => $banner]);
     }
 
     public function update(UpdateBannerRequest $request, Banner $banner): RedirectResponse

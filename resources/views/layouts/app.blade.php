@@ -5,9 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $metaTitle ?? 'Главная' }} - {{ config('app.name', 'UlPlay') }}</title>
+    @php
+        $siteName = config('app.name', 'UlPlay');
+        $fullTitle = ($metaTitle ?? 'Главная') . ' - ' . $siteName;
+        $description = $metaDescription ?? 'UlPlay - интернет-магазин игровых товаров, услуг и новостей.';
+        $canonical = $canonicalUrl ?? url()->current();
+        $metaImage = $metaImage ?? asset('favicon.svg');
+        $robots = $metaRobots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+        $structuredData = $structuredData ?? [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => url('/'),
+                'logo' => asset('favicon.svg'),
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'WebSite',
+                'name' => $siteName,
+                'url' => url('/'),
+                'potentialAction' => [
+                    '@type' => 'SearchAction',
+                    'target' => route('search.index') . '?q={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ],
+        ];
+    @endphp
+
+    <title>{{ $fullTitle }}</title>
+    <meta name="description" content="{{ $description }}">
+    <meta name="robots" content="{{ $robots }}">
+    <link rel="canonical" href="{{ $canonical }}">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="author" content="{{ $siteName }}">
+
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:title" content="{{ $fullTitle }}">
+    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:url" content="{{ $canonical }}">
+    <meta property="og:image" content="{{ $metaImage }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $fullTitle }}">
+    <meta name="twitter:description" content="{{ $description }}">
+    <meta name="twitter:image" content="{{ $metaImage }}">
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate" hreflang="ru-RU" href="{{ $canonical }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $canonical }}">
+
+    @foreach($structuredData as $schemaNode)
+        <script type="application/ld+json">{!! json_encode($schemaNode, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @endforeach
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])

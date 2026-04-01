@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
@@ -37,7 +38,7 @@ class NewsController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        return view('admin.news.index', ['news' => $news, 'search' => $q]);
+        return view('admin.news.index', ['metaTitle' => 'Новости', 'news' => $news, 'search' => $q]);
     }
 
     public function create(): View
@@ -45,11 +46,13 @@ class NewsController extends Controller
         $import = session()->pull('news_import', []);
 
         return view('admin.news.form', [
+            'metaTitle' => 'Новая новость',
             'news' => new News([
                 'title'       => $import['title'] ?? '',
                 'description' => $import['description'] ?? '',
                 'content'     => $import['content'] ?? '',
             ]),
+            'importCoverUrl' => $import['cover_url'] ?? '',
         ]);
     }
 
@@ -136,10 +139,13 @@ class NewsController extends Controller
             $description = mb_substr(preg_replace('/\s+/', ' ', $description), 0, 300);
         }
 
+        $coverUrl = $this->extractCoverUrl($xpath, $url);
+
         session()->put('news_import', [
             'title'       => $title,
             'description' => $description,
             'content'     => $markdown,
+            'cover_url'   => $coverUrl,
         ]);
 
         return response()->json([
@@ -393,6 +399,7 @@ class NewsController extends Controller
         $validated = $request->validated();
         $validated['author_id'] = auth()->id();
         $images = $request->file('images', []);
+        $importCoverUrl = (string) $request->input('import_cover_url', '');
         unset($validated['images']);
 
         /** @var News $news */
@@ -409,8 +416,10 @@ class NewsController extends Controller
                     'position' => $index,
                 ]);
             }
+        } elseif ($importCoverUrl !== '') {
+            $this->attachImportedCover(news: $news, imageUrl: $importCoverUrl);
         }
-        return redirect()->route('admin.news.index')->with('message', 'Новость создана');
+        return redirect()->route('admin.news.edit', $news)->with('message', 'Новость создана');
     }
 
     public function edit(News $news): View
@@ -421,6 +430,7 @@ class NewsController extends Controller
         $views = $news->views()->with('user')->orderByDesc('created_at')->get();
 
         return view('admin.news.form', [
+            'metaTitle' => $news->title,
             'news' => $news,
             'views' => $views,
         ]);
@@ -467,5 +477,94 @@ class NewsController extends Controller
     {
         $news->delete();
         return redirect()->route('admin.news.index')->with('message', 'Новость удалена');
+    }
+
+    private function extractCoverUrl(DOMXPath $xpath, string $baseUrl): string
+    {
+        foreach ($xpath->query('//*[contains(@class,"overview")]//img[contains(@class,"overview__img")]') as $node) {
+            /** @var DOMElement $node */
+            $src = trim((string) $node->getAttribute('src'));
+            if ($src !== '') {
+                return $this->absolutizeUrl($src, $baseUrl);
+            }
+        }
+
+        foreach ($xpath->query('//meta[@property="og:image"]') as $node) {
+            /** @var DOMElement $node */
+            $src = trim((string) $node->getAttribute('content'));
+            if ($src !== '') {
+                return $this->absolutizeUrl($src, $baseUrl);
+            }
+        }
+
+        return '';
+    }
+
+    private function absolutizeUrl(string $url, string $baseUrl): string
+    {
+        if (preg_match('~^https?://~i', $url)) {
+            return $url;
+        }
+
+        $parts = parse_url($baseUrl);
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'] ?? 'gamemag.ru';
+
+        if (str_starts_with($url, '//')) {
+            return $scheme . ':' . $url;
+        }
+
+        if (str_starts_with($url, '/')) {
+            return $scheme . '://' . $host . $url;
+        }
+
+        return $scheme . '://' . $host . '/' . ltrim($url, '/');
+    }
+
+    private function attachImportedCover(News $news, string $imageUrl): void
+    {
+        if (!preg_match('~^https?://~i', $imageUrl)) {
+            return;
+        }
+
+        try {
+            $http = Http::timeout(15)->withHeaders([
+                'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+                'Accept-Language' => 'ru-RU,ru;q=0.9',
+            ]);
+
+            if (!app()->isProduction()) {
+                $http = $http->withoutVerifying();
+            }
+
+            $response = $http->get($imageUrl);
+            if (!$response->ok()) {
+                return;
+            }
+
+            $tmpPath = tempnam(sys_get_temp_dir(), 'news_cover_');
+            if (!$tmpPath) {
+                return;
+            }
+
+            file_put_contents($tmpPath, $response->body());
+
+            $uploaded = new UploadedFile(
+                path: $tmpPath,
+                originalName: basename(parse_url($imageUrl, PHP_URL_PATH) ?: 'cover.jpg'),
+                mimeType: $response->header('Content-Type', 'image/jpeg'),
+                test: true,
+            );
+
+            $path = $this->imageService->store($uploaded, 'news');
+
+            $news->images()->create([
+                'path' => $path,
+                'is_cover' => true,
+                'position' => 0,
+            ]);
+        } catch (\Throwable) {
+            // ignore cover import errors
+        }
     }
 }

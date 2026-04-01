@@ -27,6 +27,7 @@ class NotificationsController extends Controller
             ->paginate(15);
 
         return view('notifications.index', [
+            'metaTitle' => 'Уведомления',
             'notifications' => $notifications,
         ]);
     }

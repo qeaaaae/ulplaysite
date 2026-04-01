@@ -8,6 +8,7 @@
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
     @endif
     <title>{{ $metaTitle ?? 'Админка' }} - UlPlay</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <style>[x-cloak]{display:none!important}</style>
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])

@@ -28,12 +28,13 @@ class CategoryController extends Controller
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
-        return view('admin.categories.index', ['categories' => $categories, 'search' => $q]);
+        return view('admin.categories.index', ['metaTitle' => 'Категории', 'categories' => $categories, 'search' => $q]);
     }
 
     public function create(): View
     {
         return view('admin.categories.form', [
+            'metaTitle' => 'Новая категория',
             'category' => new Category(),
             'categories' => Category::getCachedRoots(),
         ]);
@@ -59,6 +60,7 @@ class CategoryController extends Controller
     public function edit(Category $category): View
     {
         return view('admin.categories.form', [
+            'metaTitle' => $category->name,
             'category' => $category,
             'categories' => Category::getCachedRoots()->reject(fn ($c) => $c->id === $category->id)->values(),
         ]);

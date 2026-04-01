@@ -34,14 +34,14 @@ class TicketController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.tickets.index', ['tickets' => $tickets]);
+        return view('admin.tickets.index', ['metaTitle' => 'Тикеты', 'tickets' => $tickets]);
     }
 
     public function show(SupportTicket $ticket): View
     {
         $ticket->load(['user', 'images', 'messages.senderUser', 'service']);
 
-        return view('admin.tickets.show', ['ticket' => $ticket]);
+        return view('admin.tickets.show', ['metaTitle' => "Тикет #{$ticket->id}", 'ticket' => $ticket]);
     }
 
     public function updateStatus(Request $request, SupportTicket $ticket): RedirectResponse

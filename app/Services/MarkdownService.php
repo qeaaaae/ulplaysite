@@ -64,29 +64,40 @@ final class MarkdownService
         if ($type === 'youtube') {
             $safeId   = htmlspecialchars($id, ENT_QUOTES);
             $embedSrc = htmlspecialchars('https://www.youtube.com/embed/' . $id . '?autoplay=1', ENT_QUOTES);
-            $thumbSrc = htmlspecialchars('https://img.youtube.com/vi/' . $id . '/maxresdefault.jpg', ENT_QUOTES);
+            $thumbSrc = htmlspecialchars('https://i.ytimg.com/vi/' . $id . '/maxresdefault.jpg', ENT_QUOTES);
+            $thumbHq720 = htmlspecialchars('https://i.ytimg.com/vi/' . $id . '/hq720.jpg', ENT_QUOTES);
+            $thumbSd = htmlspecialchars('https://i.ytimg.com/vi/' . $id . '/sddefault.jpg', ENT_QUOTES);
+            $thumbHq = htmlspecialchars('https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg', ENT_QUOTES);
 
             return <<<HTML
-<div class="ulplay-video-embed aspect-video my-4 w-full overflow-hidden rounded-xl ring-1 ring-stone-200/50 bg-stone-900"
+<div class="ulplay-video-embed relative aspect-video my-4 w-full overflow-hidden rounded-xl ring-1 ring-stone-200/50 bg-stone-900"
      x-data="{ playing: false }">
-    <template x-if="!playing">
-        <button type="button"
-                @click="playing = true"
-                class="relative w-full h-full flex items-center justify-center group cursor-pointer"
-                aria-label="Воспроизвести видео">
-            <img src="{$thumbSrc}"
-                 class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200"
-                 loading="lazy" alt="" onerror="this.style.display='none'">
-            <svg class="relative z-10 drop-shadow-xl group-hover:scale-110 transition-transform duration-200"
-                 width="68" height="48" viewBox="0 0 68 48" aria-hidden="true">
-                <path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="#FF0000"/>
-                <path d="M45 24 27 14v20z" fill="#fff"/>
-            </svg>
-        </button>
-    </template>
+    <img x-show="!playing"
+         src="{$thumbSrc}"
+         class="opacity-80 transition-opacity duration-200"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;max-width:none;margin:0"
+         loading="lazy" alt=""
+         onerror="
+            const step = Number(this.dataset.fallbackStep || '0');
+            if (step === 0) { this.dataset.fallbackStep='1'; this.src='{$thumbHq720}'; return; }
+            if (step === 1) { this.dataset.fallbackStep='2'; this.src='{$thumbSd}'; return; }
+            if (step === 2) { this.dataset.fallbackStep='3'; this.src='{$thumbHq}'; return; }
+            this.style.display='none';
+         ">
+    <button x-show="!playing"
+            type="button"
+            @click="playing = true"
+            class="absolute inset-0 z-10 w-full h-full flex items-center justify-center group cursor-pointer bg-transparent hover:bg-black/5 transition-colors"
+            aria-label="Воспроизвести видео">
+        <svg class="drop-shadow-xl group-hover:scale-110 transition-transform duration-200"
+             width="68" height="48" viewBox="0 0 68 48" aria-hidden="true">
+            <path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z" fill="#FF0000"/>
+            <path d="M45 24 27 14v20z" fill="#fff"/>
+        </svg>
+    </button>
     <template x-if="playing">
         <iframe src="{$embedSrc}"
-                class="w-full h-full"
+                class="absolute inset-0 w-full h-full"
                 frameborder="0" allowfullscreen
                 allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
         </iframe>

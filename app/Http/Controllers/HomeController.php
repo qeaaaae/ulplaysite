@@ -62,6 +62,7 @@ class HomeController extends Controller
         $cartProductIds = $this->cart->getItems()->pluck('product_id')->filter()->values()->all();
 
         return view('home', [
+            'metaTitle' => 'Главная',
             'banners' => Banner::getCachedActive(),
             'categories' => $categories,
             'categoriesMobile' => $categoriesMobile,

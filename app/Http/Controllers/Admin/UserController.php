@@ -27,12 +27,12 @@ class UserController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        return view('admin.users.index', ['users' => $users, 'search' => $q]);
+        return view('admin.users.index', ['metaTitle' => 'Пользователи', 'users' => $users, 'search' => $q]);
     }
 
     public function create(): View
     {
-        return view('admin.users.form', ['user' => new User()]);
+        return view('admin.users.form', ['metaTitle' => 'Новый пользователь', 'user' => new User()]);
     }
 
     public function store(StoreUserRequest $request): RedirectResponse
@@ -47,7 +47,7 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        return view('admin.users.form', ['user' => $user]);
+        return view('admin.users.form', ['metaTitle' => $user->name, 'user' => $user]);
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse

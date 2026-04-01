@@ -36,6 +36,7 @@ class OrderController extends Controller
         $total = $subtotal + $deliveryCost;
 
         return view('orders.checkout', [
+            'metaTitle' => 'Оформление заказа',
             'items' => $items,
             'subtotal' => $subtotal,
             'deliveryCost' => $deliveryCost,
@@ -78,7 +79,7 @@ class OrderController extends Controller
 
         $order->load(['items.product', 'items.service']);
 
-        return view('orders.show', ['order' => $order]);
+        return view('orders.show', ['metaTitle' => "Заказ #{$order->id}", 'order' => $order]);
     }
 
     public function index(): View
@@ -89,6 +90,7 @@ class OrderController extends Controller
         $purchasedWithoutReview = $user->getPurchasedWithoutReview();
 
         return view('orders.index', [
+            'metaTitle' => 'Мои заказы',
             'orders' => $orders,
             'purchasedWithoutReview' => $purchasedWithoutReview,
         ]);

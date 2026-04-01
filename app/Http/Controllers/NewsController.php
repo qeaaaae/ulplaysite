@@ -50,7 +50,7 @@ class NewsController extends Controller
             ]);
         }
 
-        return view('news.index', ['news' => $news]);
+        return view('news.index', ['news' => $news, 'metaTitle' => 'Новости']);
     }
 
     public function show(Request $request, News $news): View
@@ -87,6 +87,7 @@ class NewsController extends Controller
             ->get();
 
         return view('news.show', [
+            'metaTitle' => $news->title,
             'news' => $news,
             'comments' => $comments,
             'similarNews' => $similarNews,

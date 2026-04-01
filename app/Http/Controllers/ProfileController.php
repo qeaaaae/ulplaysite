@@ -20,6 +20,7 @@ class ProfileController extends Controller
             ->fragment('my-reviews');
 
         return view('profile.index', [
+            'metaTitle' => 'Профиль',
             'user' => $user,
             'orders' => $orders,
             'reviews' => $reviews,

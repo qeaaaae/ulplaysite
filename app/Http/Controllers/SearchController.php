@@ -90,6 +90,7 @@ class SearchController extends Controller
         }
 
         return view('search.index', [
+            'metaTitle' => $q ? "Поиск: {$q}" : 'Поиск',
             'q' => $q,
             'products' => $products,
             'services' => $services,

@@ -14,7 +14,7 @@ class ForgotPasswordController extends Controller
 {
     public function showLinkRequestForm(): View
     {
-        return view('auth.forgot-password');
+        return view('auth.forgot-password', ['metaTitle' => 'Восстановление пароля']);
     }
 
     public function sendResetLinkEmail(Request $request): RedirectResponse|JsonResponse

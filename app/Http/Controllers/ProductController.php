@@ -103,6 +103,7 @@ class ProductController extends Controller
         }
 
         return view('products.index', [
+            'metaTitle' => $currentCategory ? $currentCategory->name : 'Каталог',
             'products' => $products,
             'categoryTree' => $categoryTree,
             'expandParentIds' => $expandParentIds,
@@ -154,6 +155,7 @@ class ProductController extends Controller
             ->get();
 
         return view('products.show', [
+            'metaTitle' => $product->name,
             'product' => $product,
             'cartProductIds' => $cartProductIds,
             'reviews' => $reviews,

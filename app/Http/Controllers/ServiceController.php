@@ -74,6 +74,7 @@ class ServiceController extends Controller
         }
 
         return view('services.index', [
+            'metaTitle' => $currentCategory ? $currentCategory->name : 'Услуги',
             'services' => $services,
             'categoryTree' => $categoryTree,
             'expandParentIds' => $expandParentIds,
@@ -93,6 +94,7 @@ class ServiceController extends Controller
             ->get();
 
         return view('services.show', [
+            'metaTitle' => $service->name,
             'service' => $service,
             'similarServices' => $similarServices,
         ]);

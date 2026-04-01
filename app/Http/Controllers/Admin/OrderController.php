@@ -30,14 +30,14 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.orders.index', ['orders' => $orders]);
+        return view('admin.orders.index', ['metaTitle' => 'Заказы', 'orders' => $orders]);
     }
 
     public function show(Order $order): View
     {
         $order->load('items.product', 'items.service', 'user');
 
-        return view('admin.orders.show', ['order' => $order]);
+        return view('admin.orders.show', ['metaTitle' => "Заказ #{$order->id}", 'order' => $order]);
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse

@@ -4,10 +4,13 @@
     <form method="POST" action="{{ $news->id ? route('admin.news.update', $news) : route('admin.news.store') }}" enctype="multipart/form-data" class="w-full space-y-4">
         @csrf
         @if($news->id) @method('PATCH') @endif
+        @if(!$news->id && !empty($importCoverUrl ?? ''))
+            <input type="hidden" name="import_cover_url" value="{{ $importCoverUrl }}">
+        @endif
 
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.news.index') }}" class="p-2 rounded-lg text-stone-500 hover:bg-white hover:text-stone-700 transition-colors" title="К списку">
+                <a href="{{ $news->id ? route('admin.news.index') : route('admin.news.create') }}" class="p-2 rounded-lg text-stone-500 hover:bg-white hover:text-stone-700 transition-colors" title="Назад">
                     @svg('heroicon-o-arrow-left', 'w-5 h-5')
                 </a>
                 <div class="flex items-center gap-2.5">
@@ -32,7 +35,7 @@
                     @svg('heroicon-o-check', 'w-5 h-5')
                     Сохранить
                 </x-ui.button>
-                <a href="{{ route('admin.news.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 rounded-md text-stone-700 hover:bg-stone-50 transition-colors text-sm font-medium">
+                <a href="{{ $news->id ? route('admin.news.index') : route('admin.news.create') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 rounded-md text-stone-700 hover:bg-stone-50 transition-colors text-sm font-medium">
                     @svg('heroicon-o-x-mark', 'w-5 h-5')
                     Отмена
                 </a>
@@ -83,6 +86,13 @@
                     :max-previews="5"
                     :error="$errors->first('images')"
                 />
+
+                @if(!$news->id && !empty($importCoverUrl ?? ''))
+                    <div class="mt-2 p-3 rounded-lg border border-sky-200 bg-sky-50/60">
+                        <p class="text-xs text-sky-800 mb-2">Обложка из импорта будет добавлена автоматически при сохранении</p>
+                        <img src="{{ $importCoverUrl }}" alt="" class="w-44 h-24 object-cover rounded-md border border-sky-200 bg-white">
+                    </div>
+                @endif
 
                 <template x-if="existing.length">
                     <div class="mt-4">
