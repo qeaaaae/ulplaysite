@@ -61,6 +61,10 @@
                         @svg('heroicon-o-newspaper', 'w-4 h-4')
                         Новости
                     </a>
+                    <a href="{{ route('gamepad-tester') }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                        @svg('heroicon-o-cpu-chip', 'w-4 h-4')
+                        Геймпад
+                    </a>
                 </nav>
             </div>
 
@@ -188,6 +192,10 @@
                 <a href="/news" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
                     @svg('heroicon-o-newspaper', 'w-5 h-5')
                     Новости
+                </a>
+                <a href="{{ route('gamepad-tester') }}" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                    @svg('heroicon-o-cpu-chip', 'w-5 h-5')
+                    Геймпад
                 </a>
             </nav>
             <div class="px-4 sm:px-6 pt-4 mt-2 border-t border-stone-200">

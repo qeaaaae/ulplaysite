@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'admin', 'throttle:admin'])->prefix('admi
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('services', ServiceController::class);
+    Route::post('news/parse-url', [NewsController::class, 'parseUrl'])->name('news.parse-url');
     Route::resource('news', NewsController::class);
     Route::resource('banners', BannerController::class);
 

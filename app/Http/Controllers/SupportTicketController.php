@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\ImageService;
 use App\Services\WebPushService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -109,21 +110,37 @@ class SupportTicketController extends Controller
         return redirect()->route('tickets.my.index')->with('message', 'Заявка в техподдержку отправлена');
     }
 
-    public function reply(Request $request, SupportTicket $ticket): RedirectResponse
+    public function reply(Request $request, SupportTicket $ticket): RedirectResponse|JsonResponse
     {
         $this->authorize('view', $ticket);
 
         if (in_array($ticket->status, ['resolved', 'closed'], true)) {
+            if ($request->wantsJson()) {
+                return response()->json(['result' => false, 'error' => 'Нельзя ответить в закрытом обращении'], 422);
+            }
+
             return redirect()->back()->with('error', 'Нельзя ответить в закрытом обращении');
         }
 
         $validated = $request->validate(['message' => ['required', 'string', 'max:2000']]);
 
-        $ticket->messages()->create([
+        $message = $ticket->messages()->create([
             'sender_role' => 'user',
             'sender_user_id' => $request->user()->id,
             'content' => strip_tags($validated['message']),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'result' => true,
+                'message' => [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'sender_role' => $message->sender_role,
+                    'created_at' => $message->created_at->format(config('app.datetime_format')),
+                ],
+            ]);
+        }
 
         return redirect()->back()->with('message', 'Сообщение отправлено');
     }

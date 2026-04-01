@@ -80,17 +80,81 @@
                 </div>
             @endif
 
-            <div class="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
+            <div
+                class="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden"
+                x-data="{
+                    sending: false,
+                    text: '',
+                    error: '',
+                    msgCount: {{ $ticket->messages->count() }},
+                    replyUrl: {{ \Illuminate\Support\Js::from(route('tickets.my.reply', $ticket)) }},
+                    csrf: {{ \Illuminate\Support\Js::from(csrf_token()) }},
+                    scrollToBottom() {
+                        const el = this.$refs.messagesScroll;
+                        if (el) el.scrollTop = el.scrollHeight;
+                    },
+                    appendMessage(msg) {
+                        const isAdmin = msg.sender_role === 'admin';
+                        const wrap = document.createElement('div');
+                        wrap.className = 'flex ' + (isAdmin ? 'justify-start' : 'justify-end');
+                        wrap.innerHTML = \`
+                            <div class='flex flex-col max-w-[95%] sm:max-w-[85%] md:max-w-[75%] \${isAdmin ? 'items-start' : 'items-end'}'>
+                                <div class='flex items-center gap-2 mb-1 \${isAdmin ? '' : 'flex-row-reverse'}'>
+                                    <span class='text-xs font-medium \${isAdmin ? 'text-stone-500' : 'text-sky-600'}'>\${isAdmin ? 'Администратор' : 'Вы'}</span>
+                                    <span class='text-[11px] text-stone-400'>\${msg.created_at}</span>
+                                </div>
+                                <div class='rounded-xl px-4 py-3 \${isAdmin ? 'bg-stone-100 border border-stone-200 rounded-tl-sm' : 'bg-sky-50 border border-sky-200 rounded-tr-sm'}'>
+                                    <div class='text-sm leading-relaxed whitespace-pre-wrap text-stone-800'>\${msg.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                                </div>
+                            </div>
+                        \`;
+                        const emptyState = this.$refs.messagesScroll.querySelector('[data-empty-state]');
+                        if (emptyState) emptyState.remove();
+                        this.$refs.messagesScroll.appendChild(wrap);
+                        this.msgCount++;
+                        this.$nextTick(() => this.scrollToBottom());
+                    },
+                    async submit() {
+                        if (!this.text.trim() || this.sending) return;
+                        this.sending = true;
+                        this.error = '';
+                        try {
+                            const res = await fetch(this.replyUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': this.csrf,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                body: JSON.stringify({ message: this.text }),
+                            });
+                            const data = await res.json().catch(() => ({}));
+                            if (res.ok && data?.result) {
+                                this.appendMessage(data.message);
+                                this.text = '';
+                            } else {
+                                this.error = data?.error || data?.errors?.message?.[0] || 'Не удалось отправить сообщение';
+                            }
+                        } catch {
+                            this.error = 'Ошибка соединения. Попробуйте ещё раз.';
+                        } finally {
+                            this.sending = false;
+                        }
+                    }
+                }"
+                x-init="$nextTick(() => scrollToBottom())"
+            >
                 <div class="px-5 sm:px-6 py-4 border-b border-stone-100 bg-stone-50/90">
                     <h2 class="section-heading text-lg flex items-center gap-2.5 text-stone-900">
                         <span class="text-sky-600 shrink-0">@svg('heroicon-o-chat-bubble-left-right', 'w-5 h-5')</span>
                         Диалог
                     </h2>
-                    <p class="text-sm text-stone-500 mt-0.5">Сообщений: {{ $ticket->messages->count() }}</p>
+                    <p class="text-sm text-stone-500 mt-0.5">Сообщений: <span x-text="msgCount">{{ $ticket->messages->count() }}</span></p>
                 </div>
 
                 <div class="p-4 sm:p-6">
-                    <div class="space-y-4 max-h-[360px] sm:max-h-[440px] md:max-h-[520px] overflow-y-auto pr-1 -mr-1 scroll-smooth">
+                    <div x-ref="messagesScroll" class="space-y-4 max-h-[360px] sm:max-h-[440px] md:max-h-[520px] overflow-y-auto pr-1 -mr-1 scroll-smooth ulplay-scrollbar-sky">
                         @forelse($ticket->messages as $message)
                             @php($isAdmin = $message->sender_role === 'admin')
                             <div class="flex {{ $isAdmin ? 'justify-start' : 'justify-end' }}">
@@ -109,7 +173,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="py-12 text-center">
+                            <div class="py-12 text-center" data-empty-state>
                                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-stone-100 text-stone-400 mb-3 border border-stone-200">
                                     @svg('heroicon-o-chat-bubble-left-right', 'w-6 h-6')
                                 </div>
@@ -120,14 +184,25 @@
                     </div>
 
                     @if(!in_array($ticket->status, ['resolved', 'closed'], true))
-                        <form action="{{ route('tickets.my.reply', $ticket) }}" method="POST" class="mt-5 pt-5 border-t border-stone-100">
-                            @csrf
-                            <textarea name="message" rows="3" maxlength="2000" required placeholder="Написать ответ..." class="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y">{{ old('message') }}</textarea>
-                            @error('message')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
+                        <form @submit.prevent="submit()" class="mt-5 pt-5 border-t border-stone-100">
+                            <textarea
+                                x-model="text"
+                                @keydown.ctrl.enter.prevent="submit()"
+                                @keydown.meta.enter.prevent="submit()"
+                                rows="3"
+                                maxlength="2000"
+                                required
+                                placeholder="Написать ответ... (Ctrl+Enter для отправки)"
+                                class="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 resize-y transition-colors"
+                                :class="error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/30' : ''"
+                                :disabled="sending"
+                            ></textarea>
+                            <p x-show="error" x-text="error" x-cloak class="mt-1 text-xs text-rose-600"></p>
                             <div class="mt-3">
-                                <x-ui.button type="submit" variant="primary">
-                                    @svg('heroicon-o-paper-airplane', 'w-4 h-4')
-                                    Отправить
+                                <x-ui.button type="submit" variant="primary" ::disabled="sending || !text.trim()">
+                                    <span x-show="!sending">@svg('heroicon-o-paper-airplane', 'w-4 h-4')</span>
+                                    <span x-show="sending" x-cloak class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin shrink-0"></span>
+                                    <span x-text="sending ? 'Отправка...' : 'Отправить'">Отправить</span>
                                 </x-ui.button>
                             </div>
                         </form>

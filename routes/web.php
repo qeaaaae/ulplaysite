@@ -29,6 +29,7 @@ Route::get('/news/{news:slug}', [NewsController::class, 'show'])->name('news.sho
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/delivery', [\App\Http\Controllers\PageController::class, 'delivery'])->name('delivery');
 Route::get('/contacts', [\App\Http\Controllers\PageController::class, 'contacts'])->name('contacts');
+Route::view('/gamepad-tester', 'pages.gamepad-tester', ['metaTitle' => 'Тестер геймпада'])->name('gamepad-tester');
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => redirect()->route('home'))->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
