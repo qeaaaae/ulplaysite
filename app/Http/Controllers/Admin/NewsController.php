@@ -286,7 +286,36 @@ class NewsController extends Controller
      */
     private function paragraphToMarkdown(DOMElement $node, string $innerMarkdown): string
     {
-        $plainText = trim($node->textContent);
+        $plainText = trim(preg_replace('/\s+/u', ' ', $node->textContent) ?? '');
+
+        // Рекламные вставки на gamemag обычно имеют вид:
+        // "Реклама. ООО ... ИНН ..." и следующей строкой "erid: ..."
+        // Нам нужно вырезать весь рекламный блок, чтобы в итоговой новости была только статья.
+        if ($plainText !== '') {
+            // 1) Всегда выкидываем строки с erid (в любом регистре и с разными разделителями)
+            if (preg_match('/\berid\s*[:：]/ui', $plainText)) {
+                return '';
+            }
+
+            // 2) Вырезаем абзацы, которые начинаются с "Реклама" (или похожих формулировок)
+            // Ограничиваем "с начала строки", чтобы не выкидывать случайные упоминания внутри текста статьи.
+            if (
+                preg_match('/^(?:реклама|рекламная информация|информация о рекламе|рекламный блок)\b/ui', $plainText) ||
+                preg_match('/^реклама[\.\s:,-]*(?:о о о)?\b/ui', $plainText)
+            ) {
+                return '';
+            }
+
+            // 3) Бывают варианты, где "Реклама" не в первом слове, но есть ИНН и короткий рекламный хвост
+            // (оставляем это менее строгим, чтобы не ломать статьи)
+            if (
+                preg_match('/\bИНН\b\s*\d{10,14}/ui', $plainText)
+                && preg_match('/\bреклама\b/ui', $plainText)
+                && mb_strlen($plainText) < 220
+            ) {
+                return '';
+            }
+        }
 
         if (
             str_starts_with($plainText, 'Читайте также') ||
