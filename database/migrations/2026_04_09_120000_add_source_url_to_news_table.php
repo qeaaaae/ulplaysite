@@ -11,8 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('news', function (Blueprint $table): void {
-            // Для MySQL + utf8mb4 уникальный индекс на 1024 символа превышает лимит длины ключа.
-            $table->string('source_url', 512)->nullable()->unique()->after('slug');
+            // Для старых MySQL/InnoDB с лимитом ключа 1000 bytes используем 191 символ:
+            // 191 * 4 = 764 bytes (utf8mb4), что безопасно для unique index.
+            $table->string('source_url', 191)->nullable()->unique()->after('slug');
         });
     }
 
