@@ -123,8 +123,8 @@
                             {{-- ── Левый стик ── --}}
                             <circle cx="113" cy="160" r="37.5" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="5"/>
                             <circle r="28"
-                                    :cx="113 + (gp.axes[0] ?? 0) * 20"
-                                    :cy="160 + (gp.axes[1] ?? 0) * 20"
+                                    :cx="113 + (gp.displayAxes[0] ?? 0) * 20"
+                                    :cy="160 + (gp.displayAxes[1] ?? 0) * 20"
                                     :fill="gp.buttons[10]?.pressed ? 'rgba(14,165,233,0.3)' : 'rgba(0,0,0,0)'"
                                     :stroke="gp.buttons[10]?.pressed ? '#0284c7' : 'rgba(0,0,0,0.35)'"
                                     stroke-width="5"/>
@@ -132,8 +132,8 @@
                             {{-- ── Правый стик ── --}}
                             <circle cx="278" cy="238" r="37.5" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="5"/>
                             <circle r="28"
-                                    :cx="278 + (gp.axes[2] ?? 0) * 20"
-                                    :cy="238 + (gp.axes[3] ?? 0) * 20"
+                                    :cx="278 + (gp.displayAxes[2] ?? 0) * 20"
+                                    :cy="238 + (gp.displayAxes[3] ?? 0) * 20"
                                     :fill="gp.buttons[11]?.pressed ? 'rgba(14,165,233,0.3)' : 'rgba(0,0,0,0)'"
                                     :stroke="gp.buttons[11]?.pressed ? '#0284c7' : 'rgba(0,0,0,0.35)'"
                                     stroke-width="5"/>
@@ -253,17 +253,22 @@
                                     :points="trailPoints(gp.leftTrail, 80, 80, 68)"
                                     fill="none" stroke="#0ea5e9" stroke-width="1.5"
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                {{-- Контрольный след по ободу (поверх серого круга) --}}
+                                <polyline
+                                    :points="trailPointsOnRim(gp.leftTrail, 80, 80, 72, 0.88)"
+                                    fill="none" stroke="#0ea5e9" stroke-width="2.2"
+                                    stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
                                 {{-- Текущая позиция --}}
                                 <circle
-                                    :cx="80 + (gp.axes[0] ?? 0) * 68"
-                                    :cy="80 + (gp.axes[1] ?? 0) * 68"
+                                    :cx="80 + (gp.displayAxes[0] ?? 0) * 68"
+                                    :cy="80 + (gp.displayAxes[1] ?? 0) * 68"
                                     r="4"
                                     :fill="gp.buttons[10]?.pressed ? '#0284c7' : '#0ea5e9'"
                                     stroke="white" stroke-width="2"/>
                                 <line
                                     x1="80" y1="80"
-                                    :x2="80 + (gp.axes[0] ?? 0) * 68"
-                                    :y2="80 + (gp.axes[1] ?? 0) * 68"
+                                    :x2="80 + (gp.displayAxes[0] ?? 0) * 68"
+                                    :y2="80 + (gp.displayAxes[1] ?? 0) * 68"
                                     stroke="#0ea5e9" stroke-width="1" opacity="0.4"/>
                             </svg>
                             <div class="text-[10px] text-stone-400 font-mono">
@@ -291,16 +296,21 @@
                                     :points="trailPoints(gp.rightTrail, 80, 80, 68)"
                                     fill="none" stroke="#f59e0b" stroke-width="1.5"
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                {{-- Контрольный след по ободу (поверх серого круга) --}}
+                                <polyline
+                                    :points="trailPointsOnRim(gp.rightTrail, 80, 80, 72, 0.88)"
+                                    fill="none" stroke="#f59e0b" stroke-width="2.2"
+                                    stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
                                 <circle
-                                    :cx="80 + (gp.axes[2] ?? 0) * 68"
-                                    :cy="80 + (gp.axes[3] ?? 0) * 68"
+                                    :cx="80 + (gp.displayAxes[2] ?? 0) * 68"
+                                    :cy="80 + (gp.displayAxes[3] ?? 0) * 68"
                                     r="4"
                                     :fill="gp.buttons[11]?.pressed ? '#d97706' : '#f59e0b'"
                                     stroke="white" stroke-width="2"/>
                                 <line
                                     x1="80" y1="80"
-                                    :x2="80 + (gp.axes[2] ?? 0) * 68"
-                                    :y2="80 + (gp.axes[3] ?? 0) * 68"
+                                    :x2="80 + (gp.displayAxes[2] ?? 0) * 68"
+                                    :y2="80 + (gp.displayAxes[3] ?? 0) * 68"
                                     stroke="#f59e0b" stroke-width="1" opacity="0.4"/>
                             </svg>
                             <div class="text-[10px] text-stone-400 font-mono">
@@ -411,10 +421,13 @@ function gamepadTester() {
                     const lx = gp.axes[0] ?? 0, ly = gp.axes[1] ?? 0;
                     const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0;
 
-                    leftTrail.push([lx, ly]);
+                    const [dlx, dly] = this.normalizeStickForDisplay(lx, ly);
+                    const [drx, dry] = this.normalizeStickForDisplay(rx, ry);
+
+                    leftTrail.push([dlx, dly]);
                     if (leftTrail.length > MAX_TRAIL) leftTrail.shift();
 
-                    rightTrail.push([rx, ry]);
+                    rightTrail.push([drx, dry]);
                     if (rightTrail.length > MAX_TRAIL) rightTrail.shift();
 
                     return {
@@ -428,6 +441,7 @@ function gamepadTester() {
                         rightTrail,
                         buttons: Array.from(gp.buttons).map(b => ({ pressed: b.pressed, value: b.value })),
                         axes:    Array.from(gp.axes),
+                        displayAxes: [dlx, dly, drx, dry],
                     };
                 });
 
@@ -438,6 +452,44 @@ function gamepadTester() {
         trailPoints(trail, cx, cy, r) {
             if (!trail || trail.length < 2) return '';
             return trail.map(([x, y]) => `${(cx + x * r).toFixed(1)},${(cy + y * r).toFixed(1)}`).join(' ');
+        },
+
+        trailPointsOnRim(trail, cx, cy, r, minMag = 0.88) {
+            if (!trail || trail.length < 2) return '';
+
+            const points = [];
+            for (const [xRaw, yRaw] of trail) {
+                const x = xRaw ?? 0;
+                const y = yRaw ?? 0;
+                const mag = Math.sqrt(x * x + y * y);
+                if (mag < minMag || mag === 0) continue;
+
+                const nx = x / mag;
+                const ny = y / mag;
+                points.push(`${(cx + nx * r).toFixed(1)},${(cy + ny * r).toFixed(1)}`);
+            }
+
+            return points.length >= 2 ? points.join(' ') : '';
+        },
+
+        normalizeStickForDisplay(x, y) {
+            const cx = Math.max(-1, Math.min(1, x ?? 0));
+            const cy = Math.max(-1, Math.min(1, y ?? 0));
+            const deadzone = 0.06;
+            const edgeSnapFrom = 0.84;
+
+            const mag = Math.sqrt(cx * cx + cy * cy);
+            if (mag < deadzone || mag === 0) return [0, 0];
+
+            const nx = cx / mag;
+            const ny = cy / mag;
+            let normalizedMag = (mag - deadzone) / (1 - deadzone);
+            normalizedMag = Math.max(0, Math.min(1, normalizedMag));
+
+            // Если стик почти у края, визуально "дотягиваем" до идеальной окружности.
+            if (normalizedMag >= edgeSnapFrom) normalizedMag = 1;
+
+            return [nx * normalizedMag, ny * normalizedMag];
         },
 
         clearTrail(gpIndex, side) {

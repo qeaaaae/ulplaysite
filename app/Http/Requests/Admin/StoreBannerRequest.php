@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\UploadLimits;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBannerRequest extends FormRequest
@@ -21,7 +22,7 @@ class StoreBannerRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'link' => ['nullable', 'string', 'max:255'],
             'active' => ['boolean'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'image' => ['nullable', 'image', 'max:' . UploadLimits::imageMaxKb()],
         ];
     }
 

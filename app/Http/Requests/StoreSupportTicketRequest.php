@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\SupportTicketTypeEnum;
+use App\Http\Requests\Concerns\ValidatesImageUploadTotals;
+use App\Support\UploadLimits;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSupportTicketRequest extends FormRequest
 {
+    use ValidatesImageUploadTotals;
+
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -38,8 +43,13 @@ class StoreSupportTicketRequest extends FormRequest
             'description' => ['required', 'string', 'max:3000'],
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'images' => ['nullable', 'array', 'max:3'],
-            'images.*' => ['image', 'max:5120'],
+            'images.*' => ['image', 'max:' . UploadLimits::imageMaxKb()],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $this->validateImagesArrayTotalSize($validator, 'images');
     }
 
     /** @return array<string, string> */

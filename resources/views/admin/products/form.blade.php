@@ -44,6 +44,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
                     <x-ui.input name="title" label="Название" label-icon="heroicon-o-document-text" value="{{ old('title', $product->title) }}" required :error="$errors->first('title')" />
                     <x-ui.input name="slug" label="Ярлык" label-icon="heroicon-o-link" value="{{ old('slug', $product->slug) }}" :error="$errors->first('slug')" />
+                    <x-ui.input name="avito_url" label="Ссылка на Avito" label-icon="heroicon-o-arrow-top-right-on-square" value="{{ old('avito_url', $product->avito_url) }}" placeholder="https://www.avito.ru/..." :error="$errors->first('avito_url')" />
                 </div>
                 <div class="mt-4 flex flex-col">
                     <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">

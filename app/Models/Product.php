@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Avito\AvitoCachedListingUrlLookup;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
@@ -24,6 +25,8 @@ class Product extends Model
     protected $fillable = [
         'title',
         'slug',
+        'avito_item_id',
+        'avito_url',
         'description',
         'video_url',
         'price',
@@ -70,6 +73,46 @@ class Product extends Model
     public function getVideoEmbedUrlAttribute(): ?string
     {
         return app(\App\Services\VideoEmbedService::class)->toEmbedUrl($this->video_url);
+    }
+
+    public function getResolvedAvitoUrlAttribute(): ?string
+    {
+        return self::resolveAvitoUrlForDisplay($this->avito_url, $this->avito_item_id);
+    }
+
+    public static function resolveAvitoUrlForDisplay(?string $avitoUrl, ?string $avitoItemId = null): ?string
+    {
+        $u = is_string($avitoUrl) ? trim($avitoUrl) : '';
+        if ($u !== '') {
+            if (str_starts_with($u, 'http://')) {
+                $u = 'https://' . substr($u, 7);
+            }
+            if (str_contains(strtolower($u), 'avito.ru')) {
+                return $u;
+            }
+        }
+
+        $itemId = is_string($avitoItemId) ? trim($avitoItemId) : '';
+        if ($itemId === '') {
+            return null;
+        }
+
+        try {
+            // На витрине не ходим в Avito API во время рендера страницы.
+            return app(AvitoCachedListingUrlLookup::class)->resolveByItemIdFromCacheOnly($itemId);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function normalizeAvitoPublicUrl(string $url): string
+    {
+        $url = trim($url);
+        if (str_starts_with($url, 'http://')) {
+            $url = 'https://' . substr($url, 7);
+        }
+
+        return $url;
     }
 
     public function scopeNew(Builder $query): Builder

@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified', 'admin', 'throttle:admin'])->prefix('admi
 
     Route::post('upload/image', [\App\Http\Controllers\Admin\UploadController::class, 'image'])->name('upload.image');
 
+    Route::post('products/import-xlsx', [ProductController::class, 'importXlsx'])->name('products.import-xlsx');
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('services', ServiceController::class);

@@ -23,6 +23,7 @@ class NewsFactory extends Factory
         return [
             'title' => $title,
             'slug' => Str::slug($title) . '-' . fake()->unique()->numberBetween(1, 99999),
+            'source_url' => null,
             'description' => fake()->paragraph(),
             'content' => fake()->optional()->paragraphs(3, true),
             'author_id' => User::factory(),

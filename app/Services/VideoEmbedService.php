@@ -34,6 +34,23 @@ class VideoEmbedService
         return null;
     }
 
+    public function toPreviewImageUrl(?string $url): ?string
+    {
+        if (empty($url) || ! str_starts_with($url, 'http')) {
+            return null;
+        }
+
+        $parsed = parse_url($url);
+        $host = $parsed['host'] ?? '';
+
+        if (str_contains($host, 'youtube.com') || str_contains($host, 'youtu.be')) {
+            $videoId = $this->extractYoutubeId($url);
+            return $videoId ? "https://i.ytimg.com/vi/{$videoId}/hqdefault.jpg" : null;
+        }
+
+        return null;
+    }
+
     private function extractYoutubeId(string $url): ?string
     {
         if (preg_match('#(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})#', $url, $m)) {

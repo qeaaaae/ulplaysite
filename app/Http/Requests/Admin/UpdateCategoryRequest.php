@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\UploadLimits;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
@@ -22,7 +23,7 @@ class UpdateCategoryRequest extends FormRequest
             'slug' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'exists:categories,id'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'image' => ['nullable', 'image', 'max:' . UploadLimits::imageMaxKb()],
             'is_featured' => ['boolean'],
         ];
     }
