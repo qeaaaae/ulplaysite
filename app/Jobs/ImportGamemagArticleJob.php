@@ -40,7 +40,7 @@ class ImportGamemagArticleJob implements ShouldQueue
 
         $data = $parser->parseArticleFromUrl($normalized);
 
-        $slug = $this->uniqueSlugFromGamemagUrl($normalized);
+        $slug = $this->uniqueSlugFromSourceUrl($normalized);
 
         $news = News::query()->create([
             'title' => $data['title'] ?: 'Без заголовка',
@@ -70,12 +70,12 @@ class ImportGamemagArticleJob implements ShouldQueue
         return strtolower($parts['scheme']) . '://' . $parts['host'] . $path;
     }
 
-    private function uniqueSlugFromGamemagUrl(string $url): string
+    private function uniqueSlugFromSourceUrl(string $url): string
     {
         if (preg_match('~\/news\/(\d+)\/([^\/\?#]+)~', $url, $m)) {
-            $base = 'gamemag-' . $m[1] . '-' . Str::slug($m[2]);
+            $base = 'news-' . $m[1] . '-' . Str::slug($m[2]);
         } else {
-            $base = 'gamemag-' . Str::random(10);
+            $base = 'news-' . Str::random(10);
         }
 
         $slug = $base;
