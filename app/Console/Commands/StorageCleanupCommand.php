@@ -106,7 +106,7 @@ class StorageCleanupCommand extends Command
         foreach ($models as $model) {
             $model::whereNotNull('content')
                 ->where('content', '!=', '')
-                ->select('content')
+                ->select(['id', 'content'])
                 ->chunkById(200, function ($rows) use ($pattern, &$paths) {
                     foreach ($rows as $row) {
                         if (preg_match_all($pattern, $row->content, $matches)) {
