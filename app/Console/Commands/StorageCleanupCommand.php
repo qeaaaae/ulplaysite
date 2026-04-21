@@ -14,7 +14,7 @@ class StorageCleanupCommand extends Command
 {
     protected $signature = 'storage:cleanup
         {--dry-run : Показать файлы без удаления}
-        {--dir= : Конкретная директория (products, news, services, categories, banners, content)}';
+        {--dir= : Конкретная директория (products, news, services, categories, banners, content, reviews, support-tickets)}';
 
     protected $description = 'Удалить осиротевшие файлы из storage, которые не привязаны ни к одной записи в БД';
 
@@ -26,7 +26,7 @@ class StorageCleanupCommand extends Command
 
         $directories = $targetDir
             ? [(string) $targetDir]
-            : ['products', 'news', 'services', 'categories', 'banners', 'content'];
+            : ['products', 'news', 'services', 'categories', 'banners', 'content', 'reviews', 'support-tickets'];
 
         $knownPaths = Image::pluck('path')
             ->filter(fn ($p) => is_string($p) && ! str_starts_with($p, 'http'))
