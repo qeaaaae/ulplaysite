@@ -63,6 +63,8 @@ class HomeController extends Controller
 
         return view('home', [
             'metaTitle' => 'Главная',
+            'metaDescription' => 'UlPlay — интернет-магазин игровых товаров, услуг и новостей. Каталог, обзоры и свежие игровые новости для Ульяновска и всей России.',
+            'canonicalUrl' => route('home'),
             'banners' => Banner::getCachedActive(),
             'categories' => $categories,
             'categoriesMobile' => $categoriesMobile,

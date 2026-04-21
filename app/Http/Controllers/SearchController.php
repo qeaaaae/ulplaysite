@@ -91,6 +91,11 @@ class SearchController extends Controller
 
         return view('search.index', [
             'metaTitle' => $q ? "Поиск: {$q}" : 'Поиск',
+            'metaDescription' => $q !== ''
+                ? "Результаты поиска по запросу «{$q}» на UlPlay."
+                : 'Поиск товаров, услуг и новостей на UlPlay.',
+            'metaRobots' => 'noindex,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',
+            'canonicalUrl' => route('search.index'),
             'q' => $q,
             'products' => $products,
             'services' => $services,

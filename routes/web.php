@@ -80,6 +80,24 @@ Route::get('/sitemap.xml', function () {
     return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
 })->name('sitemap');
 
+Route::get('/sitemap-news.xml', function () {
+    $newsItems = News::query()
+        ->with(['images'])
+        ->select(['id', 'slug', 'title', 'published_at', 'updated_at'])
+        ->whereNotNull('published_at')
+        ->whereNotNull('slug')
+        ->orderByDesc('published_at')
+        ->limit(1000)
+        ->get();
+
+    $xml = view('sitemap-news.xml', [
+        'newsItems' => $newsItems,
+        'siteName' => config('app.name', 'UlPlay'),
+    ])->render();
+
+    return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap.news');
+
 Route::get('/about', [\App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/delivery', [\App\Http\Controllers\PageController::class, 'delivery'])->name('delivery');
 Route::get('/contacts', [\App\Http\Controllers\PageController::class, 'contacts'])->name('contacts');

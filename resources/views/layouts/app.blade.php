@@ -12,6 +12,21 @@
         $canonical = $canonicalUrl ?? url()->current();
         $metaImage = $metaImage ?? asset('favicon.svg');
         $robots = $metaRobots ?? 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+        $openGraph = array_merge([
+            'og:locale' => 'ru_RU',
+            'og:type' => 'website',
+            'og:site_name' => $siteName,
+            'og:title' => $fullTitle,
+            'og:description' => $description,
+            'og:url' => $canonical,
+            'og:image' => $metaImage,
+        ], $openGraph ?? []);
+        $twitter = array_merge([
+            'twitter:card' => 'summary_large_image',
+            'twitter:title' => $fullTitle,
+            'twitter:description' => $description,
+            'twitter:image' => $metaImage,
+        ], $twitter ?? []);
         $structuredData = $structuredData ?? [
             [
                 '@context' => 'https://schema.org',
@@ -19,6 +34,23 @@
                 'name' => $siteName,
                 'url' => url('/'),
                 'logo' => asset('favicon.svg'),
+                'areaServed' => [
+                    '@type' => 'AdministrativeArea',
+                    'name' => 'Ульяновск',
+                ],
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'Store',
+                'name' => $siteName,
+                'url' => url('/'),
+                'image' => $metaImage,
+                'areaServed' => [
+                    '@type' => 'AdministrativeArea',
+                    'name' => 'Ульяновск',
+                ],
+                'currenciesAccepted' => 'RUB',
+                'availableLanguage' => ['ru'],
             ],
             [
                 '@context' => 'https://schema.org',
@@ -40,19 +72,22 @@
     <link rel="canonical" href="{{ $canonical }}">
     <meta name="theme-color" content="#0ea5e9">
     <meta name="author" content="{{ $siteName }}">
+    <meta name="geo.region" content="RU-ULY">
+    <meta name="geo.placename" content="Ulyanovsk">
+    <meta name="language" content="Russian">
+    <meta name="format-detection" content="telephone=no">
 
-    <meta property="og:locale" content="ru_RU">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{{ $siteName }}">
-    <meta property="og:title" content="{{ $fullTitle }}">
-    <meta property="og:description" content="{{ $description }}">
-    <meta property="og:url" content="{{ $canonical }}">
-    <meta property="og:image" content="{{ $metaImage }}">
+    @foreach($openGraph as $property => $content)
+        @if(is_scalar($content) && (string) $content !== '')
+            <meta property="{{ $property }}" content="{{ $content }}">
+        @endif
+    @endforeach
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $fullTitle }}">
-    <meta name="twitter:description" content="{{ $description }}">
-    <meta name="twitter:image" content="{{ $metaImage }}">
+    @foreach($twitter as $name => $content)
+        @if(is_scalar($content) && (string) $content !== '')
+            <meta name="{{ $name }}" content="{{ $content }}">
+        @endif
+    @endforeach
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="alternate" hreflang="ru-RU" href="{{ $canonical }}">
