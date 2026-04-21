@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ImportGamemagArticleJob implements ShouldQueue
@@ -53,8 +54,19 @@ class ImportGamemagArticleJob implements ShouldQueue
         ]);
 
         if ($data['cover_url'] !== '') {
+            Log::info('GAMEMAG_IMPORT_COVER_URL_FOUND', [
+                'news_id' => $news->id,
+                'source_url' => $normalized,
+                'cover_url' => $data['cover_url'],
+            ]);
             $coverImporter->attachIfPossible($news, $data['cover_url']);
+            return;
         }
+
+        Log::warning('GAMEMAG_IMPORT_COVER_URL_EMPTY', [
+            'news_id' => $news->id,
+            'source_url' => $normalized,
+        ]);
     }
 
     private function normalizeSourceUrl(string $url): string

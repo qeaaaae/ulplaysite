@@ -22,12 +22,26 @@ final class GamemagNewsCoverImporter
     public function attachIfPossible(News $news, string $imageUrl): void
     {
         if (! preg_match('~^https?://~i', $imageUrl)) {
+            Log::warning('GAMEMAG_IMPORT_COVER_INVALID_URL', [
+                'news_id' => $news->id,
+                'source_url' => $news->source_url,
+                'image_url' => $imageUrl,
+            ]);
             return;
         }
 
         try {
-            $response = $this->downloadImageResponse($imageUrl);
+            $sourceUrl = trim((string) $news->source_url);
+            $response = $this->downloadImageResponse(
+                imageUrl: $imageUrl,
+                sourceUrl: $sourceUrl !== '' ? $sourceUrl : null,
+            );
             if ($response === null || ! $response->ok()) {
+                Log::warning('GAMEMAG_IMPORT_COVER_DOWNLOAD_FAILED', [
+                    'news_id' => $news->id,
+                    'source_url' => $news->source_url,
+                    'image_url' => $imageUrl,
+                ]);
                 return;
             }
 
@@ -52,19 +66,26 @@ final class GamemagNewsCoverImporter
                 'is_cover' => true,
                 'position' => 0,
             ]);
-        } catch (\Throwable $e) {
-            Log::warning('Не удалось импортировать обложку новости', [
+            Log::info('GAMEMAG_IMPORT_COVER_SAVED', [
                 'news_id' => $news->id,
+                'source_url' => $news->source_url,
+                'image_url' => $imageUrl,
+                'stored_path' => $path,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('GAMEMAG_IMPORT_COVER_EXCEPTION', [
+                'news_id' => $news->id,
+                'source_url' => $news->source_url,
                 'image_url' => $imageUrl,
                 'error' => $e->getMessage(),
             ]);
         }
     }
 
-    private function downloadImageResponse(string $imageUrl): ?\Illuminate\Http\Client\Response
+    private function downloadImageResponse(string $imageUrl, ?string $sourceUrl = null): ?\Illuminate\Http\Client\Response
     {
         $host = (string) (parse_url($imageUrl, PHP_URL_HOST) ?: '');
-        $referer = $host !== '' ? ('https://' . $host . '/') : null;
+        $referer = $sourceUrl ?: ($host !== '' ? ('https://' . $host . '/') : null);
 
         $headers = [
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
@@ -74,6 +95,11 @@ final class GamemagNewsCoverImporter
 
         if ($referer !== null) {
             $headers['Referer'] = $referer;
+            $originScheme = (string) (parse_url($referer, PHP_URL_SCHEME) ?: '');
+            $originHost = (string) (parse_url($referer, PHP_URL_HOST) ?: '');
+            if ($originScheme !== '' && $originHost !== '') {
+                $headers['Origin'] = $originScheme . '://' . $originHost;
+            }
         }
 
         try {
@@ -81,26 +107,42 @@ final class GamemagNewsCoverImporter
             if ($response->ok()) {
                 return $response;
             }
+            Log::notice('GAMEMAG_IMPORT_COVER_HTTP_NOT_OK', [
+                'image_url' => $imageUrl,
+                'status' => $response->status(),
+                'content_type' => $response->header('Content-Type'),
+                'referer' => $referer,
+            ]);
         } catch (\Throwable $e) {
-            Log::notice('Ошибка загрузки обложки с проверкой TLS', [
+            Log::notice('GAMEMAG_IMPORT_COVER_HTTP_EXCEPTION', [
                 'image_url' => $imageUrl,
                 'error' => $e->getMessage(),
+                'referer' => $referer,
             ]);
         }
 
         try {
             $fallbackResponse = Http::timeout(20)->withHeaders($headers)->withoutVerifying()->get($imageUrl);
             if ($fallbackResponse->ok()) {
-                Log::notice('Обложка загружена через fallback withoutVerifying', [
+                Log::notice('GAMEMAG_IMPORT_COVER_FALLBACK_OK', [
                     'image_url' => $imageUrl,
+                    'referer' => $referer,
+                ]);
+            } else {
+                Log::warning('GAMEMAG_IMPORT_COVER_FALLBACK_NOT_OK', [
+                    'image_url' => $imageUrl,
+                    'status' => $fallbackResponse->status(),
+                    'content_type' => $fallbackResponse->header('Content-Type'),
+                    'referer' => $referer,
                 ]);
             }
 
             return $fallbackResponse;
         } catch (\Throwable $e) {
-            Log::warning('Ошибка fallback-загрузки обложки', [
+            Log::warning('GAMEMAG_IMPORT_COVER_FALLBACK_EXCEPTION', [
                 'image_url' => $imageUrl,
                 'error' => $e->getMessage(),
+                'referer' => $referer,
             ]);
 
             return null;
