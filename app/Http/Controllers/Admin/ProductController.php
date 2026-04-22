@@ -29,6 +29,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ProductController extends Controller
 {
+    private const DEFAULT_PRODUCT_IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
+
     public function __construct(
         private readonly ImageService $imageService,
         private readonly AvitoCachedListingUrlLookup $avitoCachedListingUrlLookup,
@@ -590,6 +592,7 @@ class ProductController extends Controller
         }
 
         if ($listingForHtml === null || $listingForHtml === '') {
+            $this->ensureDefaultProductImage($product);
             return;
         }
 
@@ -601,6 +604,7 @@ class ProductController extends Controller
         }
 
         if ($storedPaths === []) {
+            $this->ensureDefaultProductImage($product);
             return;
         }
 
@@ -620,6 +624,19 @@ class ProductController extends Controller
                 'position' => $i,
             ]);
         }
+    }
+
+    private function ensureDefaultProductImage(Product $product): void
+    {
+        if ($product->images()->exists()) {
+            return;
+        }
+
+        $product->images()->create([
+            'path' => self::DEFAULT_PRODUCT_IMAGE,
+            'is_cover' => true,
+            'position' => 0,
+        ]);
     }
 
     private function isAutoloadItemsFeedImageUrl(string $url): bool

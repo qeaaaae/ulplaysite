@@ -256,7 +256,7 @@
                                     rel="noopener noreferrer"
                                     class="mb-3 inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:border-sky-400 hover:text-sky-700 hover:bg-stone-50 transition-colors"
                                 >
-                                    <svg class="w-4 h-4" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M7.357 4.092a3.108 3.108 0 11-6.216 0 3.108 3.108 0 016.216 0zm4.001 2.435a2.434 2.434 0 100-4.869 2.434 2.434 0 000 4.869zm3.783 4.675a3.782 3.782 0 11-7.565 0 3.782 3.782 0 017.565 0zm-9.132 0a1.76 1.76 0 11-3.52 0 1.76 1.76 0 013.52 0z"/></svg>
+                                    <img alt="Авито" loading="lazy" width="24" height="24" decoding="async" style="color:transparent" src="/Avito Logo.svg">
                                     На Авито
                                 </a>
                             @endif

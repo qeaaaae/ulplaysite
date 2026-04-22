@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 class Product extends Model
 {
     use HasFactory;
+    private const DEFAULT_PRODUCT_IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
 
     protected static function booted(): void
     {
@@ -67,7 +68,11 @@ class Product extends Model
     public function getImageAttribute(): ?string
     {
         $image = $this->images->firstWhere('is_cover', true) ?? $this->images->first();
-        return $image?->url;
+        if ($image?->url !== null && $image->url !== '') {
+            return $image->url;
+        }
+
+        return self::DEFAULT_PRODUCT_IMAGE;
     }
 
     public function getVideoEmbedUrlAttribute(): ?string

@@ -115,6 +115,8 @@ class ImportAvitoActiveItemsCommand extends Command
                     [
                         'title' => $productData['title'],
                         'slug' => $productData['slug'],
+                        'avito_item_id' => $this->extractListingId($listing),
+                        'avito_url' => $this->normalizeAvitoListingUrl((string) ($listing['url'] ?? '')),
                         'description' => $productData['description'],
                         'price' => $productData['price'],
                         'category_id' => $productData['category_id'],
@@ -417,6 +419,48 @@ class ImportAvitoActiveItemsCommand extends Command
             'is_cover' => true,
             'position' => 0,
         ]);
+    }
+
+    /**
+     * @param array<string,mixed> $listing
+     */
+    private function extractListingId(array $listing): ?string
+    {
+        foreach (['id', 'item_id', 'listing_id', 'autoload_item_id'] as $key) {
+            $value = $listing[$key] ?? null;
+            if ($value === null) {
+                continue;
+            }
+
+            $id = trim((string) $value);
+            if ($id !== '') {
+                return $id;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeAvitoListingUrl(string $raw): ?string
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return null;
+        }
+
+        if (str_starts_with($raw, 'http://')) {
+            $raw = 'https://' . substr($raw, 7);
+        } elseif (str_starts_with($raw, 'www.')) {
+            $raw = 'https://' . $raw;
+        } elseif (preg_match('~^avito\.ru/~i', $raw) === 1) {
+            $raw = 'https://www.' . $raw;
+        }
+
+        if (! str_contains(mb_strtolower($raw, 'UTF-8'), 'avito.ru')) {
+            return null;
+        }
+
+        return filter_var($raw, FILTER_VALIDATE_URL) ? $raw : null;
     }
 }
 
