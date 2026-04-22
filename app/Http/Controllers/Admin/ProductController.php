@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Jobs\ImportProductsXlsxJob;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\Avito\AvitoCachedListingUrlLookup;
@@ -93,10 +94,6 @@ class ProductController extends Controller
 
     public function importXlsx(Request $request): RedirectResponse|JsonResponse
     {
-        // Импорт может занимать долго из-за загрузки изображений.
-        @set_time_limit(0);
-        @ini_set('max_execution_time', '0');
-
         $validated = $request->validate([
             'xlsx_file' => ['required', 'file', 'mimes:xlsx', 'max:20480'],
         ], [
@@ -106,11 +103,11 @@ class ProductController extends Controller
         ]);
 
         $wantsJson = $request->expectsJson() || $request->ajax();
-
-        try {
-            $result = $this->runXlsxImport($validated['xlsx_file']);
-        } catch (\Throwable $e) {
-            $msg = 'Ошибка импорта: ' . $e->getMessage();
+        $uploaded = $validated['xlsx_file'];
+        $filename = 'products-import-' . now()->format('Ymd-His') . '-' . Str::lower(Str::random(10)) . '.xlsx';
+        $relativePath = $uploaded->storeAs('imports/products-xlsx', $filename, 'local');
+        if ($relativePath === false) {
+            $msg = 'Не удалось сохранить XLSX-файл для фонового импорта.';
             if ($wantsJson) {
                 return response()->json([
                     'message' => $msg,
@@ -123,7 +120,9 @@ class ProductController extends Controller
                 ->withErrors(['xlsx_file' => $msg]);
         }
 
-        $flash = "Импорт завершён. Создано: {$result['created']}, обновлено: {$result['updated']}, пропущено: {$result['skipped']}.";
+        ImportProductsXlsxJob::dispatch(storage_path('app/private/' . $relativePath));
+
+        $flash = 'Импорт поставлен в очередь. Обновите страницу через 1-2 минуты.';
 
         if ($wantsJson) {
             $request->session()->flash('message', $flash);
@@ -137,6 +136,25 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products.index')
             ->with('message', $flash);
+    }
+
+    /**
+     * @return array{created:int,updated:int,skipped:int}
+     */
+    public function runXlsxImportFromPath(string $path): array
+    {
+        if (! is_file($path)) {
+            throw new \RuntimeException('XLSX-файл для импорта не найден: ' . $path);
+        }
+
+        $uploaded = new UploadedFile(
+            path: $path,
+            originalName: basename($path),
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            test: true,
+        );
+
+        return $this->runXlsxImport($uploaded);
     }
 
     public function create(): View
