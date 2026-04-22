@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Http;
 
 class ImportAvitoActiveItemsCommand extends Command
 {
+    private const DEFAULT_PRODUCT_IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
+
     protected $signature = 'avito:import-active-items
         {--file= : Откуда читать JSON (по умолчанию storage/app/private/avito/active-items.json)}
         {--no-images : Не скачивать и не загружать картинки}
@@ -162,6 +164,8 @@ class ImportAvitoActiveItemsCommand extends Command
                         }
                     }
                 }
+
+                $this->ensureDefaultCoverImage($product);
 
                 $ok++;
             } catch (\Throwable) {
@@ -390,6 +394,29 @@ class ImportAvitoActiveItemsCommand extends Command
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function ensureDefaultCoverImage(Product $product): void
+    {
+        if ($product->images()->exists()) {
+            if (! $product->images()->where('is_cover', true)->exists()) {
+                $firstImage = $product->images()->orderBy('position')->first();
+                if ($firstImage !== null) {
+                    $firstImage->update([
+                        'is_cover' => true,
+                        'position' => 0,
+                    ]);
+                }
+            }
+
+            return;
+        }
+
+        $product->images()->create([
+            'path' => self::DEFAULT_PRODUCT_IMAGE,
+            'is_cover' => true,
+            'position' => 0,
+        ]);
     }
 }
 
