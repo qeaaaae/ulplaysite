@@ -3,7 +3,6 @@
     $product = (object) $product;
     $hasDiscount = ($discount = $product->discount_percent ?? null) !== null;
     $inCart = in_array($product->id ?? 0, $cartProductIds ?? []);
-    $avitoUrl = $product->resolved_avito_url ?? null;
 @endphp
 <article class="group flex flex-col h-full bg-white rounded-xl border border-stone-200 overflow-hidden shadow-[0_1px_3px_0_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06)] hover:border-stone-300 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.08),0_2px_4px_-2px_rgba(0,0,0,0.06)] transition-all duration-200">
     <div class="relative aspect-[4/3] overflow-hidden bg-stone-50">
@@ -29,14 +28,6 @@
                 @endif
             </div>
         </a>
-            @if(!empty($avitoUrl))
-                <div class="mb-2">
-                    <a href="{{ $avitoUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-700 hover:border-sky-400 hover:text-sky-700 transition-colors">
-                        <img alt="Авито" loading="lazy" width="24" height="24" decoding="async" style="color:transparent" src="/Avito Logo.svg">
-                        На Авито
-                    </a>
-                </div>
-            @endif
             @php
                 $avgRating = isset($product->reviews_avg_rating) ? (float) $product->reviews_avg_rating : 0;
                 $reviewsCount = $product->reviews_count ?? 0;

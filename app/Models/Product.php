@@ -103,8 +103,9 @@ class Product extends Model
         }
 
         try {
-            // На витрине не ходим в Avito API во время рендера страницы.
-            $resolved = app(AvitoCachedListingUrlLookup::class)->resolveByItemIdFromCacheOnly($itemId);
+            // Сначала пробуем найти в локальном кэше active-items.json,
+            // если не найдено — резолвер сам один раз подтянет карту URL через API.
+            $resolved = app(AvitoCachedListingUrlLookup::class)->resolveByItemId($itemId);
             if (is_string($resolved) && trim($resolved) !== '') {
                 return $resolved;
             }
