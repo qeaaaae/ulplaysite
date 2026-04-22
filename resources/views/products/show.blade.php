@@ -165,10 +165,15 @@
                                 @endforeach
                             </div>
 
-                            <div class="lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:gap-3">
+                            <div @class([
+                                'lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:gap-3' => $totalMedia > 1,
+                            ])>
                                 @if($cover || $hasVideo)
                                     <div
-                                        class="aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50 lg:col-start-2 lg:row-start-1"
+                                        @class([
+                                            'aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-stone-50 ring-1 ring-stone-200/50',
+                                            'lg:col-start-2 lg:row-start-1' => $totalMedia > 1,
+                                        ])
                                     >
                                         <div x-show="!showingVideo" class="w-full h-full" @click="openLightbox()">
                                             <template x-if="activeSrc">

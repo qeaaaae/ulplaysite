@@ -104,10 +104,15 @@ class Product extends Model
 
         try {
             // На витрине не ходим в Avito API во время рендера страницы.
-            return app(AvitoCachedListingUrlLookup::class)->resolveByItemIdFromCacheOnly($itemId);
+            $resolved = app(AvitoCachedListingUrlLookup::class)->resolveByItemIdFromCacheOnly($itemId);
+            if (is_string($resolved) && trim($resolved) !== '') {
+                return $resolved;
+            }
         } catch (\Throwable) {
-            return null;
+            // fallback ниже
         }
+
+        return 'https://www.avito.ru/all?q=' . rawurlencode($itemId);
     }
 
     public static function normalizeAvitoPublicUrl(string $url): string

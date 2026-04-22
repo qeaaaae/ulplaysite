@@ -110,13 +110,18 @@ class ImportAvitoActiveItemsCommand extends Command
 
                 /** @var Product $product */
                 $listingVideoUrl = $this->extractVideoUrl($listing);
+                $listingId = $this->extractListingId($listing);
+                $listingUrl = $this->normalizeAvitoListingUrl((string) ($listing['url'] ?? ''));
+                if ($listingUrl === null && $listingId !== null) {
+                    $listingUrl = 'https://www.avito.ru/all?q=' . rawurlencode($listingId);
+                }
                 $product = Product::updateOrCreate(
                     ['slug' => $productData['slug']],
                     [
                         'title' => $productData['title'],
                         'slug' => $productData['slug'],
-                        'avito_item_id' => $this->extractListingId($listing),
-                        'avito_url' => $this->normalizeAvitoListingUrl((string) ($listing['url'] ?? '')),
+                        'avito_item_id' => $listingId,
+                        'avito_url' => $listingUrl,
                         'description' => $productData['description'],
                         'price' => $productData['price'],
                         'category_id' => $productData['category_id'],

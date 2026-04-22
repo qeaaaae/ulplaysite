@@ -30,6 +30,37 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ProductController extends Controller
 {
     private const DEFAULT_PRODUCT_IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
+    private const CATEGORY_PATTERNS = [
+        'nintendo-switch-2' => ['switch 2', 'n switch 2', 'ns2'],
+        'nintendo-switch-lite' => ['switch lite', 'n switch lite'],
+        'nintendo-switch' => ['n switch', 'switch oled', 'switch'],
+        'playstation-5-pro' => ['ps5 pro', 'playstation 5 pro'],
+        'playstation-5' => ['ps5', 'playstation 5'],
+        'playstation-4-pro' => ['ps4 pro', 'playstation 4 pro'],
+        'playstation-4' => ['ps4', 'playstation 4'],
+        'playstation-3' => ['ps3', 'playstation 3'],
+        'playstation-2' => ['ps2', 'playstation 2'],
+        'ps-vita' => ['ps vita', 'playstation vita'],
+        'psp' => ['psp', 'playstation portable'],
+        'xbox-series-x' => ['xbox series x', 'series x'],
+        'xbox-series-s' => ['xbox series s', 'series s'],
+        'xbox-one-x' => ['xbox one x', 'one x'],
+        'xbox-one-s' => ['xbox one s', 'one s'],
+        'xbox-one' => ['xbox one'],
+        'xbox-360' => ['xbox 360'],
+        'xbox-original' => ['xbox classic', 'xbox original', 'xbox (оригинальная)'],
+        'wii-u' => ['wii u'],
+        'wii' => ['wii'],
+        'gamecube' => ['gamecube'],
+        'nintendo-3ds' => ['3ds', 'nintendo 3ds'],
+        'nintendo-ds' => ['nintendo ds', 'nds'],
+        'game-boy-advance' => ['game boy advance', 'gba'],
+        'game-boy' => ['game boy color', 'game boy'],
+        'sega-dreamcast' => ['dreamcast'],
+        'sega-saturn' => ['saturn'],
+        'sega-mega-drive' => ['mega drive', 'genesis'],
+        'steam-deck' => ['steam deck'],
+    ];
 
     public function __construct(
         private readonly ImageService $imageService,
@@ -196,7 +227,14 @@ class ProductController extends Controller
     {
         $spreadsheet = IOFactory::load($file->getPathname());
         $leafCategories = Category::query()->whereNotNull('parent_id')->get(['id', 'name', 'slug']);
-        $fallbackCategoryId = (int) ($leafCategories->firstWhere('slug', 'accessories')->id ?? $leafCategories->first()->id ?? 0);
+        $allCategories = Category::query()->get(['id', 'name', 'slug', 'parent_id']);
+        $fallbackCategoryId = (int) (
+            $allCategories->firstWhere('slug', 'games')->id
+            ?? $allCategories->firstWhere('slug', 'accessories')->id
+            ?? $leafCategories->first()->id
+            ?? $allCategories->first()->id
+            ?? 0
+        );
 
         if ($fallbackCategoryId <= 0) {
             throw new \RuntimeException('В системе нет категорий товаров для импорта.');
@@ -231,15 +269,50 @@ class ProductController extends Controller
                     continue;
                 }
 
-                $avitoId = $this->normalizeAvitoItemId($this->getCell($sheet, $headers, ['номер объявления на авито', 'avitoid', 'id'], $row));
+                $avitoId = $this->normalizeAvitoItemId($this->getCell($sheet, $headers, [
+                    'номер объявления на авито',
+                    'номер объявления',
+                    'id объявления',
+                    'avitoid',
+                    'avito id',
+                    'avito item id',
+                    'avitoitemid',
+                    'avito_item_id',
+                    'item id',
+                    'id',
+                ], $row));
                 $avitoListingUrl = $this->resolveAvitoListingUrlFromSheet($sheet, $headers, $row, $avitoId);
+                if ($avitoId === '' && $avitoListingUrl !== null) {
+                    $avitoId = $this->extractAvitoItemIdFromUrl($avitoListingUrl) ?? '';
+                }
+                if (($avitoListingUrl === null || trim($avitoListingUrl) === '') && $avitoId !== '') {
+                    $avitoListingUrl = 'https://www.avito.ru/all?q=' . rawurlencode($avitoId);
+                }
                 $description = $this->sanitizeDescription($this->getCell($sheet, $headers, ['описание объявления', 'description'], $row));
                 $price = $this->parsePrice($this->getCell($sheet, $headers, ['цена', 'price'], $row));
                 $videoUrl = $this->normalizeVideoUrl($this->getCell($sheet, $headers, ['ссылка на видео', 'videourl'], $row));
                 $stock = max(0, (int) $this->parsePrice($this->getCell($sheet, $headers, ['кол-во', 'колво', 'stock'], $row), 1.0));
                 $inStock = $stock > 0;
-                $categoryHint = $this->getCell($sheet, $headers, ['тип товара', 'подвид товара', 'вид товара', 'servicetype', 'servicesubtype'], $row);
-                $categoryId = $this->resolveCategoryId($leafCategories, $categoryHint, $fallbackCategoryId);
+                $categoryHint = $this->getCell($sheet, $headers, [
+                    'тип товара',
+                    'подвид товара',
+                    'вид товара',
+                    'категория',
+                    'подкатегория',
+                    'платформа',
+                    'консоль',
+                    'platform',
+                    'category',
+                    'servicetype',
+                    'servicesubtype',
+                ], $row);
+                $categoryId = $this->resolveCategoryId(
+                    leafCategories: $leafCategories,
+                    hint: $categoryHint,
+                    title: $title,
+                    description: $description,
+                    fallbackCategoryId: $fallbackCategoryId,
+                );
                 $slugBase = Str::slug($title) ?: 'avito-item';
                 $slug = $avitoId !== '' ? "{$slugBase}-{$avitoId}" : "{$slugBase}-" . Str::lower(Str::random(8));
 
@@ -378,6 +451,8 @@ class ProductController extends Controller
     {
         $raw = $this->getCell($sheet, $headers, [
             'ссылка на объявление',
+            'ссылка на авито',
+            'ссылка avito',
             'публичная ссылка на объявление',
             'url объявления',
             'страница объявления',
@@ -511,15 +586,30 @@ class ProductController extends Controller
     /**
      * @param \Illuminate\Support\Collection<int,Category> $leafCategories
      */
-    private function resolveCategoryId($leafCategories, string $hint, int $fallbackCategoryId): int
+    private function resolveCategoryId($leafCategories, string $hint, string $title, string $description, int $fallbackCategoryId): int
     {
-        $hint = mb_strtolower(trim($hint), 'UTF-8');
+        $hint = mb_strtolower(trim(preg_replace('/\s+/u', ' ', $hint) ?? ''), 'UTF-8');
         if ($hint !== '') {
             $exact = $leafCategories->first(function (Category $category) use ($hint): bool {
                 return mb_strtolower($category->name, 'UTF-8') === $hint;
             });
             if ($exact !== null) {
                 return (int) $exact->id;
+            }
+        }
+
+        $categoryBySlug = $leafCategories->pluck('id', 'slug')->all();
+        $combined = mb_strtolower(trim(preg_replace('/\s+/u', ' ', "{$hint} {$title} {$description}") ?? ''), 'UTF-8');
+        if ($combined !== '') {
+            foreach (self::CATEGORY_PATTERNS as $slug => $patterns) {
+                if (! isset($categoryBySlug[$slug])) {
+                    continue;
+                }
+                foreach ($patterns as $pattern) {
+                    if (str_contains($combined, $pattern)) {
+                        return (int) $categoryBySlug[$slug];
+                    }
+                }
             }
         }
 
@@ -719,6 +809,26 @@ class ProductController extends Controller
         }
 
         return $raw;
+    }
+
+    private function extractAvitoItemIdFromUrl(string $url): ?string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return null;
+        }
+
+        if (preg_match('~_(\d{6,})/?(?:\?.*)?$~', $url, $m) === 1) {
+            return $m[1];
+        }
+        if (preg_match('~(?:item|id|adid|advert|listing)[=/](\d{6,})~i', $url, $m) === 1) {
+            return $m[1];
+        }
+        if (preg_match('~\b(\d{9,})\b~', $url, $m) === 1) {
+            return $m[1];
+        }
+
+        return null;
     }
 
     private function normalizeAvitoListingUrl(string $raw): ?string
