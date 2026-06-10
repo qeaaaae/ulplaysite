@@ -299,6 +299,12 @@
                                 @endif
                             </div>
 
+                            @if($product->description)
+                                <div class="ulplay-markdown-body prose prose-stone max-w-none mb-4 prose-p:my-0 prose-p:leading-relaxed prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
+                                    {!! app(\App\Services\MarkdownService::class)->renderCompact($product->description) !!}
+                                </div>
+                            @endif
+
                             <div class="pt-4 border-t border-stone-200">
                                 @if(!$product->in_stock)
                                     <span class="inline-block px-3 py-1.5 bg-stone-600 text-white text-sm font-medium rounded-lg mb-4">Нет в наличии</span>
@@ -339,15 +345,6 @@
                         </div>
                 </div>
             </div>
-
-            @if($product->description)
-                <section class="mt-6 rounded-2xl border border-stone-200 bg-white shadow-sm p-5 sm:p-6 md:p-8">
-                    <x-ui.section-heading icon="heroicon-o-document-text" class="mb-4">Описание</x-ui.section-heading>
-                    <div class="ulplay-markdown-body prose prose-stone max-w-none w-full prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
-                        {!! app(\App\Services\MarkdownService::class)->render($product->description) !!}
-                    </div>
-                </section>
-            @endif
 
             @if($hasSimilar)
                 <section class="mt-10 border-t border-stone-200">

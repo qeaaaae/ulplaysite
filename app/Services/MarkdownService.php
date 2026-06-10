@@ -36,6 +36,18 @@ final class MarkdownService
     }
 
     /**
+     * Компактный рендер для описаний товаров (текст с Авито: строки через один перенос, без лишних абзацев).
+     */
+    public function renderCompact(string $content): string
+    {
+        $content = trim($content);
+        $content = (string) preg_replace("/\r\n?/", "\n", $content);
+        $content = (string) preg_replace("/\n{2,}/", "\n", $content);
+
+        return $this->render($content);
+    }
+
+    /**
      * Заменяем @youtube[ID], @rutube[ID], @vkvideo[OID_ID] уникальными плейсхолдерами,
      * возвращаем контент без маркеров и карту «плейсхолдер → iframe HTML».
      *
