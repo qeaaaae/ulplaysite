@@ -144,7 +144,7 @@ class ProductController extends Controller
     }
 
     /**
-     * @return array{created:int,updated:int,skipped:int}
+     * @return array{created:int,updated:int,skipped:int,deactivated:int}
      */
     public function runXlsxImportFromPath(string $path): array
     {
@@ -252,7 +252,7 @@ class ProductController extends Controller
     }
 
     /**
-     * @return array{created:int,updated:int,skipped:int}
+     * @return array{created:int,updated:int,skipped:int,deactivated:int}
      */
     private function runXlsxImport(UploadedFile $file): array
     {
@@ -274,6 +274,7 @@ class ProductController extends Controller
         $created = 0;
         $updated = 0;
         $skipped = 0;
+        $importedAvitoIds = [];
 
         foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
             if ($this->shouldSkipSheet($sheet->getTitle())) {
@@ -372,6 +373,10 @@ class ProductController extends Controller
                     $created++;
                 }
 
+                if ($avitoId !== '') {
+                    $importedAvitoIds[] = $avitoId;
+                }
+
                 $imageUrls = $this->collectImageUrlsFromSheet($sheet, $headers, $row);
                 $this->syncProductImagesAfterXlsxRow(
                     $product,
@@ -382,7 +387,35 @@ class ProductController extends Controller
             }
         }
 
-        return ['created' => $created, 'updated' => $updated, 'skipped' => $skipped];
+        $deactivated = $this->deactivateAvitoProductsMissingFromImport($importedAvitoIds);
+
+        return [
+            'created' => $created,
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'deactivated' => $deactivated,
+        ];
+    }
+
+    /**
+     * Товары с avito_item_id, которых нет в текущем импорте активных объявлений — снимаем с наличия.
+     *
+     * @param array<int,string> $importedAvitoIds
+     */
+    private function deactivateAvitoProductsMissingFromImport(array $importedAvitoIds): int
+    {
+        $uniqueIds = array_values(array_unique(array_filter($importedAvitoIds, fn (string $id) => $id !== '')));
+        if ($uniqueIds === []) {
+            return 0;
+        }
+
+        return Product::query()
+            ->whereNotNull('avito_item_id')
+            ->whereNotIn('avito_item_id', $uniqueIds)
+            ->update([
+                'in_stock' => false,
+                'stock' => 0,
+            ]);
     }
 
     private function shouldSkipSheet(string $title): bool

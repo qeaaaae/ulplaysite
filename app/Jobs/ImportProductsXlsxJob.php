@@ -35,6 +35,7 @@ class ImportProductsXlsxJob implements ShouldQueue
                 'created' => $result['created'],
                 'updated' => $result['updated'],
                 'skipped' => $result['skipped'],
+                'deactivated' => $result['deactivated'],
             ]);
         } catch (\Throwable $e) {
             Log::error('PRODUCT_XLSX_IMPORT_FAILED', [

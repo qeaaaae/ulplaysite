@@ -86,6 +86,7 @@ class ImportAvitoActiveItemsCommand extends Command
 
         $ok = 0;
         $skipped = 0;
+        $importedAvitoIds = [];
 
         foreach ($items as $listing) {
             if (! is_array($listing)) {
@@ -115,8 +116,12 @@ class ImportAvitoActiveItemsCommand extends Command
                 if ($listingUrl === null && $listingId !== null) {
                     $listingUrl = 'https://www.avito.ru/all?q=' . rawurlencode($listingId);
                 }
+                $matchKey = $listingId !== null && $listingId !== ''
+                    ? ['avito_item_id' => $listingId]
+                    : ['slug' => $productData['slug']];
+
                 $product = Product::updateOrCreate(
-                    ['slug' => $productData['slug']],
+                    $matchKey,
                     [
                         'title' => $productData['title'],
                         'slug' => $productData['slug'],
@@ -174,6 +179,10 @@ class ImportAvitoActiveItemsCommand extends Command
 
                 $this->ensureDefaultCoverImage($product);
 
+                if ($listingId !== null && $listingId !== '') {
+                    $importedAvitoIds[] = (string) $listingId;
+                }
+
                 $ok++;
             } catch (\Throwable) {
                 // Импортируем дальше, чтобы не стопорить всё из-за одного объявления
@@ -185,7 +194,19 @@ class ImportAvitoActiveItemsCommand extends Command
         $bar->finish();
         $this->newLine();
 
-        $this->info('Готово. Успешно: ' . $ok . ', пропущено: ' . $skipped);
+        $deactivated = 0;
+        $uniqueIds = array_values(array_unique(array_filter($importedAvitoIds, fn (string $id) => $id !== '')));
+        if ($uniqueIds !== []) {
+            $deactivated = Product::query()
+                ->whereNotNull('avito_item_id')
+                ->whereNotIn('avito_item_id', $uniqueIds)
+                ->update([
+                    'in_stock' => false,
+                    'stock' => 0,
+                ]);
+        }
+
+        $this->info('Готово. Успешно: ' . $ok . ', пропущено: ' . $skipped . ', снято с наличия: ' . $deactivated);
 
         return self::SUCCESS;
     }
