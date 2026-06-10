@@ -19,6 +19,8 @@ final class MarkdownService
         // Маркеры вида @youtube[ID], @rutube[ID], @vkvideo[OID_ID] — ставятся импортёром.
         [$content, $videoPlaceholders] = $this->extractVideoMarkers($content);
 
+        $content = $this->normalizeSingleLineBreaks($content);
+
         $html = Str::markdown($content, [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
@@ -125,6 +127,14 @@ HTML;
             . 'class="w-full h-full" frameborder="0" loading="lazy" allowfullscreen '
             . 'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">'
             . '</iframe></div>';
+    }
+
+    /**
+     * Одиночный перенос строки → &lt;br&gt; (как в превью EasyMDE / GFM breaks).
+     */
+    private function normalizeSingleLineBreaks(string $content): string
+    {
+        return (string) preg_replace('/(?<!\n)\n(?!\n)/', "  \n", $content);
     }
 
     private function addBlankTargetToLinks(string $html): string
