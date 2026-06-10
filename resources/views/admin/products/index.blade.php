@@ -187,8 +187,23 @@
             {{ $message }}
         </div>
     @enderror
-    <div class="mb-4">
-        <x-admin.search-bar :action="route('admin.products.index')" placeholder="По названию, ярлыку или описанию..." :value="$search ?? ''" />
+    <div class="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-3 items-stretch sm:items-center">
+        <x-admin.search-bar
+            :action="route('admin.products.index')"
+            placeholder="По названию, ярлыку или описанию..."
+            :value="$search ?? ''"
+            :hiddens="array_filter(['status' => $status ?? request('status')])"
+        />
+        <form method="GET" action="{{ route('admin.products.index') }}" class="flex gap-2 items-center">
+            @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
+            <select name="status" data-enhance="tom-select" data-submit-on-change class="h-11 px-3 py-2 bg-white border border-stone-300 rounded-md text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 min-w-[160px]">
+                <option value="">Все статусы</option>
+                <option value="in_stock" {{ ($status ?? '') === 'in_stock' ? 'selected' : '' }}>В наличии</option>
+                <option value="out_of_stock" {{ ($status ?? '') === 'out_of_stock' ? 'selected' : '' }}>Нет в наличии</option>
+                <option value="new" {{ ($status ?? '') === 'new' ? 'selected' : '' }}>Новинки</option>
+                <option value="recommended" {{ ($status ?? '') === 'recommended' ? 'selected' : '' }}>Рекомендуемые</option>
+            </select>
+        </form>
     </div>
     <div class="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">

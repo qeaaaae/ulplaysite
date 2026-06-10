@@ -87,15 +87,26 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $q = (string) $request->input('q', '');
+        $status = (string) $request->input('status', '');
         $like = '%' . StrHelper::escapeForLike($q) . '%';
         $products = Product::with('category')
             ->when($q !== '', fn ($query) => $query->where(fn ($q2) => $q2->where('title', 'like', $like)
                 ->orWhere('slug', 'like', $like)
                 ->orWhere('description', 'like', $like)))
+            ->when($status === 'in_stock', fn ($query) => $query->where('in_stock', true))
+            ->when($status === 'out_of_stock', fn ($query) => $query->where('in_stock', false))
+            ->when($status === 'new', fn ($query) => $query->where('is_new', true))
+            ->when($status === 'recommended', fn ($query) => $query->where('is_recommended', true))
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        return view('admin.products.index', ['metaTitle' => 'Товары', 'products' => $products, 'search' => $q]);
+
+        return view('admin.products.index', [
+            'metaTitle' => 'Товары',
+            'products' => $products,
+            'search' => $q,
+            'status' => $status,
+        ]);
     }
 
     public function importXlsx(Request $request): RedirectResponse|JsonResponse

@@ -44,6 +44,19 @@ class ProductControllerTest extends TestCase
         $response->assertDontSee('Other Bar');
     }
 
+    public function test_index_filters_by_status(): void
+    {
+        $this->actingAsAdmin();
+        Product::factory()->create(['title' => 'In stock item', 'in_stock' => true]);
+        Product::factory()->create(['title' => 'Out of stock item', 'in_stock' => false]);
+
+        $response = $this->get(route('admin.products.index', ['status' => 'out_of_stock']));
+
+        $response->assertStatus(200);
+        $response->assertSee('Out of stock item');
+        $response->assertDontSee('In stock item');
+    }
+
     public function test_create_returns_200(): void
     {
         $this->actingAsAdmin();
