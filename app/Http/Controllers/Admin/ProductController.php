@@ -23,6 +23,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
@@ -125,7 +126,7 @@ class ProductController extends Controller
                 ->withErrors(['xlsx_file' => $msg]);
         }
 
-        ImportProductsXlsxJob::dispatch(storage_path('app/private/' . $relativePath));
+        ImportProductsXlsxJob::dispatch(Storage::disk('local')->path($relativePath));
 
         $flash = 'Импорт поставлен в очередь. Обновите страницу через 1-2 минуты.';
 

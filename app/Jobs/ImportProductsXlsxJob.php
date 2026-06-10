@@ -28,6 +28,15 @@ class ImportProductsXlsxJob implements ShouldQueue
 
     public function handle(ProductController $controller): void
     {
+        @ini_set('memory_limit', '512M');
+
+        Log::info('PRODUCT_XLSX_IMPORT_STARTED', [
+            'path' => $this->xlsxPath,
+            'file_exists' => is_file($this->xlsxPath),
+            'memory_limit' => ini_get('memory_limit'),
+            'queue_retry_after' => config('queue.connections.database.retry_after'),
+        ]);
+
         try {
             $result = $controller->runXlsxImportFromPath($this->xlsxPath);
             Log::info('PRODUCT_XLSX_IMPORT_FINISHED', [
@@ -41,6 +50,8 @@ class ImportProductsXlsxJob implements ShouldQueue
             Log::error('PRODUCT_XLSX_IMPORT_FAILED', [
                 'path' => $this->xlsxPath,
                 'error' => $e->getMessage(),
+                'exception' => $e::class,
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
 
             throw $e;
@@ -49,6 +60,15 @@ class ImportProductsXlsxJob implements ShouldQueue
                 @unlink($this->xlsxPath);
             }
         }
+    }
+
+    public function failed(?\Throwable $exception): void
+    {
+        Log::error('PRODUCT_XLSX_IMPORT_JOB_FAILED', [
+            'path' => $this->xlsxPath,
+            'error' => $exception?->getMessage(),
+            'exception' => $exception !== null ? $exception::class : null,
+        ]);
     }
 }
 
