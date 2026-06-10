@@ -41,6 +41,7 @@ class StoreProductRequest extends FormRequest
             ],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:' . UploadLimits::imageMaxKb()],
+            'cover_image_id' => ['nullable', 'integer'],
             'in_stock' => ['nullable'],
             'stock' => ['required', 'integer', 'min:0'],
             'discount_percent' => ['nullable', 'integer', 'min:0', 'max:100'],

@@ -71,9 +71,19 @@
                 x-data="{
                     existing: {{ $news->images->map(fn($img) => ['id' => $img->id, 'url' => $img->url, 'is_cover' => (bool) $img->is_cover])->values()->toJson() }},
                     deleted: [],
+                    coverImageId: {{ old('cover_image_id', $news->images->firstWhere('is_cover', true)?->id) ?? 'null' }},
+                    setCover(id) {
+                        this.coverImageId = id;
+                        this.existing = this.existing.map(img => ({ ...img, is_cover: img.id === id }));
+                    },
                     removeExisting(id) {
                         this.deleted.push(id);
                         this.existing = this.existing.filter(img => img.id !== id);
+                        if (this.coverImageId === id) {
+                            const next = this.existing[0];
+                            if (next) this.setCover(next.id);
+                            else this.coverImageId = null;
+                        }
                     },
                 }"
             >
@@ -96,7 +106,7 @@
 
                 <template x-if="existing.length">
                     <div class="mt-4">
-                        <p class="text-xs text-stone-500 mb-2">Текущие изображения новости (макс. 5):</p>
+                        <p class="text-xs text-stone-500 mb-2">Текущие изображения новости (макс. 5). Нажмите «Обложка», чтобы выбрать главное фото:</p>
                         <div class="flex flex-wrap gap-4">
                             <template x-for="image in existing" :key="image.id">
                                 <div class="relative group">
@@ -112,7 +122,8 @@
                                         :href="image.url"
                                         data-lightbox="image"
                                         data-lightbox-group="admin-news-{{ $news->id }}"
-                                        class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 relative cursor-zoom-in hover:border-sky-300 transition-colors"
+                                        class="block w-28 h-28 rounded-lg overflow-hidden border bg-stone-50 relative cursor-zoom-in transition-colors"
+                                        :class="image.is_cover ? 'border-sky-500 ring-2 ring-sky-500/40' : 'border-stone-200 hover:border-sky-300'"
                                     >
                                         <img :src="image.url" alt="" class="w-full h-full object-cover">
                                         <span
@@ -122,6 +133,14 @@
                                             Обложка
                                         </span>
                                     </a>
+                                    <button
+                                        type="button"
+                                        x-show="!image.is_cover"
+                                        x-on:click="setCover(image.id)"
+                                        class="mt-1.5 w-full text-[10px] font-medium text-sky-700 hover:text-sky-800 underline underline-offset-2"
+                                    >
+                                        Обложка
+                                    </button>
                                 </div>
                             </template>
                         </div>
@@ -131,6 +150,7 @@
                 <template x-for="id in deleted" :key="id">
                     <input type="hidden" name="delete_images[]" :value="id">
                 </template>
+                <input type="hidden" name="cover_image_id" :value="coverImageId ?? ''">
             </div>
         </x-admin.form-section>
 

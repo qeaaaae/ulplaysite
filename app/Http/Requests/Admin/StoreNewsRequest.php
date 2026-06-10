@@ -35,6 +35,7 @@ class StoreNewsRequest extends FormRequest
             'published_at' => ['nullable', 'date'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:' . UploadLimits::imageMaxKb()],
+            'cover_image_id' => ['nullable', 'integer'],
         ];
     }
 

@@ -300,7 +300,9 @@
                             </div>
 
                             @if($product->description)
-                                <p class="text-stone-600 leading-relaxed mb-4">{{ $product->description }}</p>
+                                <div class="ulplay-markdown-body prose prose-stone prose-sm max-w-none mb-4 prose-headings:font-heading prose-headings:font-semibold prose-a:text-sky-600 hover:prose-a:text-sky-700 prose-img:rounded-xl prose-hr:border-stone-200">
+                                    {!! app(\App\Services\MarkdownService::class)->render($product->description) !!}
+                                </div>
                             @endif
 
                             <div class="pt-4 border-t border-stone-200">

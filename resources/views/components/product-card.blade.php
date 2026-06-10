@@ -19,7 +19,7 @@
         <a href="/products/{{ $product->slug }}" class="block flex-1 group/title">
             <h3 class="font-medium text-stone-800 text-[15px] line-clamp-1 mb-2 group-hover/title:text-sky-600 transition-colors leading-snug">{{ $product->title }}</h3>
             @if(!empty($product->description))
-                <p class="text-stone-500 text-[13px] line-clamp-2 leading-relaxed mb-3">{{ $product->description }}</p>
+                <p class="text-stone-500 text-[13px] line-clamp-2 leading-relaxed mb-3">{{ \Illuminate\Support\Str::limit(preg_replace('/\s+/u', ' ', strip_tags(\Illuminate\Support\Str::markdown($product->description))), 160) }}</p>
             @endif
             <div class="flex items-baseline gap-2 flex-wrap mt-auto">
                 <span class="text-xl font-bold tabular-nums text-stone-900 tracking-tight">{{ number_format($product->price, 0, ',', ' ') }} ₽</span>

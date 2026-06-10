@@ -13,4 +13,9 @@ final class UploadLimits
     {
         return (int) config('uploads.image_max_kb', 102400);
     }
+
+    public static function imagesBatchMaxKb(): int
+    {
+        return (int) config('uploads.images_batch_max_kb', 512000);
+    }
 }

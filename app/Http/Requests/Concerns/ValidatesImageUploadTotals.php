@@ -12,7 +12,7 @@ trait ValidatesImageUploadTotals
 {
     /**
      * Проверка суммарного размера файлов в массиве (например images.*).
-     * Тот же лимит, что и на один файл — см. UploadLimits::imageMaxKb().
+     * См. UploadLimits::imagesBatchMaxKb().
      */
     protected function validateImagesArrayTotalSize(Validator $validator, string $field = 'images'): void
     {
@@ -27,7 +27,7 @@ trait ValidatesImageUploadTotals
                     $totalBytes += $f->getSize();
                 }
             }
-            $maxKb = UploadLimits::imageMaxKb();
+            $maxKb = UploadLimits::imagesBatchMaxKb();
             if ($totalBytes <= $maxKb * 1024) {
                 return;
             }

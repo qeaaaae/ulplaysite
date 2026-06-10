@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AboutPageController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\NewsController;
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'verified', 'admin', 'throttle:admin'])->prefix('admi
     Route::post('news/parse-url', [NewsController::class, 'parseUrl'])->name('news.parse-url');
     Route::resource('news', NewsController::class);
     Route::resource('banners', BannerController::class);
+
+    Route::get('about', [AboutPageController::class, 'edit'])->name('about.edit');
+    Route::patch('about', [AboutPageController::class, 'update'])->name('about.update');
 
     Route::resource('users', UserController::class)->except(['show']);
     Route::post('users/{user}/block', [UserController::class, 'block'])->name('users.block');

@@ -108,6 +108,10 @@
                     @svg('heroicon-o-photo', 'w-5 h-5 shrink-0')
                     Баннеры
                 </a>
+                <a href="{{ route('admin.about.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sky-800/80 {{ request()->routeIs('admin.about.*') ? 'bg-sky-800' : '' }}" @click="sidebarOpen = false">
+                    @svg('heroicon-o-information-circle', 'w-5 h-5 shrink-0')
+                    О нас
+                </a>
                 <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sky-800/80 {{ request()->routeIs('admin.orders.*') ? 'bg-sky-800' : '' }}" @click="sidebarOpen = false">
                     @svg('heroicon-o-shopping-cart', 'w-5 h-5 shrink-0')
                     Заказы

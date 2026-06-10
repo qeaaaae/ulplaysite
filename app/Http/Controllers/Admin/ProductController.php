@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\CleansUpContentImages;
+use App\Http\Controllers\Admin\Concerns\ManagesCoverImage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
@@ -30,6 +32,9 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ProductController extends Controller
 {
+    use CleansUpContentImages;
+    use ManagesCoverImage;
+
     private const DEFAULT_PRODUCT_IMAGE = 'https://avatars.mds.yandex.net/get-mpic/5347553/2a00000192cd09d4b4cbb9bb28497c637e4a/optimize';
     private const CATEGORY_PATTERNS = [
         'nintendo-switch-2' => ['switch 2', 'n switch 2', 'ns2'],
@@ -175,15 +180,18 @@ class ProductController extends Controller
         /** @var Product $product */
         $product = Product::create($validated);
 
+        $this->cleanupUnusedContentImages($request, $product->description);
+
         if (! empty($images)) {
             $product->images()->delete();
             foreach (array_slice($images, 0, 5) as $index => $file) {
                 $product->images()->create([
                     'path' => $this->imageService->store($file, 'products'),
-                    'is_cover' => $index === 0,
+                    'is_cover' => false,
                     'position' => $index,
                 ]);
             }
+            $this->applyCoverImage($product, $this->coverImageIdFromRequest($request));
         }
         return redirect()->route('admin.products.index')->with('message', 'Товар создан');
     }
@@ -205,6 +213,8 @@ class ProductController extends Controller
         unset($validated['images']);
         $product->update($validated);
 
+        $this->cleanupUnusedContentImages($request, $product->description);
+
         if (! empty($deleteIds)) {
             $product->images()->whereIn('id', $deleteIds)->delete();
         }
@@ -223,12 +233,15 @@ class ProductController extends Controller
                 foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
                     $product->images()->create([
                         'path' => $this->imageService->store($file, 'products'),
-                        'is_cover' => $existing === 0 && $offset === 0,
+                        'is_cover' => false,
                         'position' => $startPosition + $offset,
                     ]);
                 }
             }
         }
+
+        $this->applyCoverImage($product, $this->coverImageIdFromRequest($request));
+
         return redirect()->back()->with('message', 'Товар обновлён');
     }
 

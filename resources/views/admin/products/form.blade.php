@@ -49,9 +49,9 @@
                 <div class="mt-4 flex flex-col">
                     <label class="flex items-center gap-2 min-h-[1.5rem] text-sm font-medium text-stone-700 mb-1.5">
                         @svg('heroicon-o-document', 'w-4 h-4 text-sky-500 shrink-0')
-                        Описание
+                        Описание (Markdown)
                     </label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y" placeholder="Краткое описание товара">{{ old('description', $product->description) }}</textarea>
+                    <textarea name="description" rows="12" data-markdown-editor data-upload-url="{{ route('admin.upload.image') }}" class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150 resize-y font-mono text-sm" placeholder="Заголовки, списки, ссылки — в формате Markdown">{{ old('description', $product->description) }}</textarea>
                 </div>
                 <div class="mt-4">
                     <x-ui.input name="video_url" label="Видео (YouTube или Rutube)" label-icon="heroicon-o-video-camera" value="{{ old('video_url', $product->video_url) }}" placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..." :error="$errors->first('video_url')" />
@@ -99,9 +99,19 @@
                 x-data="{
                     existing: {{ $product->images->map(fn($img) => ['id' => $img->id, 'url' => $img->url, 'is_cover' => (bool) $img->is_cover])->values()->toJson() }},
                     deleted: [],
+                    coverImageId: {{ old('cover_image_id', $product->images->firstWhere('is_cover', true)?->id) ?? 'null' }},
+                    setCover(id) {
+                        this.coverImageId = id;
+                        this.existing = this.existing.map(img => ({ ...img, is_cover: img.id === id }));
+                    },
                     removeExisting(id) {
                         this.deleted.push(id);
                         this.existing = this.existing.filter(img => img.id !== id);
+                        if (this.coverImageId === id) {
+                            const next = this.existing[0];
+                            if (next) this.setCover(next.id);
+                            else this.coverImageId = null;
+                        }
                     },
                 }"
             >
@@ -117,7 +127,7 @@
 
                 <template x-if="existing.length">
                     <div class="mt-4">
-                        <p class="text-xs text-stone-500 mb-2">Текущие изображения товара (макс. 5):</p>
+                        <p class="text-xs text-stone-500 mb-2">Текущие изображения товара (макс. 5). Нажмите «Обложка», чтобы выбрать главное фото:</p>
                         <div class="flex flex-wrap gap-4">
                             <template x-for="image in existing" :key="image.id">
                                 <div class="relative group">
@@ -133,7 +143,8 @@
                                         :href="image.url"
                                         data-lightbox="image"
                                         data-lightbox-group="admin-product-{{ $product->id }}"
-                                        class="block w-28 h-28 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 relative"
+                                        class="block w-28 h-28 rounded-lg overflow-hidden border bg-stone-50 relative"
+                                        :class="image.is_cover ? 'border-sky-500 ring-2 ring-sky-500/40' : 'border-stone-200'"
                                     >
                                         <img :src="image.url" alt="" class="w-full h-full object-cover">
                                         <span
@@ -143,6 +154,14 @@
                                             Обложка
                                         </span>
                                     </a>
+                                    <button
+                                        type="button"
+                                        x-show="!image.is_cover"
+                                        x-on:click="setCover(image.id)"
+                                        class="mt-1.5 w-full text-[10px] font-medium text-sky-700 hover:text-sky-800 underline underline-offset-2"
+                                    >
+                                        Обложка
+                                    </button>
                                 </div>
                             </template>
                         </div>
@@ -152,6 +171,7 @@
                 <template x-for="id in deleted" :key="id">
                     <input type="hidden" name="delete_images[]" :value="id">
                 </template>
+                <input type="hidden" name="cover_image_id" :value="coverImageId ?? ''">
             </div>
             </x-admin.form-section>
         </div>

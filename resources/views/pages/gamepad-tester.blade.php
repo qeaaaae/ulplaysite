@@ -123,8 +123,8 @@
                             {{-- ── Левый стик ── --}}
                             <circle cx="113" cy="160" r="37.5" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="5"/>
                             <circle r="28"
-                                    :cx="113 + (gp.displayAxes[0] ?? 0) * 20"
-                                    :cy="160 + (gp.displayAxes[1] ?? 0) * 20"
+                                    :cx="113 + (gp.displayAxes[0] ?? 0) * 37.5"
+                                    :cy="160 + (gp.displayAxes[1] ?? 0) * 37.5"
                                     :fill="gp.buttons[10]?.pressed ? 'rgba(14,165,233,0.3)' : 'rgba(0,0,0,0)'"
                                     :stroke="gp.buttons[10]?.pressed ? '#0284c7' : 'rgba(0,0,0,0.35)'"
                                     stroke-width="5"/>
@@ -132,8 +132,8 @@
                             {{-- ── Правый стик ── --}}
                             <circle cx="278" cy="238" r="37.5" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="5"/>
                             <circle r="28"
-                                    :cx="278 + (gp.displayAxes[2] ?? 0) * 20"
-                                    :cy="238 + (gp.displayAxes[3] ?? 0) * 20"
+                                    :cx="278 + (gp.displayAxes[2] ?? 0) * 37.5"
+                                    :cy="238 + (gp.displayAxes[3] ?? 0) * 37.5"
                                     :fill="gp.buttons[11]?.pressed ? 'rgba(14,165,233,0.3)' : 'rgba(0,0,0,0)'"
                                     :stroke="gp.buttons[11]?.pressed ? '#0284c7' : 'rgba(0,0,0,0.35)'"
                                     stroke-width="5"/>
@@ -250,7 +250,7 @@
                                 <circle cx="80" cy="80" r="7" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1" stroke-dasharray="2 2"/>
                                 {{-- Трейл --}}
                                 <polyline
-                                    :points="trailPoints(gp.leftTrail, 80, 80, 68)"
+                                    :points="trailPoints(gp.leftTrail, 80, 80, 72)"
                                     fill="none" stroke="#0ea5e9" stroke-width="1.5"
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
                                 {{-- Контрольный след по ободу (поверх серого круга) --}}
@@ -260,15 +260,15 @@
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
                                 {{-- Текущая позиция --}}
                                 <circle
-                                    :cx="80 + (gp.displayAxes[0] ?? 0) * 68"
-                                    :cy="80 + (gp.displayAxes[1] ?? 0) * 68"
+                                    :cx="80 + (gp.displayAxes[0] ?? 0) * 72"
+                                    :cy="80 + (gp.displayAxes[1] ?? 0) * 72"
                                     r="4"
                                     :fill="gp.buttons[10]?.pressed ? '#0284c7' : '#0ea5e9'"
                                     stroke="white" stroke-width="2"/>
                                 <line
                                     x1="80" y1="80"
-                                    :x2="80 + (gp.displayAxes[0] ?? 0) * 68"
-                                    :y2="80 + (gp.displayAxes[1] ?? 0) * 68"
+                                    :x2="80 + (gp.displayAxes[0] ?? 0) * 72"
+                                    :y2="80 + (gp.displayAxes[1] ?? 0) * 72"
                                     stroke="#0ea5e9" stroke-width="1" opacity="0.4"/>
                             </svg>
                             <div class="text-[10px] text-stone-400 font-mono">
@@ -293,7 +293,7 @@
                                 <line x1="80" y1="8" x2="80" y2="152" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
                                 <circle cx="80" cy="80" r="7" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1" stroke-dasharray="2 2"/>
                                 <polyline
-                                    :points="trailPoints(gp.rightTrail, 80, 80, 68)"
+                                    :points="trailPoints(gp.rightTrail, 80, 80, 72)"
                                     fill="none" stroke="#f59e0b" stroke-width="1.5"
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
                                 {{-- Контрольный след по ободу (поверх серого круга) --}}
@@ -302,15 +302,15 @@
                                     fill="none" stroke="#f59e0b" stroke-width="2.2"
                                     stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
                                 <circle
-                                    :cx="80 + (gp.displayAxes[2] ?? 0) * 68"
-                                    :cy="80 + (gp.displayAxes[3] ?? 0) * 68"
+                                    :cx="80 + (gp.displayAxes[2] ?? 0) * 72"
+                                    :cy="80 + (gp.displayAxes[3] ?? 0) * 72"
                                     r="4"
                                     :fill="gp.buttons[11]?.pressed ? '#d97706' : '#f59e0b'"
                                     stroke="white" stroke-width="2"/>
                                 <line
                                     x1="80" y1="80"
-                                    :x2="80 + (gp.displayAxes[2] ?? 0) * 68"
-                                    :y2="80 + (gp.displayAxes[3] ?? 0) * 68"
+                                    :x2="80 + (gp.displayAxes[2] ?? 0) * 72"
+                                    :y2="80 + (gp.displayAxes[3] ?? 0) * 72"
                                     stroke="#f59e0b" stroke-width="1" opacity="0.4"/>
                             </svg>
                             <div class="text-[10px] text-stone-400 font-mono">

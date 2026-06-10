@@ -21,6 +21,7 @@ use Illuminate\View\View;
 class NewsController extends Controller
 {
     use Concerns\CleansUpContentImages;
+    use Concerns\ManagesCoverImage;
 
     public function __construct(
         private readonly ImageService $imageService,
@@ -98,10 +99,11 @@ class NewsController extends Controller
             foreach (array_slice($images, 0, 5) as $index => $file) {
                 $news->images()->create([
                     'path' => $this->imageService->store($file, 'news'),
-                    'is_cover' => $index === 0,
+                    'is_cover' => false,
                     'position' => $index,
                 ]);
             }
+            $this->applyCoverImage($news, $this->coverImageIdFromRequest($request));
         } elseif ($importCoverUrl !== '') {
             $this->gamemagNewsCoverImporter->attachIfPossible($news, $importCoverUrl);
         }
@@ -151,12 +153,15 @@ class NewsController extends Controller
                 foreach (array_slice($images, 0, $maxToAdd) as $offset => $file) {
                     $news->images()->create([
                         'path' => $this->imageService->store($file, 'news'),
-                        'is_cover' => $existing === 0 && $offset === 0,
+                        'is_cover' => false,
                         'position' => $startPosition + $offset,
                     ]);
                 }
             }
         }
+
+        $this->applyCoverImage($news, $this->coverImageIdFromRequest($request));
+
         return redirect()->back()->with('message', 'Новость обновлена');
     }
 

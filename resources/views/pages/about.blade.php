@@ -3,17 +3,30 @@
 @section('content')
     @php
         $company = config('site.footer.company', []);
-        $address = (string) ($company['address'] ?? '');
+        $address = (string) ($about->address ?? ($company['address'] ?? ''));
+        $photos = $about->images ?? collect();
         $phone = (string) ($company['phone'] ?? '');
         $email = (string) ($company['email'] ?? '');
         $schedule = (string) ($company['schedule_full'] ?? ($company['schedule'] ?? ''));
         $visitNotice = (string) ($company['visit_notice'] ?? '');
-        $mapQuery = trim($address !== '' ? $address : 'Ульяновск');
     @endphp
 
     <div class="py-4 pb-10 sm:pb-12">
         <div class="max-w-[1420px] mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-6">
             <x-ui.section-heading tag="h1" icon="heroicon-o-information-circle" class="mb-0">О нас</x-ui.section-heading>
+
+            @if($photos->isNotEmpty())
+                <div class="sr-only" aria-hidden="true">
+                    @foreach($photos as $photo)
+                        <a
+                            href="{{ $photo->url }}"
+                            data-lightbox="image"
+                            data-lightbox-group="about-directions"
+                            id="about-lb-{{ $photo->id }}"
+                        ></a>
+                    @endforeach
+                </div>
+            @endif
 
             <div class="lg:hidden">
                 <div class="w-full bg-white rounded-xl border border-stone-200 shadow-sm p-4 sm:p-5">
@@ -44,6 +57,17 @@
                             </p>
                         @endif
                     </div>
+                    @if($photos->isNotEmpty())
+                        <p class="mt-3">
+                            <button
+                                type="button"
+                                onclick="document.getElementById('about-lb-{{ $photos->first()->id }}')?.click()"
+                                class="text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline"
+                            >
+                                Как добраться?
+                            </button>
+                        </p>
+                    @endif
                     @if($visitNotice !== '')
                         <p class="mt-3 text-xs text-stone-500 border-l-2 border-sky-200 pl-2.5">{{ $visitNotice }}</p>
                     @endif
@@ -90,6 +114,18 @@
                                 </p>
                             @endif
                         </div>
+
+                        @if($photos->isNotEmpty())
+                            <p class="mt-3 sm:mt-4">
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('about-lb-{{ $photos->first()->id }}')?.click()"
+                                    class="text-xs sm:text-sm font-medium text-sky-600 hover:text-sky-700 hover:underline"
+                                >
+                                    Как добраться?
+                                </button>
+                            </p>
+                        @endif
 
                         @if($visitNotice !== '')
                             <p class="mt-3 sm:mt-4 text-[11px] sm:text-xs text-stone-500 border-l-2 border-sky-200 pl-2.5 sm:pl-3 line-clamp-3 sm:line-clamp-none">{{ $visitNotice }}</p>
