@@ -10,7 +10,6 @@ use App\Support\UploadLimits;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -35,10 +34,7 @@ class StoreProductRequest extends FormRequest
                 }
             }],
             'price' => ['required', 'numeric', 'min:0'],
-            'category_id' => [
-                'required',
-                Rule::exists('categories', 'id')->where(fn ($q) => $q->whereNotNull('parent_id')),
-            ],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:' . UploadLimits::imageMaxKb()],
             'cover_image_id' => ['nullable', 'integer'],

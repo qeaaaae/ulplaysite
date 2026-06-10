@@ -60,26 +60,41 @@
                         </li>
                     @else
                         <li class="overflow-hidden rounded-lg">
-                            <button
-                                type="button"
-                                class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-stone-800 hover:bg-stone-50"
-                                @click="toggleParent({{ $root->id }})"
-                                :aria-expanded="openParents[{{ $root->id }}] ? 'true' : 'false'"
+                            <div
+                                class="flex w-full items-center gap-1 rounded-lg border transition-colors"
+                                :class="activeCategorySlug === {{ \Illuminate\Support\Js::from($root->slug) }} ? 'border-sky-200 bg-sky-50' : 'border-transparent'"
                             >
-                                <span class="min-w-0 truncate">{{ $root->name }}</span>
-                                <svg
-                                    class="h-4 w-4 shrink-0 text-stone-400 transition-transform duration-[450ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none motion-reduce:duration-0"
-                                    :class="openParents[{{ $root->id }}] ? 'rotate-180' : ''"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.5"
-                                    stroke="currentColor"
-                                    aria-hidden="true"
+                                <a
+                                    href="{{ $makeUrl($root->slug) }}"
+                                    {{ $dataAjax }}
+                                    data-category-slug="{{ $root->slug }}"
+                                    data-root-id="{{ $root->id }}"
+                                    class="min-w-0 flex-1 truncate rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                    :class="activeCategorySlug === {{ \Illuminate\Support\Js::from($root->slug) }} ? 'text-sky-900' : 'text-stone-800 hover:bg-stone-50'"
                                 >
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                </svg>
-                            </button>
+                                    {{ $root->name }}
+                                </a>
+                                <button
+                                    type="button"
+                                    class="shrink-0 rounded-lg p-2 text-stone-400 hover:bg-stone-50 hover:text-stone-600"
+                                    @click="toggleParent({{ $root->id }})"
+                                    :aria-expanded="openParents[{{ $root->id }}] ? 'true' : 'false'"
+                                    aria-label="Развернуть подкатегории {{ $root->name }}"
+                                >
+                                    <svg
+                                        class="h-4 w-4 transition-transform duration-[450ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none motion-reduce:duration-0"
+                                        :class="openParents[{{ $root->id }}] ? 'rotate-180' : ''"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        aria-hidden="true"
+                                    >
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </button>
+                            </div>
                             <div
                                 x-show="openParents[{{ $root->id }}]"
                                 x-collapse.duration.450ms
@@ -93,6 +108,7 @@
                                                 href="{{ $makeUrl($child->slug) }}"
                                                 {{ $dataAjax }}
                                                 data-category-slug="{{ $child->slug }}"
+                                                data-parent-id="{{ $root->id }}"
                                                 class="flex items-center justify-between gap-2 rounded-lg border px-2 py-1.5 text-sm transition-colors duration-150"
                                                 :class="activeCategorySlug === {{ \Illuminate\Support\Js::from($child->slug) }} ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-transparent text-stone-600 hover:bg-stone-50'"
                                             >

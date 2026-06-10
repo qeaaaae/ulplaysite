@@ -66,6 +66,23 @@ class ProductControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_create_form_lists_all_categories_with_searchable_select(): void
+    {
+        $this->actingAsAdmin();
+        $root = Category::factory()->create(['name' => 'Test Platform Root']);
+        $child = Category::factory()->child($root)->create(['name' => 'Test Platform Child']);
+        Category::factory()->create(['name' => 'Standalone Games Root']);
+
+        $response = $this->get(route('admin.products.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('data-tom-select-search', false);
+        $response->assertSee('Test Platform Root', false);
+        $response->assertSee('Test Platform Root — Test Platform Child', false);
+        $response->assertSee('Standalone Games Root', false);
+        $response->assertDontSee('<optgroup', false);
+    }
+
     public function test_store_creates_product(): void
     {
         $this->actingAsAdmin();

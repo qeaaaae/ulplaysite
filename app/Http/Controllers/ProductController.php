@@ -29,7 +29,7 @@ class ProductController extends Controller
             ->where('in_stock', true);
 
         if ($request->filled('category')) {
-            $query->whereHas('category', fn ($q) => $q->where('slug', $request->category));
+            $this->applyProductCategoryFilter($query, (string) $request->category);
         }
 
         if ($request->filled('q')) {
@@ -162,5 +162,26 @@ class ProductController extends Controller
             'canReview' => $canReview,
             'similarProducts' => $similarProducts,
         ]);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder<Product> $query
+     */
+    private function applyProductCategoryFilter($query, string $slug): void
+    {
+        $category = Category::query()->where('slug', $slug)->first();
+        if ($category === null) {
+            return;
+        }
+
+        $categoryIds = [$category->id];
+        if ($category->parent_id === null) {
+            $childIds = Category::query()->where('parent_id', $category->id)->pluck('id')->all();
+            if ($childIds !== []) {
+                $categoryIds = array_merge($categoryIds, $childIds);
+            }
+        }
+
+        $query->whereIn('category_id', $categoryIds);
     }
 }

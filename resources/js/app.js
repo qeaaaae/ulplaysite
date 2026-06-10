@@ -4,6 +4,7 @@ import collapse from '@alpinejs/collapse';
 import Swiper from 'swiper/bundle';
 import { Notyf } from 'notyf';
 import TomSelect from 'tom-select';
+import 'tom-select/dist/js/plugins/dropdown_input.js';
 import 'swiper/css/bundle';
 import 'notyf/notyf.min.css';
 import 'tom-select/dist/css/tom-select.css';
@@ -158,11 +159,19 @@ function smoothScrollTo(targetY, duration = 400) {
 function initTomSelects(root = document) {
     root.querySelectorAll('select[data-enhance="tom-select"]').forEach((el) => {
         if (el.tomselect) return;
+        const searchable = el.dataset.tomSelectSearch !== undefined;
+        const noResultsText = el.dataset.tomSelectNoResults || 'Ничего не найдено';
         const opts = {
             allowEmptyOption: !!el.querySelector('option[value=""]'),
             dropdownParent: 'body',
-            controlInput: null,
-            searchField: [],
+            controlInput: searchable ? '<input>' : null,
+            searchField: searchable ? ['text'] : [],
+            maxOptions: el.dataset.tomSelectMaxOptions === 'all' ? null : 50,
+            placeholder: el.getAttribute('placeholder') || undefined,
+            plugins: searchable ? ['dropdown_input'] : [],
+            render: {
+                no_results: () => `<div class="no-results" role="status">${noResultsText}</div>`,
+            },
             onChange(value) {
                 if (el.dataset.redirectOnChange !== undefined && value) {
                     window.location.href = value;

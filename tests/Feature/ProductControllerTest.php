@@ -22,11 +22,37 @@ class ProductControllerTest extends TestCase
     public function test_index_filters_by_category(): void
     {
         $category = Category::factory()->child()->create();
-        Product::factory()->create(['category_id' => $category->id]);
+        $product = Product::factory()->create(['category_id' => $category->id, 'in_stock' => true]);
+        Product::factory()->create(['in_stock' => true]);
 
         $response = $this->get(route('products.index', ['category' => $category->slug]));
 
         $response->assertStatus(200);
+        $response->assertSee($product->title);
+    }
+
+    public function test_index_filters_by_root_category_including_children(): void
+    {
+        $root = Category::factory()->create(['slug' => 'playstation-root-test']);
+        $child = Category::factory()->child($root)->create();
+        $otherChild = Category::factory()->child()->create();
+
+        $inScope = Product::factory()->create([
+            'category_id' => $child->id,
+            'title' => 'PlayStation scoped product',
+            'in_stock' => true,
+        ]);
+        Product::factory()->create([
+            'category_id' => $otherChild->id,
+            'title' => 'Outside scope product',
+            'in_stock' => true,
+        ]);
+
+        $response = $this->get(route('products.index', ['category' => $root->slug]));
+
+        $response->assertStatus(200);
+        $response->assertSee($inScope->title);
+        $response->assertDontSee('Outside scope product');
     }
 
     public function test_show_returns_200(): void

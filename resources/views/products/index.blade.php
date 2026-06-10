@@ -221,6 +221,10 @@
                         const sortSelect = root.querySelector('select[data-products-sort]');
                         const sortKey = sortSelect?.value || 'newest';
                         const categorySlug = a.dataset.categorySlug || '';
+                        const expandId = a.dataset.rootId || a.dataset.parentId;
+                        if (expandId) {
+                            this.openParents = { ...this.openParents, [expandId]: true };
+                        }
                         this.load(this.buildProductsListUrl(sortKey, categorySlug));
                     });
                 });

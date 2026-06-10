@@ -22,6 +22,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -74,14 +75,17 @@ class ProductController extends Controller
         private readonly AvitoCachedListingUrlLookup $avitoCachedListingUrlLookup,
         private readonly AvitoListingImagesFetcher $avitoListingImagesFetcher,
     ) {}
-    /** Только дочерние категории (поколения / линейки) — для товаров. */
-    private function productLeafCategories()
+    /** @return Collection<int, Category> */
+    private function productFormCategories(): Collection
     {
         return Category::query()
-            ->whereNotNull('parent_id')
             ->with('parent')
-            ->orderBy('name')
-            ->get();
+            ->get()
+            ->sortBy(fn (Category $c) => mb_strtolower(
+                ($c->parent?->name !== null ? $c->parent->name . ' — ' : '') . $c->name,
+                'UTF-8',
+            ))
+            ->values();
     }
 
     public function index(Request $request): View
@@ -179,7 +183,7 @@ class ProductController extends Controller
         return view('admin.products.form', [
             'metaTitle' => 'Новый товар',
             'product' => new Product(),
-            'categories' => $this->productLeafCategories(),
+            'categories' => $this->productFormCategories(),
         ]);
     }
 
@@ -213,7 +217,7 @@ class ProductController extends Controller
         return view('admin.products.form', [
             'metaTitle' => $product->name,
             'product' => $product,
-            'categories' => $this->productLeafCategories(),
+            'categories' => $this->productFormCategories(),
         ]);
     }
 

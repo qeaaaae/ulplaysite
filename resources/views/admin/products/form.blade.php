@@ -66,9 +66,20 @@
                             @svg('heroicon-o-squares-2x2', 'w-4 h-4 text-sky-500 shrink-0')
                             Категория
                         </label>
-                        <select name="category_id" data-enhance="tom-select" class="w-full h-11 px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150" required>
+                        <select
+                            name="category_id"
+                            data-enhance="tom-select"
+                            data-tom-select-search
+                            data-tom-select-max-options="all"
+                            data-tom-select-no-results="Категории не найдены"
+                            placeholder="Найти категорию..."
+                            class="w-full h-11 px-3 py-2.5 bg-white border border-stone-300 rounded-md text-stone-900 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-colors duration-150"
+                            required
+                        >
                             @foreach($categories as $c)
-                                <option value="{{ $c->id }}" {{ old('category_id', $product->category_id) == $c->id ? 'selected' : '' }}>{{ $c->parent?->name }} — {{ $c->name }}</option>
+                                <option value="{{ $c->id }}" {{ old('category_id', $product->category_id) == $c->id ? 'selected' : '' }}>
+                                    {{ $c->parent ? $c->parent->name . ' — ' : '' }}{{ $c->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>

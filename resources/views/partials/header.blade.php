@@ -41,15 +41,15 @@
                 </a>
 
                 <nav class="hidden lg:flex items-center gap-0.5">
-                    <a href="/products" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                    <a href="{{ route('products.index', ['category' => 'playstation']) }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
                         <x-icons.playstation class="w-4 h-4 shrink-0" />
                         PlayStation
                     </a>
-                    <a href="/products" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                    <a href="{{ route('products.index', ['category' => 'xbox']) }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
                         <x-icons.xbox class="w-4 h-4 shrink-0" />
                         Xbox
                     </a>
-                    <a href="/products" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
+                    <a href="{{ route('products.index', ['category' => 'nintendo']) }}" class="flex items-center gap-2 px-3 py-2 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium transition-all duration-200 cursor-pointer">
                         <x-icons.nintendo class="w-4 h-4 shrink-0" />
                         Nintendo
                     </a>
@@ -173,15 +173,15 @@
                 <x-ui.search-form action="{{ route('search.index') }}" placeholder="Товары, услуги, новости..." :value="request('q', '')" size="mobile" formClass="rounded-lg" />
             </div>
             <nav class="flex flex-col gap-0.5 px-4 sm:px-6">
-                <a href="/products" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                <a href="{{ route('products.index', ['category' => 'playstation']) }}" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
                     <x-icons.playstation class="w-5 h-5 shrink-0" />
                     PlayStation
                 </a>
-                <a href="/products" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                <a href="{{ route('products.index', ['category' => 'xbox']) }}" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
                     <x-icons.xbox class="w-5 h-5 shrink-0" />
                     Xbox
                 </a>
-                <a href="/products" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
+                <a href="{{ route('products.index', ['category' => 'nintendo']) }}" class="flex items-center gap-2.5 py-3 sm:py-3.5 px-4 rounded-md text-stone-600 hover:text-sky-600 hover:bg-sky-50/80 text-sm font-medium active:bg-sky-50 touch-manipulation cursor-pointer">
                     <x-icons.nintendo class="w-5 h-5 shrink-0" />
                     Nintendo
                 </a>
