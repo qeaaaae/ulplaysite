@@ -381,7 +381,15 @@ class ProductController extends Controller
                 ];
 
                 $product = $this->findProductForXlsxImport($avitoId, $slug);
+                $isNewProduct = $product === null;
                 if ($product !== null) {
+                    if (trim((string) ($product->description ?? '')) !== '') {
+                        unset($payload['description']);
+                    }
+                    if (trim((string) ($product->video_url ?? '')) !== '') {
+                        unset($payload['video_url']);
+                    }
+                    unset($payload['discount_percent'], $payload['is_new'], $payload['is_recommended']);
                     $product->update($payload);
                     $updated++;
                 } else {
@@ -393,13 +401,15 @@ class ProductController extends Controller
                     $importedAvitoIds[] = $avitoId;
                 }
 
-                $imageUrls = $this->collectImageUrlsFromSheet($sheet, $headers, $row);
-                $this->syncProductImagesAfterXlsxRow(
-                    $product,
-                    $imageUrls,
-                    $avitoListingUrl,
-                    $avitoId,
-                );
+                if ($isNewProduct || ! $product->images()->exists()) {
+                    $imageUrls = $this->collectImageUrlsFromSheet($sheet, $headers, $row);
+                    $this->syncProductImagesAfterXlsxRow(
+                        $product,
+                        $imageUrls,
+                        $avitoListingUrl,
+                        $avitoId,
+                    );
+                }
             }
         }
 

@@ -24,7 +24,7 @@ class ImportAvitoActiveItemsCommand extends Command
         {--max-images=5 : Макс. картинок на 1 товар}
         {--force-images : Перекачать картинки даже если у товара уже есть изображения}';
 
-    protected $description = 'Импортировать активные объявления Avito в каталог UlPlay (Product + Images)';
+    protected $description = 'Импортировать активные объявления Avito в каталог UlPlay (цена, наличие; описание и фото существующих товаров не перезаписываются)';
 
     public function handle(ImageService $imageService): int
     {
@@ -120,27 +120,41 @@ class ImportAvitoActiveItemsCommand extends Command
                     ? ['avito_item_id' => $listingId]
                     : ['slug' => $productData['slug']];
 
-                $product = Product::updateOrCreate(
-                    $matchKey,
-                    [
-                        'title' => $productData['title'],
-                        'slug' => $productData['slug'],
-                        'avito_item_id' => $listingId,
-                        'avito_url' => $listingUrl,
-                        'description' => $productData['description'],
-                        'price' => $productData['price'],
-                        'category_id' => $productData['category_id'],
-                        'in_stock' => $productData['in_stock'],
-                        'stock' => $productData['stock'],
-                        'discount_percent' => null,
-                        'is_new' => false,
-                        'is_recommended' => false,
-                        'video_url' => $listingVideoUrl,
-                    ],
-                );
+                /** @var Product|null $existing */
+                $existing = Product::query()->where($matchKey)->first();
+
+                $attributes = [
+                    'title' => $productData['title'],
+                    'slug' => $productData['slug'],
+                    'avito_item_id' => $listingId,
+                    'avito_url' => $listingUrl,
+                    'price' => $productData['price'],
+                    'category_id' => $productData['category_id'],
+                    'in_stock' => $productData['in_stock'],
+                    'stock' => $productData['stock'],
+                ];
+
+                if ($existing === null) {
+                    $attributes['description'] = $productData['description'];
+                    $attributes['video_url'] = $listingVideoUrl;
+                    $attributes['discount_percent'] = null;
+                    $attributes['is_new'] = false;
+                    $attributes['is_recommended'] = false;
+                    $product = Product::query()->create($attributes);
+                } else {
+                    if (trim((string) ($existing->description ?? '')) === '') {
+                        $attributes['description'] = $productData['description'];
+                    }
+                    if (trim((string) ($existing->video_url ?? '')) === '' && $listingVideoUrl !== null && $listingVideoUrl !== '') {
+                        $attributes['video_url'] = $listingVideoUrl;
+                    }
+                    $existing->update($attributes);
+                    $product = $existing;
+                }
 
                 if ($downloadImages && $maxImages > 0) {
                     $hasImages = $product->images()->count() > 0;
+                    // Существующие фото не трогаем; перекачка только для новых товаров или с --force-images
                     if ($forceImages || ! $hasImages) {
                         $product->images()->delete();
 
